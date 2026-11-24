@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none';" />
+  <title>OV Alert</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    html, body { padding: 6px; }
+    .mini-toast {
+      position: static;
+      width: 100%;
+      min-height: 92px;
+      animation: popIn 0.18s ease-out;
+    }
+  </style>
+</head>
+<body>
+  <div id="mini-toast" class="mini-toast" role="status">
+    <div class="mini-toast-header">
+      <span id="mini-toast-tag" class="mini-toast-tag">OV</span>
+      <button id="mini-toast-close" class="icon-btn tiny" type="button" aria-label="Close">×</button>
+    </div>
+    <div id="mini-toast-title" class="mini-toast-title"></div>
+    <div id="mini-toast-body" class="mini-toast-body"></div>
+    <div id="mini-toast-actions" class="mini-toast-actions hidden"></div>
+  </div>
+  <script src="toast.js"></script>
+</body>
+</html>

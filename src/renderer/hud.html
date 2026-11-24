@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none';" />
+  <title>OV</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>html, body { padding: 6px; }</style>
+</head>
+<body class="mode-mini" data-theme="vesper">
+  <section id="hud" class="hud" aria-label="OV Companion Hub">
+    <!-- WHISPER-SUBTLE AMBIENT THEME GEOMETRY -->
+    <div class="theme-fx" aria-hidden="true">
+      <div class="fx-layer fx-vesper">
+        <svg class="web-corner" viewBox="0 0 160 160" fill="none">
+          <g stroke="rgba(226,232,240,0.85)" stroke-width="0.9">
+            <line x1="160" y1="0" x2="24" y2="136"/><line x1="160" y1="24" x2="54" y2="130"/><line x1="136" y1="0" x2="30" y2="106"/>
+            <circle cx="136" cy="24" r="3.5" fill="rgba(226,232,240,0.6)"/>
+            <circle cx="104" cy="56" r="2.2" fill="rgba(226,232,240,0.5)"/>
+          </g>
+        </svg>
+      </div>
+      <div class="fx-layer fx-vector">
+        <svg class="hud-ring-bg" viewBox="0 0 160 160" fill="none">
+          <circle cx="80" cy="80" r="62" stroke="#e0a943" stroke-width="1" stroke-dasharray="28 14"/>
+          <circle cx="80" cy="80" r="46" stroke="#38bdf8" stroke-width="0.9" stroke-dasharray="16 10"/>
+        </svg>
+      </div>
+      <div class="fx-layer fx-core">
+        <svg class="hud-ring-bg" viewBox="0 0 160 160" fill="none">
+          <circle cx="80" cy="80" r="66" stroke="#f0b429" stroke-width="1" stroke-dasharray="18 8"/>
+          <circle cx="80" cy="80" r="50" stroke="#fbbf24" stroke-width="0.8" stroke-dasharray="4 6"/>
+          <circle cx="80" cy="80" r="32" stroke="#f0b429" stroke-width="0.8"/>
+        </svg>
+      </div>
+      <div class="fx-layer fx-coral">
+        <span class="bubble b1"></span><span class="bubble b2"></span><span class="bubble b3"></span>
+        <div class="ocean-waves">
+          <svg class="wave-svg" viewBox="0 0 1200 60" preserveAspectRatio="none">
+            <path d="M0 32 Q150 8 300 32 T600 32 T900 32 T1200 32 L1200 60 L0 60 Z" fill="rgba(45,212,191,0.2)"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- MATHEMATICAL MINIMAL HEADER -->
+    <header class="hud-header">
+      <div class="hud-brand">
+        <div class="app-logo" aria-hidden="true">
+          <!-- Vesper Original Acrobat Visor Emblem -->
+          <svg class="logo-svg logo-vesper" viewBox="0 0 32 32" width="20" height="20" fill="none">
+            <circle cx="16" cy="16" r="10.5" fill="#e11d48"/>
+            <rect x="8.5" y="11.5" width="15" height="8" rx="4" fill="#0b1120" stroke="#38bdf8" stroke-width="1.1"/>
+            <circle cx="13" cy="15.5" r="2" fill="#e0f2fe"/><circle cx="19" cy="15.5" r="2" fill="#e0f2fe"/>
+          </svg>
+          <!-- Vector Original Aero-Mech Emblem -->
+          <svg class="logo-svg logo-vector" viewBox="0 0 32 32" width="20" height="20" fill="none">
+            <rect x="6" y="6" width="20" height="20" rx="8" fill="#d97706"/>
+            <rect x="9" y="10.5" width="14" height="9" rx="4.5" fill="#0c1424"/>
+            <rect x="11" y="13.8" width="3.8" height="2.4" rx="1.1" fill="#38bdf8"/>
+            <rect x="17.2" y="13.8" width="3.8" height="2.4" rx="1.1" fill="#38bdf8"/>
+          </svg>
+          <!-- Core Holographic Orb Emblem -->
+          <svg class="logo-svg logo-core" viewBox="0 0 32 32" width="20" height="20" fill="none">
+            <circle cx="16" cy="16" r="11" stroke="#f0b429" stroke-width="1.4" stroke-dasharray="6 3"/>
+            <circle cx="16" cy="16" r="6.5" fill="#f0b429" fill-opacity="0.3" stroke="#fef0c7" stroke-width="1.3"/>
+            <circle cx="16" cy="16" r="2.6" fill="#fef0c7"/>
+          </svg>
+          <!-- Coral Original Reef Emblem -->
+          <svg class="logo-svg logo-coral" viewBox="0 0 32 32" width="20" height="20" fill="none">
+            <path d="M10.5 16C7 10.5 3.5 11.2 4.2 16C3.5 20.8 7 21.5 10.5 16Z" fill="#2dd4bf"/>
+            <ellipse cx="18.8" cy="16" rx="9.2" ry="6.4" fill="#f97316"/>
+            <circle cx="16.5" cy="14" r="2.4" fill="#fff7ed" opacity="0.85"/>
+            <circle cx="23.4" cy="14.7" r="1.4" fill="#0b1926"/>
+            <circle cx="25.8" cy="8.2" r="1.4" fill="#2dd4bf"/>
+          </svg>
+        </div>
+        <div class="hud-brand-text">
+          <div class="hud-title-row">
+            <span class="hud-title">OV</span>
+            <span id="header-pill" class="ram-pill deep-only">155 MB</span>
+          </div>
+          <div id="hud-subtitle" class="hud-subtitle">Vesper · 0 active</div>
+        </div>
+      </div>
+
+      <div class="hud-header-right">
+        <button id="btn-deep-dive" class="morph-btn mini-only" type="button" title="Expand full hub">Deep Dive ↗</button>
+        <button id="btn-compact" class="morph-btn deep-only" type="button" title="Compact view">Mini ↙</button>
+
+        <button id="btn-refresh" class="icon-btn deep-only" type="button" title="Refresh">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
+        </button>
+        <button id="btn-pin" class="icon-btn deep-only" type="button" title="Pin open">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16h14v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+        </button>
+        <button id="btn-close-hud" class="icon-btn" type="button" title="Close (Esc)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ===========================================================
+         STAGE 1: MINIMAL COMPACT MINI POPOVER
+         =========================================================== -->
+    <div id="mini-body" class="mini-body mini-only">
+      <div class="char-strip" role="group" aria-label="Switch Companion">
+        <button class="char-chip active" data-char="vesper" type="button">Vesper</button>
+        <button class="char-chip" data-char="vector" type="button">Vector</button>
+        <button class="char-chip" data-char="core" type="button">Core</button>
+        <button class="char-chip" data-char="coral" type="button">Coral</button>
+      </div>
+
+      <div id="mini-approval-slot" class="hidden"></div>
+
+      <div id="mini-agent-card" class="mini-pulse-card" title="Click to open Live Agents">
+        <div class="mini-pulse-top">
+          <span class="mini-pulse-label"><span class="agent-dot" id="mini-ag-dot" style="background:#38bdf8"></span><span id="mini-ag-name">Agents</span></span>
+          <span id="mini-ag-meta" class="elapsed-pill">Live</span>
+        </div>
+        <div id="mini-ag-brief" class="mini-pulse-text">Monitoring agents cleanly in real time...</div>
+      </div>
+
+      <div class="mini-sys-row">
+        <button id="mini-btn-wifi" class="mini-sys-pill on" type="button">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+          <span class="mini-sys-meta"><span class="mini-sys-name">Wi-Fi</span><span id="mini-wifi-sub" class="mini-sys-sub">On</span></span>
+        </button>
+        <button id="mini-btn-bt" class="mini-sys-pill on" type="button">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg>
+          <span class="mini-sys-meta"><span class="mini-sys-name">BT</span><span id="mini-bt-sub" class="mini-sys-sub">On</span></span>
+        </button>
+        <button id="mini-btn-flight" class="mini-sys-pill flight" type="button">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+          <span class="mini-sys-meta"><span class="mini-sys-name">Flight</span><span id="mini-flight-sub" class="mini-sys-sub">Off</span></span>
+        </button>
+      </div>
+
+      <div id="mini-alert-card" class="mini-pulse-card hidden" title="Click to open app">
+        <div class="mini-pulse-top">
+          <span class="mini-pulse-label"><span class="agent-dot" id="mini-al-dot" style="background:#25d366"></span><span id="mini-al-app">Message</span></span>
+          <span id="mini-al-time" class="section-meta">Now</span>
+        </div>
+        <div id="mini-al-body" class="mini-pulse-text"></div>
+      </div>
+
+      <div id="mini-ai-reply" class="mini-ai-reply hidden">
+        <div class="mini-ai-meta"><span id="mini-ai-model">qwen3.5:2b</span><span id="mini-ai-action"></span></div>
+        <div id="mini-ai-text"></div>
+      </div>
+
+      <div class="mini-dock-row">
+        <button class="mini-dock-pill" data-app="brave" type="button">Brave</button>
+        <button class="mini-dock-pill" data-app="spotify" type="button">Spotify</button>
+        <button class="mini-dock-pill" data-app="terminal" type="button">Term</button>
+        <button class="mini-dock-pill" id="btn-mini-lens" type="button" title="Explain copied text/code">✦ Lens</button>
+        <button class="mini-dock-pill" data-app="whatsapp" type="button">WA</button>
+      </div>
+    </div>
+
+    <!-- ===========================================================
+         STAGE 2: DEEP DIVE MATHEMATICAL COMMAND CENTER
+         =========================================================== -->
+    <div class="hud-tabs-wrap deep-only">
+      <nav class="hud-tabs" role="tablist">
+        <button class="tab-btn active" data-tab="agents" type="button" role="tab">Live <span id="tab-badge-agents" class="tab-badge hidden">0</span></button>
+        <button class="tab-btn" data-tab="ai" type="button" role="tab">Chat</button>
+        <button class="tab-btn" data-tab="tools" type="button" role="tab">Control</button>
+        <button class="tab-btn" data-tab="alerts" type="button" role="tab">Alerts <span id="tab-badge-alerts" class="tab-badge hidden">0</span></button>
+        <button class="tab-btn" data-tab="pet" type="button" role="tab">Studio</button>
+      </nav>
+    </div>
+
+    <main class="hud-body deep-only">
+      <!-- TAB 1: LIVE AGENTS -->
+      <div id="pane-agents" class="tab-pane active">
+        <div id="approvals-section" class="section hidden">
+          <div class="section-head"><span class="section-title urgent">Pending Approvals</span><span id="approvals-count-label" class="section-meta">0</span></div>
+          <div id="approvals-list" class="card-list"></div>
+        </div>
+
+        <div id="discovery-section" class="section hidden">
+          <div class="section-head"><span class="section-title">Auto-Detected Installs</span><span class="section-meta">Live</span></div>
+          <div id="discovery-chips" class="chip-row"></div>
+        </div>
+
+        <div class="section">
+          <div class="section-head"><span class="section-title">Active AI Agents</span><span id="agents-meta" class="section-meta">Live</span></div>
+          <div id="agents-list" class="card-list"></div>
+          <div id="idle-agents-section" class="section hidden" style="margin-top:4px">
+            <div class="section-head"><span class="section-title">Stopped / Completed</span><span id="idle-agents-meta" class="section-meta">0</span></div>
+            <div id="idle-agents-list" class="idle-agents-wrap"></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head"><span class="section-title">Open Windows</span><span class="section-meta">Focus</span></div>
+          <div id="windows-list" class="window-strip"></div>
+        </div>
+
+        <div id="hook-banner" class="hook-banner">
+          <div class="hook-banner-text">
+            <strong id="hook-banner-title">Claude Code Allow/Deny Bridge</strong>
+            <span id="hook-banner-desc">Authenticated local bridge for live approvals.</span>
+          </div>
+          <button id="btn-quick-hook" class="mini-btn primary" type="button">Connect</button>
+        </div>
+      </div>
+
+      <!-- TAB 2: SAVED AI CHAT (A+S+D WAKE) + THINKING MODEL + WISPR + LENS -->
+      <div id="pane-ai" class="tab-pane">
+        <div class="section">
+          <div class="section-head">
+            <span class="section-title">Local AI Brain · Press A+S+D Anywhere</span>
+            <button id="btn-clear-ai" class="link-btn muted" type="button">Clear</button>
+          </div>
+          <div class="llm-controls">
+            <select id="model-select" class="model-select" aria-label="Select local LLM"></select>
+            <button id="btn-think-mode" class="mini-btn" type="button" title="Toggle Deep Thinking Model (Chain-of-Thought)">⚡ Fast</button>
+            <button id="btn-voice-toggle" class="mini-btn active" type="button" title="Toggle character voice reply">🔊</button>
+          </div>
+          <div class="chip-row">
+            <button class="micro-chip actionable" id="btn-chat-lens" type="button">✦ Explain Copied</button>
+            <button class="micro-chip actionable" data-app="wispr" type="button">🎙 Wispr Flow</button>
+            <button class="micro-chip actionable" data-quick-prompt="search react bits and tailwind" type="button">🔍 Multi-Search</button>
+            <button class="micro-chip actionable" data-quick-prompt="remind me in 15 min to take a break" type="button">⏰ Quick Remind</button>
+          </div>
+        </div>
+        <div id="chat-feed" class="chat-feed"></div>
+      </div>
+
+      <!-- TAB 3: MUSIC PLAYER + CONTROL CENTER + APPS + REMINDERS + CLIPBOARD VAULT -->
+      <div id="pane-tools" class="tab-pane">
+        <!-- Integrated Music Player & Character Theme BGM -->
+        <div class="section">
+          <div class="section-head">
+            <span class="section-title">Music Player & Theme BGM</span>
+            <span id="mp-source-meta" class="section-meta">Ready</span>
+          </div>
+          <div class="music-player-card">
+            <div class="mp-top">
+              <div class="mp-info">
+                <div class="mp-disc">♪</div>
+                <div style="min-width:0;flex:1">
+                  <div id="mp-track" class="mp-track">No track playing</div>
+                  <div id="mp-artist" class="mp-artist">Play Spotify, YouTube, or Character BGM</div>
+                </div>
+              </div>
+              <div class="mp-controls">
+                <button class="icon-btn" data-media="prev" type="button" title="Previous">⏮</button>
+                <button class="icon-btn active" data-media="playPause" type="button" title="Play / Pause">⏯</button>
+                <button class="icon-btn" data-media="next" type="button" title="Next">⏭</button>
+              </div>
+            </div>
+            <div class="mp-foot">
+              <div class="chip-row">
+                <button id="btn-bgm-loop" class="mini-btn" type="button">♫ Theme BGM: Off</button>
+                <button id="btn-theme-playlist" class="mini-btn" type="button">▶ Character OST</button>
+              </div>
+              <button id="btn-ctrl-dance" class="mini-btn" type="button">Dance ♪</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connectivity Control Center -->
+        <div class="section">
+          <div class="section-head"><span class="section-title">Connectivity</span><button id="btn-sys-refresh" class="link-btn" type="button">Scan</button></div>
+          <div class="cc-grid">
+            <button id="cc-tile-wifi" class="cc-tile on" type="button">
+              <div class="cc-tile-top">
+                <span class="cc-icon-ring"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></span>
+                <span id="cc-wifi-badge" class="cc-state-dot">ON</span>
+              </div>
+              <div class="cc-tile-title">Wi-Fi</div>
+              <div id="cc-wifi-sub" class="cc-tile-sub">Checking...</div>
+            </button>
+            <button id="cc-tile-bt" class="cc-tile on" type="button">
+              <div class="cc-tile-top">
+                <span class="cc-icon-ring"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg></span>
+                <span id="cc-bt-badge" class="cc-state-dot">ON</span>
+              </div>
+              <div class="cc-tile-title">Bluetooth</div>
+              <div id="cc-bt-sub" class="cc-tile-sub">Checking...</div>
+            </button>
+            <button id="cc-tile-flight" class="cc-tile flight" type="button">
+              <div class="cc-tile-top">
+                <span class="cc-icon-ring"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></span>
+                <span id="cc-flight-badge" class="cc-state-dot">OFF</span>
+              </div>
+              <div class="cc-tile-title">Flight</div>
+              <div id="cc-flight-sub" class="cc-tile-sub">Normal</div>
+            </button>
+          </div>
+
+          <div class="cc-drawer-tabs">
+            <div class="cc-drawer-pills">
+              <button id="btn-drawer-wifi" class="cc-pill-btn" type="button">Wi-Fi ▾</button>
+              <button id="btn-drawer-bt" class="cc-pill-btn" type="button">Bluetooth ▾</button>
+            </div>
+            <div class="cc-drawer-pills">
+              <button id="btn-sys-mute" class="cc-pill-btn" type="button">Mute</button>
+              <button id="btn-sys-lock" class="cc-pill-btn" type="button">Lock</button>
+            </div>
+          </div>
+
+          <div id="cc-wifi-drawer" class="cc-drawer hidden">
+            <div class="cc-drawer-head"><span>Saved & Nearby Wi-Fi</span><button id="btn-wifi-panel" class="link-btn" type="button">All ↗</button></div>
+            <div id="cc-wifi-list" class="card-list"></div>
+          </div>
+          <div id="cc-bt-drawer" class="cc-drawer hidden">
+            <div class="cc-drawer-head"><span>Paired Bluetooth</span><button id="btn-bt-panel" class="link-btn" type="button">Settings ↗</button></div>
+            <div id="cc-bt-list" class="card-list"></div>
+          </div>
+        </div>
+
+        <!-- Universal App & Website Launcher -->
+        <div class="section">
+          <div class="section-head"><span class="section-title">Apps, Shells & Any Website</span><span id="apps-indexed-meta" class="section-meta">PC Apps</span></div>
+          <form id="omni-launch-form" class="omni-launch-form">
+            <input id="omni-launch-input" type="text" autocomplete="off" placeholder="Website (chatgpt.com) or app (cmd, discord)..." />
+            <button class="mini-btn primary" type="submit">Open</button>
+            <button id="btn-omni-webapp" class="mini-btn" type="button">Web App</button>
+          </form>
+          <div class="app-dock-grid">
+            <button class="dock-btn" data-app="brave" type="button">Brave</button>
+            <button class="dock-btn" data-app="spotify" type="button">Spotify</button>
+            <button class="dock-btn" data-app="youtube" type="button">YouTube</button>
+            <button class="dock-btn" data-app="reddit" type="button">Reddit</button>
+            <button class="dock-btn" data-app="terminal" type="button">Terminal</button>
+            <button class="dock-btn" data-app="cmd" type="button">CMD</button>
+            <button class="dock-btn" data-app="powershell" type="button">PowerShell</button>
+            <button class="dock-btn" data-app="vscode" type="button">VS Code</button>
+            <button class="dock-btn" data-app="whatsapp" type="button">WhatsApp</button>
+            <button class="dock-btn" data-app="discord" type="button">Discord</button>
+            <button class="dock-btn" data-app="wispr" type="button">Wispr</button>
+            <button class="dock-btn" data-app="explorer" type="button">Files</button>
+          </div>
+        </div>
+
+        <!-- Copy & Paste Clipboard Vault + Focus Lens -->
+        <div class="section">
+          <div class="section-head">
+            <span class="section-title">Copy & Paste Vault (In-Memory)</span>
+            <div class="filter-actions">
+              <button id="btn-cb-explain" class="link-btn" type="button">✦ Explain Latest</button>
+              <button id="btn-cb-clear" class="link-btn muted" type="button">Clear</button>
+            </div>
+          </div>
+          <div id="clipboard-list" class="card-list"></div>
+        </div>
+
+        <!-- Reminders, Tasks & Study Focus Streak -->
+        <div class="section">
+          <div class="section-head"><span class="section-title">Study Sprint & Focus XP</span><span id="focus-xp-meta" class="section-meta">Lv.1 · 0 XP</span></div>
+          <div class="sprint-card">
+            <div id="sprint-display" class="sprint-time">25:00</div>
+            <div class="sprint-btns">
+              <button class="mini-btn" data-sprint="25" type="button">25m</button>
+              <button class="mini-btn" data-sprint="10" type="button">10m</button>
+              <button class="mini-btn" data-sprint="5" type="button">5m</button>
+              <button id="btn-sprint-stop" class="mini-btn deny hidden" type="button">Stop</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head"><span class="section-title">Smart Reminders</span><span id="reminders-count" class="section-meta">0</span></div>
+          <form id="rem-form" class="task-add-row">
+            <input id="rem-input" type="text" placeholder="Remind me to..." autocomplete="off" />
+            <input id="rem-mins" type="text" value="10" style="max-width:48px;text-align:center" title="Minutes" />
+            <button class="mini-btn primary" type="submit">Set</button>
+          </form>
+          <div id="reminders-list" class="card-list"></div>
+        </div>
+
+        <div class="section">
+          <div class="section-head"><span class="section-title">Synced To-Do Tasks</span><span id="tasks-count" class="section-meta">0</span></div>
+          <form id="task-form" class="task-add-row">
+            <input id="task-input" type="text" placeholder="Add a synced task..." autocomplete="off" />
+            <button class="mini-btn primary" type="submit">Add</button>
+          </form>
+          <div id="tasks-list" class="card-list"></div>
+        </div>
+
+        <div class="section">
+          <div class="section-head"><span class="section-title">Auto-Pilot & Dev Ports</span></div>
+          <div class="setting-row">
+            <div><div class="setting-name">Auto-Allow Read-Only</div><div class="setting-desc">Silently approve Read/Glob/Grep</div></div>
+            <label class="switch"><input id="toggle-ap-readonly" type="checkbox" /><span class="slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-name">Auto-Block Dangerous Shell</div><div class="setting-desc">Deny rm -rf /, format, destructive cmds</div></div>
+            <label class="switch"><input id="toggle-ap-danger" type="checkbox" checked /><span class="slider"></span></label>
+          </div>
+          <div id="ports-list" class="port-grid"></div>
+        </div>
+      </div>
+
+      <!-- TAB 4: ALERTS -->
+      <div id="pane-alerts" class="tab-pane">
+        <div class="filter-row">
+          <div class="filter-pills">
+            <button class="filter-pill active" data-filter="all" type="button">All</button>
+            <button class="filter-pill" data-filter="whatsapp" type="button">WhatsApp</button>
+            <button class="filter-pill" data-filter="agent" type="button">Agents</button>
+            <button class="filter-pill" data-filter="system" type="button">Apps</button>
+          </div>
+          <div class="filter-actions">
+            <button id="btn-read-all" class="link-btn" type="button">Read all</button>
+            <button id="btn-clear-all" class="link-btn muted" type="button">Clear</button>
+          </div>
+        </div>
+        <div id="notifications-list" class="card-list"></div>
+      </div>
+
+      <!-- TAB 5: STUDIO (4 COMPANIONS, SKINS, CUSTOM NAME, AGE GROUP, LIQUID GLASS, VOICE, AUTO-START, MOBILE) -->
+      <div id="pane-pet" class="tab-pane">
+        <div class="section">
+          <div class="section-head"><span class="section-title">Companions & Living Themes</span></div>
+          <div class="pet-cards-4">
+            <button class="pet-card active" data-char="vesper" type="button">
+              <span class="pet-card-title" data-char-label="vesper">Vesper</span>
+              <span class="pet-card-sub">Acrobat · Elastic Tether</span>
+            </button>
+            <button class="pet-card" data-char="vector" type="button">
+              <span class="pet-card-title" data-char-label="vector">Vector</span>
+              <span class="pet-card-sub">Aero-Mech · Ion Flight</span>
+            </button>
+            <button class="pet-card" data-char="core" type="button">
+              <span class="pet-card-title" data-char-label="core">Core</span>
+              <span class="pet-card-sub">Holo Sphere · HUD Rings</span>
+            </button>
+            <button class="pet-card" data-char="coral" type="button">
+              <span class="pet-card-title" data-char-label="coral">Coral</span>
+              <span class="pet-card-sub">Reef Glass · Bubbles</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Customize Active Companion (Custom Name + Skin Colors + Age Profile) -->
+        <div class="section">
+          <div class="section-head"><span class="section-title">Personalize Companion</span><span id="studio-active-label" class="section-meta">Vesper</span></div>
+          <form id="rename-form" class="task-add-row">
+            <input id="rename-input" type="text" maxlength="22" placeholder="Edit character name..." autocomplete="off" />
+            <button class="mini-btn primary" type="submit">Rename</button>
+          </form>
+          <div id="skin-swatches" class="skin-row"></div>
+          <div class="seg-3" role="group" aria-label="Age Style Profile">
+            <button class="seg-btn" data-age="0-15" type="button">0–15 Youth</button>
+            <button class="seg-btn active" data-age="15-30" type="button">15–30 Student</button>
+            <button class="seg-btn" data-age="30-60" type="button">30–60 Pro</button>
+          </div>
+        </div>
+
+        <!-- Liquid Glass Transparency & Scale -->
+        <div class="section">
+          <div class="section-head"><span class="section-title">Glass Material & Scale</span></div>
+          <div class="setting-row">
+            <div><div class="setting-name">Glass Transparency</div><div class="setting-desc" id="trans-label">Frosted (42%)</div></div>
+            <input id="range-trans" class="range-input" type="range" min="0" max="100" step="2" value="42" />
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-name">Companion Size</div><div class="setting-desc" id="size-label">106%</div></div>
+            <input id="range-size" class="range-input" type="range" min="0.75" max="1.28" step="0.04" value="1.06" />
+          </div>
+        </div>
+
+        <!-- Voice, BGM & Windows Startup -->
+        <div class="section">
+          <div class="section-head"><span class="section-title">Voice, BGM & Startup</span><button id="btn-test-voice" class="link-btn" type="button">Test Voice</button></div>
+          <div class="setting-row">
+            <div><div class="setting-name">Character Voice Replies</div><div class="setting-desc">Distinct voice per companion (Vesper, Vector, Core, Coral)</div></div>
+            <label class="switch"><input id="toggle-voice" type="checkbox" checked /><span class="slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-name">Startup Character BGM</div><div class="setting-desc">Play signature theme motif on start & switch</div></div>
+            <label class="switch"><input id="toggle-bgm" type="checkbox" checked /><span class="slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-name">Start Automatically with Windows</div><div class="setting-desc">Launch AURA automatically on login (or keep Manual)</div></div>
+            <label class="switch"><input id="toggle-autostart" type="checkbox" /><span class="slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-name">Desktop-Only Mode</div><div class="setting-desc">Hide pet over apps; roam only on desktop</div></div>
+            <label class="switch"><input id="toggle-desktop-only" type="checkbox" /><span class="slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-name">Privacy Mask</div><div class="setting-desc">Blur message & clipboard previews until hover</div></div>
+            <label class="switch"><input id="toggle-privacy-mask" type="checkbox" /><span class="slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-name">Wake on Alerts & Preview Toasts</div><div class="setting-desc">Surface companion on urgent approvals/messages</div></div>
+            <label class="switch"><input id="toggle-wake-alerts" type="checkbox" checked /><span class="slider"></span></label>
+          </div>
+        </div>
+
+        <!-- Movement -->
+        <div class="section">
+          <div class="section-head"><span class="section-title">Movement & Dance</span><span id="hud-mode-label" class="section-meta">Roaming</span></div>
+          <div class="control-grid">
+            <button class="ctrl-btn" data-mode="swim" type="button">Roam<small>Chalo</small></button>
+            <button class="ctrl-btn" data-mode="fast" type="button">Fast<small>Bhaago</small></button>
+            <button class="ctrl-btn" data-mode="slow" type="button">Slow<small>Dheere</small></button>
+            <button class="ctrl-btn" data-mode="stay" type="button">Stay<small>Ruko</small></button>
+            <button class="ctrl-btn" data-mode="follow" type="button">Follow<small>Cursor</small></button>
+            <button class="ctrl-btn" id="btn-pet-dance" type="button">Dance<small>Vibe ♪</small></button>
+          </div>
+          <div class="corner-row">
+            <button class="corner-btn" data-corner="top-left" type="button">TL</button>
+            <button class="corner-btn" data-corner="top-right" type="button">TR</button>
+            <button class="corner-btn" id="btn-pick-spot" type="button">Pick</button>
+            <button class="corner-btn" data-corner="bottom-left" type="button">BL</button>
+            <button class="corner-btn" data-corner="bottom-right" type="button">BR</button>
+          </div>
+        </div>
+
+        <!-- Worldwide Mobile Remote & Android APK -->
+        <div class="section">
+          <div class="section-head"><span class="section-title">Worldwide Mobile Remote & APK</span><span id="mobile-status-meta" class="section-meta">Offline</span></div>
+          <div class="mobile-card">
+            <div class="setting-desc">Control AURA, see your moving pet on phone, edit synced tasks & chat from anywhere on Earth while laptop is ON.</div>
+            <div class="test-row">
+              <button id="btn-mobile-world" class="mini-btn primary" type="button">Go Worldwide (HTTPS)</button>
+              <button id="btn-mobile-lan" class="mini-btn" type="button">LAN Wi-Fi</button>
+              <button id="btn-mobile-stop" class="mini-btn deny hidden" type="button">Stop</button>
+              <button id="btn-mobile-apk" class="mini-btn" type="button">APK File</button>
+            </div>
+            <div id="mobile-qr-panel" class="mobile-qr-box hidden">
+              <div id="mobile-qr-svg" class="mobile-qr-svg"></div>
+              <div class="mobile-meta">
+                <span class="section-meta">Pairing PIN (3 min)</span>
+                <div id="mobile-pin-code" class="mobile-pin">------</div>
+                <div id="mobile-active-url" class="mobile-url"></div>
+                <div class="test-row" style="margin-top:3px">
+                  <button id="btn-mobile-copy" class="mini-btn primary" type="button">Copy Link</button>
+                  <button id="btn-mobile-pin" class="mini-btn" type="button">New PIN</button>
+                  <button id="btn-mobile-rotate" class="mini-btn deny" type="button">Rotate Key</button>
+                </div>
+              </div>
+            </div>
+            <div class="threat-box">
+              <strong>Security Advisory:</strong> Mobile Remote is OFF by default with a unique 256-bit local key & rate limit. Never share your Pairing Link publicly; use <em>Rotate Key</em> anytime.
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head"><span class="section-title">Security & Hooks</span><span id="hook-port-label" class="section-meta">127.0.0.1:47821</span></div>
+          <div class="security-pill-row">
+            <span class="sec-pill">256-bit Auth</span>
+            <span class="sec-pill">Zero Telemetry</span>
+            <span class="sec-pill">Local LLM</span>
+            <span class="sec-pill">A+S+D Chord</span>
+          </div>
+          <div class="test-row">
+            <button id="btn-setup-hooks" class="mini-btn primary" type="button">Connect Claude Hooks</button>
+            <button id="btn-test-approval" class="mini-btn" type="button">Test Allow</button>
+            <button id="btn-test-wa" class="mini-btn" type="button">Test Alert</button>
+          </div>
+          <div id="setup-feedback" class="setup-feedback"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- SPOTLIGHT UNIVERSAL ASK BAR -->
+    <footer class="hud-footer">
+      <div id="cmd-feedback" class="cmd-feedback hidden"></div>
+      <form id="cmd-form" class="cmd-form">
+        <input id="cmd-input" type="text" autocomplete="off" placeholder='Ask AI, "remind me in 10m...", "vector", "core", "open cmd"...' />
+        <button id="btn-voice" class="icon-btn mic-btn" type="button" title="Voice / Wispr Flow">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+        </button>
+        <button class="send-btn" type="submit" title="Send">→</button>
+      </form>
+    </footer>
+  </section>
+
+  <script src="commands.js"></script>
+  <script src="hud.js"></script>
+</body>
+</html>

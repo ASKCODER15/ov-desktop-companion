@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https: http://127.0.0.1:* http://192.168.*:* http://10.*:*; object-src 'none'; base-uri 'none';" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0c14" />
+  <title>OV Mobile</title>
+  <style>
+    :root {
+      --glass-alpha: 0.72;
+      --glass-blur: 24px;
+      --bg: #0a0c14;
+      --bg-grad: radial-gradient(circle at 12% 4%, rgba(230, 57, 70, 0.13), transparent 44%), radial-gradient(circle at 88% 94%, rgba(96, 165, 250, 0.10), transparent 46%), #0a0c14;
+      --card: rgba(20, 22, 34, var(--glass-alpha));
+      --card-elev: rgba(255, 255, 255, 0.045);
+      --border: rgba(255, 255, 255, 0.10);
+      --text: #f5f7fc;
+      --text-2: #a0aec0;
+      --text-3: #6c798e;
+      --p1: #e63946;
+      --p2: #60a5fa;
+      --p1-soft: rgba(230, 57, 70, 0.14);
+      --p1-border: rgba(230, 57, 70, 0.36);
+      --accent-solid: #e63946;
+      --accent-fg: #ffffff;
+      --green: #34d399;
+      --amber: #f59e0b;
+      --red: #f87171;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-sm: 10px;
+    }
+
+    body[data-theme="vector"] {
+      --bg: #10090b;
+      --bg-grad: radial-gradient(circle at 14% 6%, rgba(217, 119, 6, 0.14), transparent 44%), radial-gradient(circle at 86% 92%, rgba(56, 189, 248, 0.11), transparent 46%), #10090b;
+      --card: rgba(26, 16, 18, var(--glass-alpha));
+      --p1: #d97706;
+      --p2: #38bdf8;
+      --p1-soft: rgba(217, 119, 6, 0.15);
+      --p1-border: rgba(245, 158, 11, 0.38);
+      --accent-solid: #d97706;
+      --accent-fg: #0d0708;
+    }
+
+    body[data-theme="core"] {
+      --bg: #080b10;
+      --bg-grad: radial-gradient(circle at 14% 6%, rgba(251, 191, 36, 0.12), transparent 45%), radial-gradient(circle at 86% 92%, rgba(56, 189, 248, 0.10), transparent 45%), #080b10;
+      --card: rgba(14, 18, 28, var(--glass-alpha));
+      --p1: #fbbf24;
+      --p2: #38bdf8;
+      --p1-soft: rgba(251, 191, 36, 0.13);
+      --p1-border: rgba(251, 191, 36, 0.36);
+      --accent-solid: #fbbf24;
+      --accent-fg: #0b0e14;
+    }
+
+    body[data-theme="coral"] {
+      --bg: #06111a;
+      --bg-grad: radial-gradient(circle at 14% 6%, rgba(34, 211, 238, 0.13), transparent 45%), radial-gradient(circle at 86% 92%, rgba(251, 146, 60, 0.10), transparent 45%), #06111a;
+      --card: rgba(10, 24, 36, var(--glass-alpha));
+      --p1: #22d3ee;
+      --p2: #fb923c;
+      --p1-soft: rgba(34, 211, 238, 0.13);
+      --p1-border: rgba(34, 211, 238, 0.36);
+      --accent-solid: #22d3ee;
+      --accent-fg: #04131c;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+      font-size: 13px;
+      line-height: 1.45;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app {
+      position: relative;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-grad);
+      transition: background 0.35s ease;
+    }
+
+    /* Interactive Moving Floating Companion Overlay */
+    #pet-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 40;
+      pointer-events: none;
+    }
+
+    #pet-hitbox {
+      position: fixed;
+      width: 84px;
+      height: 84px;
+      z-index: 45;
+      border-radius: 50%;
+      touch-action: none;
+      cursor: grab;
+      background: transparent;
+    }
+    #pet-hitbox:active { cursor: grabbing; }
+    #pet-hitbox.hidden-pet, #pet-canvas.hidden-pet { display: none; }
+
+    /* Minimal Mathematical Topbar */
+    .topbar {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: max(12px, env(safe-area-inset-top)) 16px 12px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10, 12, 20, 0.78);
+      backdrop-filter: blur(var(--glass-blur));
+    }
+
+    .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .brand-mark {
+      width: 32px; height: 32px; border-radius: 10px;
+      background: var(--p1-soft); border: 1px solid var(--p1-border);
+      display: grid; place-items: center; flex-shrink: 0;
+    }
+    .brand-title { font-size: 15px; font-weight: 700; letter-spacing: 0.04em; color: var(--text); }
+    .brand-sub { font-size: 11px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .top-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .icon-pill {
+      height: 28px; padding: 0 9px; border-radius: 99px;
+      border: 1px solid var(--border); background: var(--card-elev);
+      color: var(--text-2); font-size: 11px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .icon-pill.on { border-color: var(--p1-border); background: var(--p1-soft); color: var(--text); }
+
+    .conn-pill {
+      height: 28px; padding: 0 10px; border-radius: 99px;
+      border: 1px solid var(--border); background: var(--card-elev);
+      font-size: 11px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px; color: var(--text-2);
+    }
+    .conn-pill.online { border-color: rgba(52, 211, 153, 0.38); background: rgba(52, 211, 153, 0.12); color: #86efac; }
+    .conn-pill.offline { border-color: rgba(245, 158, 11, 0.38); background: rgba(245, 158, 11, 0.12); color: #fde68a; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+    /* Main Scroll Body */
+    .main {
+      position: relative;
+      z-index: 5;
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 16px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .hidden { display: none !important; }
+
+    .offline-banner {
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      background: rgba(245, 158, 11, 0.10);
+      border: 1px solid rgba(245, 158, 11, 0.32);
+      font-size: 12px;
+      color: #fde68a;
+    }
+    .offline-banner strong { display: block; margin-bottom: 2px; font-size: 12.5px; color: #fff; }
+
+    /* Clean Hero Strip */
+    .hero {
+      padding: 14px;
+      border-radius: var(--radius-lg);
+      background: var(--card);
+      border: 1px solid var(--p1-border);
+      backdrop-filter: blur(var(--glass-blur));
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .hero-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .hero-info { min-width: 0; flex: 1; }
+    .hero-title { font-size: 15px; font-weight: 700; color: var(--text); }
+    .hero-sub { font-size: 11.5px; color: var(--text-2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .xp-pill {
+      padding: 4px 10px; border-radius: 99px;
+      border: 1px solid var(--p1-border); background: var(--p1-soft);
+      color: var(--text); font-size: 11px; font-weight: 700; white-space: nowrap;
+    }
+
+    /* 4-Companion Segmented Selector */
+    .char-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      padding: 4px;
+      border-radius: var(--radius-md);
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid var(--border);
+    }
+    .char-btn {
+      height: 32px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-2);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .char-btn.active {
+      background: var(--accent-solid);
+      color: var(--accent-fg);
+      font-weight: 700;
+    }
+
+    /* Minimal Glass Cards */
+    .card {
+      padding: 14px;
+      border-radius: var(--radius-lg);
+      background: var(--card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(var(--glass-blur));
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .card.urgent {
+      border-color: rgba(245, 158, 11, 0.45);
+      background: rgba(245, 158, 11, 0.09);
+    }
+
+    .sec-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-3);
+    }
+    .sec-meta { font-weight: 600; color: var(--text-2); text-transform: none; letter-spacing: 0; }
+
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .input-row { display: flex; gap: 8px; align-items: center; }
+
+    input[type="text"], input[type="url"], input[type="number"] {
+      flex: 1;
+      min-width: 0;
+      height: 38px;
+      padding: 0 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.30);
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+    }
+    input:focus { border-color: var(--p1-border); }
+
+    .btn {
+      height: 36px;
+      padding: 0 13px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--card-elev);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn.primary { background: var(--accent-solid); color: var(--accent-fg); border-color: transparent; font-weight: 700; }
+    .btn.allow { background: var(--green); color: #052014; border-color: transparent; font-weight: 700; }
+    .btn.deny { background: rgba(248, 113, 113, 0.14); border-color: rgba(248, 113, 113, 0.35); color: #fca5a5; }
+    .btn.sm { height: 30px; padding: 0 10px; font-size: 11.5px; border-radius: 8px; }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+    .tile {
+      min-height: 40px;
+      padding: 8px 10px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--card-elev);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .tile.on { background: var(--p1-soft); border-color: var(--p1-border); color: var(--text); }
+
+    /* Music Strip */
+    .music-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      background: rgba(0, 0, 0, 0.24);
+      border: 1px solid var(--border);
+    }
+    .music-meta { min-width: 0; flex: 1; }
+    .music-title { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .music-sub { font-size: 11px; color: var(--text-2); }
+    .music-btns { display: flex; gap: 6px; flex-shrink: 0; }
+    .m-btn {
+      width: 32px; height: 32px; border-radius: 9px;
+      border: 1px solid var(--border); background: var(--card-elev);
+      color: var(--text); font-size: 12px; cursor: pointer;
+      display: grid; place-items: center;
+    }
+    .m-btn.play { background: var(--accent-solid); color: var(--accent-fg); border-color: transparent; font-weight: 700; }
+
+    /* Tasks & Reminders */
+    .task-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      background: rgba(0, 0, 0, 0.22);
+      border: 1px solid var(--border);
+    }
+    .task-left { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; cursor: pointer; }
+    .task-row.done .task-txt { text-decoration: line-through; color: var(--text-3); }
+    .task-txt { font-size: 13px; word-break: break-word; }
+
+    /* Skins & Slider */
+    .swatch-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .swatch {
+      height: 30px; padding: 0 10px; border-radius: 99px;
+      border: 1px solid var(--border); background: var(--card-elev);
+      color: var(--text-2); font-size: 11px; font-weight: 600;
+      display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+    }
+    .swatch.active { border-color: var(--p1-border); background: var(--p1-soft); color: var(--text); }
+    .swatch-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    .slider-wrap { display: flex; align-items: center; gap: 10px; }
+    input[type="range"] { flex: 1; accent-color: var(--p1); }
+
+    /* AI Chat + Thinking Block */
+    .chat-list { display: flex; flex-direction: column; gap: 8px; }
+    .msg {
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      font-size: 12.5px;
+      line-height: 1.48;
+      max-width: 92%;
+      word-break: break-word;
+    }
+    .msg.user { align-self: flex-end; background: var(--p1-soft); border: 1px solid var(--p1-border); }
+    .msg.assistant { align-self: flex-start; background: var(--card-elev); border: 1px solid var(--border); }
+    .think-box {
+      margin-bottom: 6px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text-2);
+    }
+    .think-box summary { cursor: pointer; font-weight: 600; color: var(--p1); }
+
+    .agent-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 700;
+      background: rgba(0, 0, 0, 0.28); border: 1px solid var(--border);
+    }
+    .idle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 10px; border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border);
+      font-size: 12px; color: var(--text-2);
+    }
+
+    .pane { display: none; flex-direction: column; gap: 12px; }
+    .pane.active { display: flex; }
+
+    /* Minimal Bottom Nav */
+    .bottom-nav {
+      position: relative;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      padding: 8px 12px max(10px, env(safe-area-inset-bottom));
+      border-top: 1px solid var(--border);
+      background: rgba(10, 12, 20, 0.88);
+      backdrop-filter: blur(28px);
+    }
+    .nav-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 7px 4px; border-radius: 12px;
+      border: 1px solid transparent; background: transparent;
+      color: var(--text-2); font-size: 11px; font-weight: 600; cursor: pointer;
+    }
+    .nav-btn.active { background: var(--p1-soft); border-color: var(--p1-border); color: var(--text); }
+
+    .toast-bar {
+      position: fixed;
+      left: 16px;
+      right: 16px;
+      bottom: 74px;
+      z-index: 60;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(12, 16, 26, 0.96);
+      border: 1px solid var(--p1-border);
+      color: var(--text);
+      font-size: 12px;
+      text-align: center;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+    }
+  </style>
+</head>
+<body data-theme="vesper">
+  <!-- Living Floating Moving Canvas Companion -->
+  <canvas id="pet-canvas" aria-hidden="true"></canvas>
+  <div id="pet-hitbox" title="Drag me to stretch or tap to play"></div>
+
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg id="brand-svg" width="18" height="18" viewBox="0 0 24 24" fill="none"></svg>
+        </div>
+        <div style="min-width:0">
+          <div class="brand-title">OV</div>
+          <div id="top-sub" class="brand-sub">Living Companion · Anywhere</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button id="btn-pet-vis" class="icon-pill on" type="button">Pet On</button>
+        <button id="conn-pill" class="conn-pill offline" type="button"><span class="dot"></span><span id="conn-txt">Pair</span></button>
+      </div>
+    </header>
+
+    <main class="main">
+      <!-- Offline Notice -->
+      <div id="offline-banner" class="offline-banner hidden">
+        <strong>Laptop Offline</strong>
+        <span id="offline-reason">Your pet still roams right here on your phone. Task edits save locally and auto-sync the moment your laptop turns back ON.</span>
+      </div>
+
+      <!-- Pairing Card -->
+      <section id="pair-card" class="card">
+        <div class="sec-head">
+          <span>Connect Laptop Worldwide</span>
+          <button id="btn-close-pair" class="btn sm hidden" type="button">Done</button>
+        </div>
+        <div style="font-size:12px;color:var(--text-2);line-height:1.5">
+          1. On laptop open <strong>OV → Deep Dive → Studio → Go Worldwide</strong>.<br/>
+          2. Copy the Pairing Link or enter Server URL + 6-digit PIN below.
+        </div>
+        <div class="input-row">
+          <input id="inp-pair-link" type="url" placeholder="Paste Pairing Link (https://.../#pair=...)" />
+          <button id="btn-pair-link" class="btn primary" type="button">Link</button>
+        </div>
+        <div class="input-row">
+          <input id="inp-url" type="url" placeholder="https://xxxx.trycloudflare.com" />
+        </div>
+        <div class="input-row">
+          <input id="inp-pin" type="text" placeholder="6-digit PIN" maxlength="6" />
+          <button id="btn-pair-pin" class="btn primary" type="button">Pair PIN</button>
+        </div>
+      </section>
+
+      <!-- Companion Header & 4-Character Switcher -->
+      <section class="hero">
+        <div class="hero-top">
+          <div class="hero-info">
+            <div id="hero-title" class="hero-title">Vesper</div>
+            <div id="hero-sub" class="hero-sub">Drag the floating companion to stretch · tap to interact</div>
+          </div>
+          <div id="xp-pill" class="xp-pill">Lv 1 · 0 XP</div>
+        </div>
+        <div class="char-grid">
+          <button class="char-btn active" data-char="vesper" type="button">Vesper</button>
+          <button class="char-btn" data-char="vector" type="button">Vector</button>
+          <button class="char-btn" data-char="core" type="button">Core</button>
+          <button class="char-btn" data-char="coral" type="button">Coral</button>
+        </div>
+      </section>
+
+      <!-- TAB 1: TASKS, REMINDERS & SPRINT -->
+      <section id="pane-tasks" class="pane active">
+        <div class="card">
+          <div class="sec-head">
+            <span>Two-Way Synced Tasks</span>
+            <span id="queue-badge" class="sec-meta">0 open</span>
+          </div>
+          <form id="task-form" class="input-row">
+            <input id="task-inp" type="text" placeholder="Add a task (syncs Phone ↔ Laptop)..." />
+            <button class="btn primary" type="submit">Add</button>
+          </form>
+          <div id="tasks-list" style="display:flex;flex-direction:column;gap:7px"></div>
+        </div>
+
+        <div class="card">
+          <div class="sec-head">
+            <span>Smart Voice Reminder</span>
+            <span id="rem-meta" class="sec-meta">0 active</span>
+          </div>
+          <form id="rem-form" class="input-row">
+            <input id="rem-text" type="text" placeholder="Remind me to revise DSA..." />
+            <input id="rem-min" type="number" min="1" max="720" value="15" style="max-width:66px;text-align:center" />
+            <button class="btn primary" type="submit">Set</button>
+          </form>
+          <div id="rem-list" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+
+        <div class="card">
+          <div class="sec-head">
+            <span>Focus Sprint Timer</span>
+            <span id="timer-meta" class="sec-meta">Idle</span>
+          </div>
+          <div class="grid-4">
+            <button class="tile" data-timer="25" type="button">25m</button>
+            <button class="tile" data-timer="15" type="button">15m</button>
+            <button class="tile" data-timer="5" type="button">5m</button>
+            <button id="btn-timer-stop" class="btn deny" type="button" style="height:40px">Stop</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: LIVE AI AGENTS & REMOTE APPROVALS -->
+      <section id="pane-agents" class="pane">
+        <div id="approvals-wrap" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div class="card">
+          <div class="sec-head">
+            <span>Active Agents On Laptop</span>
+            <span id="ag-meta" class="sec-meta">0 active</span>
+          </div>
+          <div id="ag-active" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+        <div id="ag-idle-card" class="card hidden">
+          <div class="sec-head">
+            <span>Completed / Stopped</span>
+            <span id="ag-idle-meta" class="sec-meta">0</span>
+          </div>
+          <div id="ag-idle" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+      </section>
+
+      <!-- TAB 3: SAVED LOCAL AI CHAT + THINK MODE -->
+      <section id="pane-ai" class="pane">
+        <div class="card">
+          <div class="sec-head">
+            <span id="llm-model-lbl">Local AI · qwen3.5:2b</span>
+            <button id="btn-think-toggle" class="icon-pill" type="button">⚡ Fast</button>
+          </div>
+          <div id="chat-list" class="chat-list"></div>
+          <form id="ai-form" class="input-row" style="margin-top:4px">
+            <input id="ai-inp" type="text" placeholder="Ask anything, brainstorm, or command laptop..." />
+            <button class="btn primary" type="submit">Send</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- TAB 4: STUDIO, MUSIC, SKINS & SYSTEM CONTROLS -->
+      <section id="pane-control" class="pane">
+        <div class="card">
+          <div class="sec-head">
+            <span>Music Player</span>
+            <span id="music-state-lbl" class="sec-meta">Paused</span>
+          </div>
+          <div class="music-strip">
+            <div class="music-meta">
+              <div id="music-title" class="music-title">No active track</div>
+              <div id="music-sub" class="music-sub">Controls Spotify / Brave / Windows Media</div>
+            </div>
+            <div class="music-btns">
+              <button class="m-btn" data-media="prev" type="button" title="Previous">⏮</button>
+              <button class="m-btn play" data-media="playPause" type="button" title="Play/Pause">⏯</button>
+              <button class="m-btn" data-media="next" type="button" title="Next">⏭</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="sec-head">
+            <span>Suit / Core Skin & Name</span>
+            <span id="pet-mode-lbl" class="sec-meta">swim</span>
+          </div>
+          <div id="skin-swatches" class="swatch-row"></div>
+          <div class="input-row">
+            <input id="inp-pet-name" type="text" placeholder="Custom nickname (e.g. Nova, Atlas...)" maxlength="24" />
+            <button id="btn-save-name" class="btn primary" type="button">Rename</button>
+          </div>
+          <div class="sec-head" style="margin-top:2px">
+            <span>Glass Transparency</span>
+            <span id="glass-lbl" class="sec-meta">42%</span>
+          </div>
+          <div class="slider-wrap">
+            <span style="font-size:11px;color:var(--text-3)">Solid</span>
+            <input id="rng-glass" type="range" min="0" max="100" value="42" />
+            <span style="font-size:11px;color:var(--text-3)">Liquid</span>
+          </div>
+          <div class="grid-3">
+            <button class="tile" data-mode="swim" type="button">Roam</button>
+            <button class="tile" data-mode="fast" type="button">Fast</button>
+            <button class="tile" data-mode="stay" type="button">Stay</button>
+            <button class="tile" data-mode="slow" type="button">Slow</button>
+            <button class="tile" data-mode="follow" type="button">Follow</button>
+            <button class="tile on" id="btn-mob-dance" type="button">Dance ♪</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="sec-head"><span>Launch On Laptop</span></div>
+          <form id="launch-form" class="input-row">
+            <input id="launch-inp" type="text" placeholder="wispr, cmd, spotify, github.com..." />
+            <button class="btn primary" type="submit">Open</button>
+          </form>
+          <div class="grid-3">
+            <button class="tile" data-app="brave" type="button">Brave</button>
+            <button class="tile" data-app="spotify" type="button">Spotify</button>
+            <button class="tile" data-app="wispr" type="button">Wispr</button>
+            <button class="tile" data-app="terminal" type="button">Terminal</button>
+            <button class="tile" data-app="cmd" type="button">CMD</button>
+            <button class="tile" data-app="powershell" type="button">PowerShell</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="sec-head">
+            <span>Laptop System</span>
+            <span id="sys-ram-lbl" class="sec-meta">--</span>
+          </div>
+          <div class="grid-2">
+            <button id="mob-wifi" class="tile" type="button">Wi-Fi</button>
+            <button id="mob-bt" class="tile" type="button">Bluetooth</button>
+            <button id="mob-mute" class="tile" type="button">Mute Audio</button>
+            <button id="mob-lock" class="tile" type="button">Lock PC</button>
+          </div>
+          <button id="mob-pair-btn" class="btn" type="button" style="width:100%">Connection Setup</button>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-tab="tasks" type="button"><span>✓</span><span>Tasks</span></button>
+      <button class="nav-btn" data-tab="agents" type="button"><span>⚡</span><span>Agents</span></button>
+      <button class="nav-btn" data-tab="ai" type="button"><span>✦</span><span>AI Chat</span></button>
+      <button class="nav-btn" data-tab="control" type="button"><span>◈</span><span>Studio</span></button>
+    </nav>
+  </div>
+
+  <div id="toast" class="toast-bar hidden"></div>
+
+  <script>
+    (function () {
+      const STORE_CFG = 'petfish_mobile_cfg_v1';
+      const STORE_TASKS = 'petfish_mobile_tasks_v1';
+      const STORE_QUEUE = 'petfish_mobile_queue_v1';
+      const STORE_PREFS = 'aura_mobile_prefs_v6';
+
+      const SKIN_PALETTES = {
+        vesper: {
+          crimson:  { label: 'Crimson Volt', a: '#e11d48', b: '#38bdf8', eye: '#e0f2fe' },
+          obsidian: { label: 'Obsidian Flux', a: '#1e293b', b: '#f43f5e', eye: '#fda4af' },
+          eclipse:  { label: 'Eclipse Mono', a: '#18181b', b: '#e2e8f0', eye: '#ffffff' },
+          gilded:   { label: 'Gilded Pulse', a: '#9f1239', b: '#facc15', eye: '#fef08a' },
+          frost:    { label: 'Frost Prism', a: '#f8fafc', b: '#ec4899', eye: '#67e8f9' },
+          emerald:  { label: 'Emerald Drift', a: '#0f172a', b: '#10b981', eye: '#6ee7b7' },
+        },
+        vector: {
+          valkyrie: { label: 'Valkyrie Gold', a: '#d97706', b: '#b91c1c', core: '#38bdf8' },
+          titanium: { label: 'Titanium Aero', a: '#cbd5e1', b: '#475569', core: '#22d3ee' },
+          cobalt:   { label: 'Cobalt Heavy', a: '#2563eb', b: '#334155', core: '#f43f5e' },
+          orbital:  { label: 'Orbital Pearl', a: '#f8fafc', b: '#f59e0b', core: '#38bdf8' },
+          stealth:  { label: 'Midnight Ion', a: '#0f172a', b: '#1d4ed8', core: '#38bdf8' },
+        },
+        core: {
+          solar:  { label: 'Solar Amber', a: '#fbbf24', b: '#f59e0b', core: '#fffbeb' },
+          aether: { label: 'Aether Cyan', a: '#38bdf8', b: '#0284c7', core: '#e0f2fe' },
+          matrix: { label: 'Emerald Matrix', a: '#34d399', b: '#059669', core: '#ecfdf5' },
+          nova:   { label: 'Crimson Nova', a: '#f87171', b: '#dc2626', core: '#fef2f2' },
+          pearl:  { label: 'Pearl Glass', a: '#f8fafc', b: '#94a3b8', core: '#ffffff' },
+        },
+        coral: {
+          tangerine: { label: 'Tangerine', a: '#f97316', b: '#fff7ed', fin: '#2dd4bf' },
+          sapphire:  { label: 'Sapphire Tide', a: '#2563eb', b: '#e0f2fe', fin: '#facc15' },
+          koi:       { label: 'Pearl Koi', a: '#f8fafc', b: '#ef4444', fin: '#fb923c' },
+          blossom:   { label: 'Blossom', a: '#ec4899', b: '#fdf2f8', fin: '#67e8f9' },
+        },
+      };
+
+      const DEFAULT_NAMES = { vesper: 'Vesper', vector: 'Vector', core: 'Core', coral: 'Coral' };
+      const LEGACY_CHAR = { spidey: 'vesper', ironman: 'vector', jarvis: 'core', nemo: 'coral' };
+
+      let cfg = { url: '', token: '' };
+      let prefs = {
+        character: 'vesper',
+        skins: { vesper: 'crimson', vector: 'valkyrie', core: 'solar', coral: 'tangerine' },
+        names: { ...DEFAULT_NAMES },
+        glass: 42,
+        petVisible: true,
+        thinkMode: false,
+      };
+      try { cfg = { ...cfg, ...JSON.parse(localStorage.getItem(STORE_CFG) || '{}') }; } catch {}
+      try {
+        const p = JSON.parse(localStorage.getItem(STORE_PREFS) || '{}');
+        if (p.character && LEGACY_CHAR[p.character]) p.character = LEGACY_CHAR[p.character];
+        prefs = { ...prefs, ...p, skins: { ...prefs.skins, ...(p.skins || {}) }, names: { ...prefs.names, ...(p.names || {}) } };
+        if (!SKIN_PALETTES[prefs.character]) prefs.character = 'vesper';
+      } catch {}
+
+      // Auto-pair from Pairing Link hash and scrub URL bar
+      if (location.hash && location.hash.startsWith('#pair=')) {
+        const tok = decodeURIComponent(location.hash.slice(6)).trim();
+        if (tok && location.protocol.startsWith('http')) {
+          cfg.url = location.origin;
+          cfg.token = tok;
+          localStorage.setItem(STORE_CFG, JSON.stringify(cfg));
+          try { history.replaceState(null, '', location.pathname); } catch {}
+        }
+      }
+
+      let cachedTasks = [];
+      let offlineQueue = [];
+      try { cachedTasks = JSON.parse(localStorage.getItem(STORE_TASKS) || '[]'); } catch {}
+      try { offlineQueue = JSON.parse(localStorage.getItem(STORE_QUEUE) || '[]'); } catch {}
+
+      let live = null;
+      let online = false;
+      let editingId = null;
+
+      function esc(s) {
+        return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      function safeColor(c, fallback = '#38bdf8') {
+        const s = String(c || '').trim();
+        return /^#[0-9a-fA-F]{3,8}$/.test(s) ? s : fallback;
+      }
+
+      function toast(msg) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.classList.remove('hidden');
+        clearTimeout(el._t);
+        el._t = setTimeout(() => el.classList.add('hidden'), 3000);
+      }
+
+      function saveCache() {
+        try {
+          localStorage.setItem(STORE_CFG, JSON.stringify(cfg));
+          localStorage.setItem(STORE_TASKS, JSON.stringify(cachedTasks));
+          localStorage.setItem(STORE_QUEUE, JSON.stringify(offlineQueue));
+          localStorage.setItem(STORE_PREFS, JSON.stringify(prefs));
+        } catch {}
+      }
+
+      function applyGlassTransparency(val) {
+        const n = Math.max(0, Math.min(100, Number(val) || 0));
+        const alpha = (0.94 - (n / 100) * 0.64).toFixed(2);
+        const blur = Math.round(14 + (n / 100) * 20);
+        document.documentElement.style.setProperty('--glass-alpha', alpha);
+        document.documentElement.style.setProperty('--glass-blur', `${blur}px`);
+        document.getElementById('glass-lbl').textContent = `${n}%`;
+        document.getElementById('rng-glass').value = String(n);
+      }
+
+      function drawBrandMark(ch) {
+        const svg = document.getElementById('brand-svg');
+        if (ch === 'vector') {
+          svg.innerHTML = `<rect x="4" y="4" width="16" height="16" rx="6" fill="#d97706"/><rect x="7" y="8" width="10" height="6" rx="3" fill="#0c1424"/><rect x="8.5" y="10" width="2.8" height="1.8" rx="0.8" fill="#38bdf8"/><rect x="12.7" y="10" width="2.8" height="1.8" rx="0.8" fill="#38bdf8"/>`;
+        } else if (ch === 'core') {
+          svg.innerHTML = `<circle cx="12" cy="12" r="8" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="6 3"/><circle cx="12" cy="12" r="4" fill="#fbbf24" opacity="0.85"/>`;
+        } else if (ch === 'coral') {
+          svg.innerHTML = `<path d="M7 12C5 9 3 9.2 3 12C3 14.8 5 15 7 12Z" fill="#2dd4bf"/><ellipse cx="14" cy="12" rx="6.5" ry="4.4" fill="#f97316"/><circle cx="13" cy="10.8" r="1.7" fill="#fff7ed" opacity="0.85"/>`;
+        } else {
+          svg.innerHTML = `<circle cx="12" cy="12" r="8" fill="#e11d48"/><rect x="6.5" y="8.5" width="11" height="6" rx="3" fill="#0b1120" stroke="#38bdf8" stroke-width="1"/><circle cx="9.8" cy="11.5" r="1.4" fill="#e0f2fe"/><circle cx="14.2" cy="11.5" r="1.4" fill="#e0f2fe"/>`;
+        }
+      }
+
+      async function apiCall(path, method = 'GET', body = null) {
+        if (!cfg.url || !cfg.token) throw new Error('Not paired');
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 14000);
+        try {
+          const res = await fetch(`${cfg.url.replace(/\/+$/, '')}${path}`, {
+            method,
+            signal: ctrl.signal,
+            headers: {
+              'Authorization': `Bearer ${cfg.token}`,
+              ...(body ? { 'Content-Type': 'application/json' } : {}),
+            },
+            body: body ? JSON.stringify(body) : undefined,
+          });
+          if (res.status === 401) throw new Error('Token rotated — re-pair with desktop');
+          return await res.json();
+        } finally {
+          clearTimeout(t);
+        }
+      }
+
+      // ============================================================
+      // INTERACTIVE MOVING HTML5 CANVAS PET ENGINE (Vesper/Vector/Core/Coral)
+      // ============================================================
+      const canvas = document.getElementById('pet-canvas');
+      const ctx = canvas.getContext('2d');
+      const hitbox = document.getElementById('pet-hitbox');
+
+      const pet = {
+        x: Math.max(80, window.innerWidth - 76),
+        y: 136,
+        vx: -28,
+        vy: 12,
+        targetX: 90,
+        targetY: 220,
+        facing: -1,
+        dragging: false,
+        dragOffX: 0,
+        dragOffY: 0,
+        stretchX: 0,
+        stretchY: 0,
+        svx: 0,
+        svy: 0,
+        danceUntil: 0,
+        pulseUntil: 0,
+        t: 0,
+        bubbles: [],
+      };
+
+      function resizeCanvas() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(window.innerWidth * dpr);
+        canvas.height = Math.round(window.innerHeight * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      function pickNewTarget() {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        pet.targetX = 52 + Math.random() * Math.max(40, w - 104);
+        pet.targetY = 92 + Math.random() * Math.max(60, h - 220);
+      }
+
+      // Touch & Pointer Drag with Elastic Squish-Stretch Physics!
+      let lastPtrX = 0;
+      let lastPtrY = 0;
+      let downAt = 0;
+
+      hitbox.addEventListener('pointerdown', (e) => {
+        pet.dragging = true;
+        downAt = Date.now();
+        lastPtrX = e.clientX;
+        lastPtrY = e.clientY;
+        hitbox.setPointerCapture(e.pointerId);
+      });
+
+      hitbox.addEventListener('pointermove', (e) => {
+        if (!pet.dragging) return;
+        const dx = e.clientX - lastPtrX;
+        const dy = e.clientY - lastPtrY;
+        lastPtrX = e.clientX;
+        lastPtrY = e.clientY;
+        pet.x = Math.max(36, Math.min(window.innerWidth - 36, e.clientX));
+        pet.y = Math.max(64, Math.min(window.innerHeight - 92, e.clientY));
+        pet.stretchX = Math.max(-24, Math.min(24, pet.stretchX * 0.72 + dx * 0.85));
+        pet.stretchY = Math.max(-24, Math.min(24, pet.stretchY * 0.72 + dy * 0.85));
+        if (Math.abs(dx) > 1) pet.facing = dx >= 0 ? 1 : -1;
+      });
+
+      function endDrag() {
+        if (!pet.dragging) return;
+        pet.dragging = false;
+        if (Date.now() - downAt < 220) {
+          pet.pulseUntil = Date.now() + 900;
+          pet.danceUntil = Date.now() + 2600;
+          const nm = prefs.names[prefs.character] || DEFAULT_NAMES[prefs.character];
+          toast(`${nm}: Ready whenever you are!`);
+        } else {
+          pet.svx = -pet.stretchX * 8;
+          pet.svy = -pet.stretchY * 8;
+          pickNewTarget();
+        }
+      }
+      hitbox.addEventListener('pointerup', endDrag);
+      hitbox.addEventListener('pointercancel', endDrag);
+
+      function drawMobileVesper(c, pal, t, dancing) {
+        // Luminous kinetic tether cable when swinging
+        if (!pet.dragging) {
+          c.save();
+          c.strokeStyle = pal.b;
+          c.globalAlpha = 0.65;
+          c.lineWidth = 1.3;
+          c.beginPath();
+          c.moveTo(0, -14);
+          c.quadraticCurveTo(pet.facing * 26, -64, pet.facing * 52, -110);
+          c.stroke();
+          c.restore();
+        }
+        const bob = dancing ? Math.sin(t * 14) * 5 : Math.sin(t * 3.5) * 2;
+        c.translate(0, bob);
+        c.scale(pet.facing, 1);
+
+        // Trailing kinetic scarf
+        c.fillStyle = pal.b;
+        c.beginPath();
+        c.moveTo(-6, 7); c.quadraticCurveTo(-18, 4 + Math.sin(t * 7) * 4, -24, 11); c.quadraticCurveTo(-16, 15, -5, 12);
+        c.fill();
+
+        // Compact athletic jacket torso + OV chevron
+        c.fillStyle = pal.a;
+        c.beginPath();
+        c.roundRect(-10, 7, 20, 15, 7);
+        c.fill();
+        c.strokeStyle = pal.b;
+        c.lineWidth = 1.6;
+        c.beginPath();
+        c.moveTo(-4, 12); c.lineTo(0, 16); c.lineTo(4, 12);
+        c.stroke();
+
+        // Rounded futuristic hood dome
+        c.fillStyle = pal.a;
+        c.beginPath();
+        c.ellipse(0, -5, 16, 15, 0, 0, Math.PI * 2);
+        c.fill();
+
+        // Curved dark-glass visor + glowing LED oval eyes
+        c.fillStyle = '#0b1120';
+        c.beginPath();
+        c.roundRect(-12, -11, 24, 11.5, 5.5);
+        c.fill();
+        c.strokeStyle = pal.b;
+        c.lineWidth = 1.1;
+        c.stroke();
+
+        c.fillStyle = pal.eye;
+        c.beginPath();
+        c.ellipse(-4.8, -5.2, 2.7, 3.3, 0, 0, Math.PI * 2);
+        c.ellipse(4.8, -5.2, 2.7, 3.3, 0, 0, Math.PI * 2);
+        c.fill();
+      }
+
+      function drawMobileVector(c, pal, t, dancing) {
+        const hover = dancing ? Math.sin(t * 13) * 5 : Math.sin(t * 4.2) * 3;
+        c.translate(0, hover);
+        c.rotate((pet.vx * 0.004) + (dancing ? Math.sin(t * 10) * 0.14 : 0));
+
+        // Swept aero-wings
+        c.fillStyle = pal.b;
+        c.beginPath();
+        c.moveTo(-10, 7); c.lineTo(-24, -2); c.lineTo(-20, 12); c.lineTo(-10, 13); c.closePath();
+        c.moveTo(10, 7); c.lineTo(24, -2); c.lineTo(20, 12); c.lineTo(10, 13); c.closePath();
+        c.fill();
+
+        // Dual ion thruster plumes
+        const flameH = 10 + Math.sin(t * 28) * 3.5;
+        [-6, 6].forEach((bx) => {
+          const g = c.createLinearGradient(bx, 20, bx, 20 + flameH);
+          g.addColorStop(0, '#ffffff');
+          g.addColorStop(0.45, pal.core);
+          g.addColorStop(1, 'rgba(56, 189, 248, 0)');
+          c.fillStyle = g;
+          c.beginPath();
+          c.moveTo(bx - 3, 20); c.lineTo(bx + 3, 20); c.lineTo(bx, 20 + flameH); c.closePath();
+          c.fill();
+        });
+
+        // Compact chassis + hexagonal gyro core
+        c.fillStyle = pal.a;
+        c.beginPath();
+        c.roundRect(-11, 6, 22, 15, 6);
+        c.fill();
+        c.save();
+        c.shadowColor = pal.core;
+        c.shadowBlur = 9;
+        c.fillStyle = '#ffffff';
+        c.strokeStyle = pal.core;
+        c.lineWidth = 1.5;
+        c.beginPath();
+        c.arc(0, 12, 3.2, 0, Math.PI * 2);
+        c.fill(); c.stroke();
+        c.restore();
+
+        // Rounded scout helmet + smooth panoramic visor
+        c.fillStyle = pal.a;
+        c.beginPath();
+        c.roundRect(-14, -20, 28, 25, 11.5);
+        c.fill();
+        c.fillStyle = '#0c1424';
+        c.beginPath();
+        c.roundRect(-11, -14.5, 22, 13, 6.5);
+        c.fill();
+
+        // Glowing digital drone eyes
+        c.save();
+        c.shadowColor = pal.core;
+        c.shadowBlur = 7;
+        c.fillStyle = pal.core;
+        c.beginPath();
+        c.roundRect(-7.5, -9.5, 5.5, 3.2, 1.5);
+        c.roundRect(2, -9.5, 5.5, 3.2, 1.5);
+        c.fill();
+        c.restore();
+      }
+
+      function drawMobileCore(c, pal, t, dancing) {
+        const pulse = 1 + Math.sin(t * (dancing ? 10 : 3.2)) * 0.06;
+        if (Date.now() < pet.pulseUntil) {
+          const prog = 1 - (pet.pulseUntil - Date.now()) / 900;
+          c.strokeStyle = pal.a;
+          c.globalAlpha = Math.max(0, 0.7 * (1 - prog));
+          c.lineWidth = 1.6;
+          c.beginPath();
+          c.arc(0, 0, 20 + prog * 28, 0, Math.PI * 2);
+          c.stroke();
+          c.globalAlpha = 1;
+        }
+        const halo = c.createRadialGradient(0, 0, 3, 0, 0, 26 * pulse);
+        halo.addColorStop(0, pal.core);
+        halo.addColorStop(0.45, pal.a + '88');
+        halo.addColorStop(1, 'rgba(0,0,0,0)');
+        c.fillStyle = halo;
+        c.beginPath();
+        c.arc(0, 0, 26 * pulse, 0, Math.PI * 2);
+        c.fill();
+
+        c.save();
+        c.rotate(t * 1.1);
+        c.strokeStyle = pal.a;
+        c.lineWidth = 1.5;
+        c.setLineDash([12, 6, 4, 6]);
+        c.beginPath();
+        c.arc(0, 0, 20, 0, Math.PI * 2);
+        c.stroke();
+        c.restore();
+
+        c.save();
+        c.rotate(-t * 1.7);
+        c.strokeStyle = pal.b;
+        c.lineWidth = 1.2;
+        c.beginPath();
+        c.ellipse(0, 0, 15, 7, 0.4, 0, Math.PI * 2);
+        c.stroke();
+        c.beginPath();
+        c.ellipse(0, 0, 15, 7, -0.7, 0, Math.PI * 2);
+        c.stroke();
+        c.restore();
+
+        c.fillStyle = pal.core;
+        c.beginPath();
+        c.arc(0, 0, 5.5 * pulse, 0, Math.PI * 2);
+        c.fill();
+      }
+
+      function drawMobileCoral(c, pal, t, dancing) {
+        c.scale(pet.facing, 1);
+        const wag = Math.sin(t * (dancing ? 16 : 7.5)) * 4;
+
+        // Flowing translucent ribbon tail fin
+        c.fillStyle = pal.fin;
+        c.beginPath();
+        c.moveTo(-14, 0);
+        c.quadraticCurveTo(-25, -12 + wag, -26, wag * 0.4);
+        c.quadraticCurveTo(-25, 12 + wag, -14, 0);
+        c.fill();
+
+        // Smooth reef body + organic koi droplet spots
+        c.fillStyle = pal.a;
+        c.beginPath();
+        c.ellipse(0, 0, 17, 11.5, 0, 0, Math.PI * 2);
+        c.fill();
+
+        c.fillStyle = pal.b;
+        c.globalAlpha = 0.85;
+        c.beginPath();
+        c.ellipse(-4, -3, 5, 3.2, -0.3, 0, Math.PI * 2);
+        c.ellipse(3, -5, 3, 2, 0.2, 0, Math.PI * 2);
+        c.fill();
+        c.globalAlpha = 1;
+
+        // Cute glossy eye
+        c.fillStyle = '#ffffff';
+        c.beginPath();
+        c.arc(9, -2.5, 4.2, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = '#0f172a';
+        c.beginPath();
+        c.arc(10.2, -2.5, 2.3, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = '#ffffff';
+        c.beginPath();
+        c.arc(11, -3.5, 0.9, 0, Math.PI * 2);
+        c.fill();
+      }
+
+      let lastFrame = performance.now();
+      function animatePet(now) {
+        const dt = Math.min(0.05, Math.max(0.008, (now - lastFrame) / 1000));
+        lastFrame = now;
+        pet.t += dt;
+
+        if (prefs.petVisible) {
+          const ch = SKIN_PALETTES[prefs.character] ? prefs.character : 'vesper';
+          const skinKey = prefs.skins[ch] || Object.keys(SKIN_PALETTES[ch])[0];
+          const pal = SKIN_PALETTES[ch][skinKey] || Object.values(SKIN_PALETTES[ch])[0];
+          const dancing = Date.now() < pet.danceUntil || Boolean(live?.music?.isPlaying);
+
+          if (!pet.dragging) {
+            // Spring recoil for elastic squish
+            const k = 150;
+            const d = 14;
+            pet.svx += (-k * pet.stretchX - d * pet.svx) * dt;
+            pet.svy += (-k * pet.stretchY - d * pet.svy) * dt;
+            pet.stretchX += pet.svx * dt;
+            pet.stretchY += pet.svy * dt;
+
+            // Gentle roaming navigation
+            const dx = pet.targetX - pet.x;
+            const dy = pet.targetY - pet.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < 22) {
+              pickNewTarget();
+            } else {
+              const spd = ch === 'vector' ? 68 : ch === 'core' ? 42 : 52;
+              pet.vx += ((dx / dist) * spd - pet.vx) * Math.min(1, dt * 2.4);
+              pet.vy += ((dy / dist) * spd - pet.vy) * Math.min(1, dt * 2.4);
+              pet.x += pet.vx * dt;
+              pet.y += pet.vy * dt;
+              if (Math.abs(pet.vx) > 4) pet.facing = pet.vx >= 0 ? 1 : -1;
+            }
+          }
+
+          // Keep hitbox pinned onto pet
+          hitbox.style.left = `${Math.round(pet.x - 42)}px`;
+          hitbox.style.top = `${Math.round(pet.y - 42)}px`;
+
+          ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+          // Occasional Coral bubbles
+          if (ch === 'coral' && Math.random() < 0.05) {
+            pet.bubbles.push({ x: pet.x + pet.facing * 14, y: pet.y - 8, r: 2 + Math.random() * 2.4, a: 0.7 });
+          }
+          for (let i = pet.bubbles.length - 1; i >= 0; i--) {
+            const b = pet.bubbles[i];
+            b.y -= 28 * dt;
+            b.a -= 0.45 * dt;
+            if (b.a <= 0) { pet.bubbles.splice(i, 1); continue; }
+            ctx.strokeStyle = `rgba(186, 230, 253, ${b.a.toFixed(2)})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+
+          ctx.save();
+          ctx.translate(pet.x, pet.y);
+
+          // Elastic squish & stretch deformation matrix
+          const mag = Math.min(24, Math.hypot(pet.stretchX, pet.stretchY));
+          if (mag > 0.6) {
+            const ang = Math.atan2(pet.stretchY, pet.stretchX);
+            const sx = 1 + mag * 0.015;
+            const sy = 1 / Math.sqrt(sx);
+            ctx.rotate(ang);
+            ctx.scale(sx, sy);
+            ctx.rotate(-ang);
+          }
+
+          if (ch === 'vector') drawMobileVector(ctx, pal, pet.t, dancing);
+          else if (ch === 'core') drawMobileCore(ctx, pal, pet.t, dancing);
+          else if (ch === 'coral') drawMobileCoral(ctx, pal, pet.t, dancing);
+          else drawMobileVesper(ctx, pal, pet.t, dancing);
+
+          ctx.restore();
+        }
+        requestAnimationFrame(animatePet);
+      }
+      requestAnimationFrame(animatePet);
+
+      // ============================================================
+      // UI RENDERING
+      // ============================================================
+      function render() {
+        const ch = SKIN_PALETTES[prefs.character] ? prefs.character : 'vesper';
+        document.body.dataset.theme = ch;
+        drawBrandMark(ch);
+        applyGlassTransparency(prefs.glass);
+
+        canvas.classList.toggle('hidden-pet', !prefs.petVisible);
+        hitbox.classList.toggle('hidden-pet', !prefs.petVisible);
+        const visBtn = document.getElementById('btn-pet-vis');
+        visBtn.classList.toggle('on', prefs.petVisible);
+        visBtn.textContent = prefs.petVisible ? 'Pet On' : 'Pet Off';
+
+        const pill = document.getElementById('conn-pill');
+        pill.className = `conn-pill ${online ? 'online' : 'offline'}`;
+        document.getElementById('conn-txt').textContent = online ? 'Online' : (cfg.token ? 'Offline' : 'Pair');
+
+        const pairCard = document.getElementById('pair-card');
+        if (cfg.url && cfg.token && online && !pairCard.dataset.manualOpen) pairCard.classList.add('hidden');
+        else if (!cfg.token) pairCard.classList.remove('hidden');
+        document.getElementById('btn-close-pair').classList.toggle('hidden', !cfg.token);
+
+        document.getElementById('offline-banner').classList.toggle('hidden', online || !cfg.token);
+
+        const dispName = prefs.names[ch] || DEFAULT_NAMES[ch];
+        document.getElementById('hero-title').textContent = dispName;
+        const dancing = Boolean(live?.music?.isPlaying);
+        document.getElementById('hero-sub').textContent = online
+          ? (dancing ? `♪ ${live.music.title || 'Music Playing'}` : `${live.hostname || 'Laptop'} · Synced live`)
+          : 'Touch & drag the floating pet to squish · Offline ready';
+
+        const xp = live?.focusStats || { level: 1, xp: 0 };
+        document.getElementById('xp-pill').textContent = `Lv ${xp.level || 1} · ${xp.xp || 0} XP`;
+
+        document.querySelectorAll('.char-btn').forEach((b) => b.classList.toggle('active', b.dataset.char === ch));
+
+        // Skin Swatches for current character
+        const skinEntries = Object.entries(SKIN_PALETTES[ch] || {});
+        const curSkin = prefs.skins[ch] || skinEntries[0]?.[0];
+        document.getElementById('skin-swatches').innerHTML = skinEntries.map(([k, p]) => `
+          <button class="swatch ${curSkin === k ? 'active' : ''}" data-skin="${esc(k)}" type="button">
+            <span class="swatch-dot" style="background:${esc(p.a)};border:1px solid ${esc(p.b)}"></span>
+            ${esc(p.label)}
+          </button>`).join('');
+
+        const nameInp = document.getElementById('inp-pet-name');
+        if (document.activeElement !== nameInp) nameInp.value = dispName;
+
+        // Tasks
+        document.getElementById('queue-badge').textContent = offlineQueue.length > 0 ? `${offlineQueue.length} queued` : `${cachedTasks.filter((t) => !t.done).length} open`;
+        const tList = document.getElementById('tasks-list');
+        if (cachedTasks.length === 0) {
+          tList.innerHTML = `<div style="text-align:center;padding:12px;color:var(--text-2);font-size:12px">No tasks yet. Add one above — syncs both ways!</div>`;
+        } else {
+          tList.innerHTML = cachedTasks.map((t) => {
+            if (editingId === t.id) {
+              return `<div class="task-row"><input type="text" id="edit-inp" value="${esc(t.text)}" style="height:32px"/><button class="btn sm primary" data-save="${esc(t.id)}" type="button">Save</button></div>`;
+            }
+            return `<div class="task-row ${t.done ? 'done' : ''}">
+              <div class="task-left" data-toggle="${esc(t.id)}"><span>${t.done ? '☑' : '☐'}</span><span class="task-txt">${esc(t.text)}</span></div>
+              <div style="display:flex;gap:5px">
+                <button class="btn sm" data-edit="${esc(t.id)}" type="button">✎</button>
+                <button class="btn sm deny" data-del="${esc(t.id)}" type="button">×</button>
+              </div>
+            </div>`;
+          }).join('');
+        }
+
+        // Reminders
+        const rems = (live?.reminders || []).filter((r) => !r.fired);
+        document.getElementById('rem-meta').textContent = `${rems.length} active`;
+        document.getElementById('rem-list').innerHTML = rems.map((r) => {
+          const left = Math.max(1, Math.ceil((r.dueAt - Date.now()) / 60000));
+          return `<div class="idle-row"><span>⏰ ${esc(r.text)}</span><span style="color:var(--p1);font-weight:700">${left}m</span></div>`;
+        }).join('');
+
+        // Approvals & Agents
+        const approvals = live?.approvals || [];
+        document.getElementById('approvals-wrap').innerHTML = approvals.map((a) => `
+          <div class="card urgent">
+            <div class="row"><strong>${esc(a.agent)} · ${esc(a.toolName)}</strong><span style="font-size:11px;color:var(--amber)">Needs Action</span></div>
+            <div style="font-size:12.5px;color:#fff">${esc(a.detail || a.title)}</div>
+            <div class="btn-row">
+              <button class="btn sm allow" data-approve="${esc(a.id)}" data-dec="allow" type="button">Allow</button>
+              <button class="btn sm deny" data-approve="${esc(a.id)}" data-dec="deny" type="button">Deny</button>
+            </div>
+          </div>`).join('');
+
+        const agents = live?.agents || [];
+        const active = agents.filter((a) => a.status === 'running' || a.status === 'waiting_approval');
+        const idle = agents.filter((a) => a.status !== 'running' && a.status !== 'waiting_approval');
+        document.getElementById('ag-meta').textContent = `${active.length} active`;
+        document.getElementById('ag-active').innerHTML = active.length === 0
+          ? `<div style="color:var(--text-2);font-size:12px">${online ? 'No active agents right now.' : 'Connect laptop to inspect live agents.'}</div>`
+          : active.map((a) => `
+            <div class="card" style="background:rgba(0,0,0,0.22)">
+              <div class="row"><span class="agent-pill"><span class="dot" style="background:${safeColor(a.accent, '#38bdf8')}"></span>${esc(a.name)}</span><span style="font-size:11px;color:var(--green)">Live</span></div>
+              <div style="font-size:12.5px">${esc(a.what || a.task || 'Active')}</div>
+              ${a.how ? `<div style="font-size:11px;color:var(--text-2)">${esc(a.how)}</div>` : ''}
+            </div>`).join('');
+
+        document.getElementById('ag-idle-card').classList.toggle('hidden', idle.length === 0);
+        document.getElementById('ag-idle-meta').textContent = String(idle.length);
+        document.getElementById('ag-idle').innerHTML = idle.map((a) => `<div class="idle-row"><span>${esc(a.name)}</span><span style="color:var(--amber);font-weight:700">Stop.</span></div>`).join('');
+
+        // AI Chat + Thinking toggle
+        document.getElementById('llm-model-lbl').textContent = `AI · ${live?.llm?.activeLabel || 'qwen3.5:2b'}`;
+        const tBtn = document.getElementById('btn-think-toggle');
+        tBtn.classList.toggle('on', prefs.thinkMode);
+        tBtn.textContent = prefs.thinkMode ? '🧠 Think' : '⚡ Fast';
+
+        const hist = live?.llm?.history || [];
+        document.getElementById('chat-list').innerHTML = hist.length === 0
+          ? `<div style="color:var(--text-2);font-size:12px">Saved conversation syncs with laptop. Ask anything or switch to 🧠 Think mode for step-by-step reasoning.</div>`
+          : hist.map((m) => `
+            <div class="msg ${esc(m.role)}">
+              ${m.thinking ? `<details class="think-box"><summary>Thought Process</summary><div style="margin-top:4px;white-space:pre-wrap">${esc(m.thinking)}</div></details>` : ''}
+              <div>${esc(m.content)}</div>
+            </div>`).join('');
+
+        // Music + System Controls
+        const mus = live?.music || {};
+        document.getElementById('music-state-lbl').textContent = mus.isPlaying ? 'Playing' : 'Paused';
+        document.getElementById('music-title').textContent = mus.title || 'No active track';
+        document.getElementById('music-sub').textContent = mus.source || 'Controls Spotify / Brave / Windows Media';
+
+        document.getElementById('pet-mode-lbl').textContent = live?.petMode || 'swim';
+        document.getElementById('sys-ram-lbl').textContent = live?.ramMB ? `${live.ramMB} MB RAM` : '--';
+        document.getElementById('mob-wifi').classList.toggle('on', Boolean(live?.sys?.wifiOn));
+        document.getElementById('mob-wifi').textContent = live?.sys?.wifiOn ? 'Wi-Fi: ON' : 'Wi-Fi: OFF';
+        document.getElementById('mob-bt').classList.toggle('on', Boolean(live?.sys?.bluetoothOn));
+        document.getElementById('mob-bt').textContent = live?.sys?.bluetoothOn ? 'Bluetooth: ON' : 'Bluetooth: OFF';
+        document.getElementById('timer-meta').textContent = live?.timer ? `${Math.ceil((live.timer.remainingMs || 0) / 60000)}m left` : 'Idle';
+      }
+
+      async function poll() {
+        if (!cfg.url || !cfg.token) { online = false; render(); return; }
+        try {
+          if (offlineQueue.length > 0) {
+            const ops = [...offlineQueue];
+            const syncRes = await apiCall('/api/mobile/tasks/sync', 'POST', { ops });
+            if (syncRes?.ok) {
+              offlineQueue = [];
+              toast(`Synced ${ops.length} offline edit(s)!`);
+            }
+          }
+          const res = await apiCall('/api/mobile/state');
+          if (res?.ok && res.data) {
+            online = true;
+            live = res.data;
+            if (live.petCharacter) prefs.character = live.petCharacter;
+            if (live.petSkins) prefs.skins = { ...prefs.skins, ...live.petSkins };
+            if (live.petNames) prefs.names = { ...prefs.names, ...live.petNames };
+            if (typeof live.glassTransparency === 'number') prefs.glass = live.glassTransparency;
+            if (typeof live.llm?.thinkMode === 'boolean') prefs.thinkMode = live.llm.thinkMode;
+            if (Array.isArray(live.tasks)) cachedTasks = live.tasks;
+            saveCache();
+          }
+        } catch (err) {
+          online = false;
+          if (/Token rotated/i.test(err.message)) {
+            document.getElementById('offline-reason').textContent = err.message;
+          }
+        }
+        render();
+      }
+
+      async function mutateTask(op, payload) {
+        if (op === 'add') cachedTasks.unshift({ id: `local-${Date.now()}`, text: payload.text, done: false });
+        else if (op === 'edit') { const t = cachedTasks.find((x) => x.id === payload.id); if (t) t.text = payload.text; }
+        else if (op === 'toggle') { const t = cachedTasks.find((x) => x.id === payload.id); if (t) t.done = !t.done; }
+        else if (op === 'delete') cachedTasks = cachedTasks.filter((x) => x.id !== payload.id);
+        saveCache();
+        render();
+
+        if (!online) {
+          offlineQueue.push({ op, ...payload });
+          saveCache();
+          toast('Saved offline — auto-syncs when laptop wakes.');
+          return;
+        }
+        try {
+          const r = await apiCall(`/api/mobile/tasks/${op}`, 'POST', payload);
+          if (r?.data?.tasks) { cachedTasks = r.data.tasks; saveCache(); render(); }
+        } catch {
+          offlineQueue.push({ op, ...payload });
+          saveCache();
+        }
+      }
+
+      // Event Listeners
+      document.getElementById('btn-pet-vis').addEventListener('click', () => {
+        prefs.petVisible = !prefs.petVisible;
+        saveCache();
+        render();
+      });
+
+      document.getElementById('btn-pair-link').addEventListener('click', () => {
+        const raw = document.getElementById('inp-pair-link').value.trim();
+        const m = raw.match(/^(https?:\/\/[^/#?]+).*?#pair=([a-f0-9]{32,128})/i);
+        if (!m) return toast('Paste the full Pairing Link copied from OV Desktop.');
+        cfg.url = m[1]; cfg.token = m[2];
+        delete document.getElementById('pair-card').dataset.manualOpen;
+        saveCache();
+        toast('Connecting...');
+        poll();
+      });
+
+      document.getElementById('btn-pair-pin').addEventListener('click', async () => {
+        const url = document.getElementById('inp-url').value.trim().replace(/\/+$/, '');
+        const pin = document.getElementById('inp-pin').value.trim();
+        if (!/^https?:\/\//i.test(url) || pin.length !== 6) return toast('Enter valid URL and 6-digit PIN.');
+        try {
+          const r = await fetch(`${url}/api/mobile/pair`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin }),
+          });
+          const data = await r.json();
+          if (!data.ok || !data.token) return toast(data.error || 'Pairing failed');
+          cfg.url = url; cfg.token = data.token;
+          delete document.getElementById('pair-card').dataset.manualOpen;
+          saveCache();
+          toast('Paired worldwide!');
+          poll();
+        } catch {
+          toast('Could not reach laptop — start Worldwide Tunnel first.');
+        }
+      });
+
+      document.getElementById('conn-pill').addEventListener('click', () => {
+        const pc = document.getElementById('pair-card');
+        const opening = pc.classList.contains('hidden');
+        pc.classList.toggle('hidden', !opening);
+        if (opening) pc.dataset.manualOpen = '1'; else delete pc.dataset.manualOpen;
+      });
+      document.getElementById('btn-close-pair').addEventListener('click', () => {
+        const pc = document.getElementById('pair-card');
+        pc.classList.add('hidden'); delete pc.dataset.manualOpen;
+      });
+      document.getElementById('mob-pair-btn').addEventListener('click', () => {
+        const pc = document.getElementById('pair-card');
+        pc.classList.remove('hidden'); pc.dataset.manualOpen = '1';
+      });
+
+      document.querySelectorAll('.nav-btn').forEach((b) => b.addEventListener('click', () => {
+        document.querySelectorAll('.nav-btn').forEach((x) => x.classList.toggle('active', x === b));
+        document.querySelectorAll('.pane').forEach((p) => p.classList.toggle('active', p.id === `pane-${b.dataset.tab}`));
+      }));
+
+      // 4-Character Switcher (works both offline locally & live on laptop!)
+      document.querySelectorAll('.char-btn').forEach((b) => b.addEventListener('click', async () => {
+        prefs.character = b.dataset.char;
+        pet.pulseUntil = Date.now() + 700;
+        saveCache();
+        render();
+        if (online) {
+          await apiCall('/api/mobile/pet', 'POST', { character: b.dataset.char }).catch(() => {});
+          poll();
+        }
+      }));
+
+      document.getElementById('rng-glass').addEventListener('input', (e) => {
+        prefs.glass = Number(e.target.value);
+        applyGlassTransparency(prefs.glass);
+      });
+      document.getElementById('rng-glass').addEventListener('change', async (e) => {
+        prefs.glass = Number(e.target.value);
+        saveCache();
+        if (online) await apiCall('/api/mobile/pet', 'POST', { glassTransparency: prefs.glass }).catch(() => {});
+      });
+
+      document.getElementById('btn-save-name').addEventListener('click', async () => {
+        const val = document.getElementById('inp-pet-name').value.trim();
+        if (!val) return;
+        prefs.names[prefs.character] = val;
+        saveCache();
+        render();
+        toast(`Renamed to ${val}`);
+        if (online) await apiCall('/api/mobile/pet', 'POST', { name: val }).catch(() => {});
+      });
+
+      document.getElementById('btn-think-toggle').addEventListener('click', () => {
+        prefs.thinkMode = !prefs.thinkMode;
+        saveCache();
+        render();
+        toast(prefs.thinkMode ? '🧠 Thinking Mode enabled' : '⚡ Fast Mode enabled');
+      });
+
+      document.getElementById('task-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const inp = document.getElementById('task-inp');
+        const txt = inp.value.trim();
+        if (!txt) return;
+        inp.value = '';
+        mutateTask('add', { text: txt });
+      });
+
+      document.getElementById('rem-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const txt = document.getElementById('rem-text').value.trim();
+        const mins = Math.max(1, Number(document.getElementById('rem-min').value) || 10);
+        if (!txt) return;
+        if (!online) return toast('Connect laptop to schedule voice reminders.');
+        document.getElementById('rem-text').value = '';
+        await apiCall('/api/mobile/timer', 'POST', { action: 'reminder', text: txt, minutes: mins });
+        toast(`Reminder set in ${mins}m!`);
+        poll();
+      });
+
+      document.addEventListener('click', async (e) => {
+        const sw = e.target.closest('button[data-skin]');
+        if (sw) {
+          prefs.skins[prefs.character] = sw.dataset.skin;
+          saveCache();
+          render();
+          if (online) await apiCall('/api/mobile/pet', 'POST', { skin: sw.dataset.skin }).catch(() => {});
+          return;
+        }
+        const media = e.target.closest('button[data-media]');
+        if (media) {
+          if (!online) return toast('Laptop offline.');
+          await apiCall('/api/mobile/sys', 'POST', { action: 'media', command: media.dataset.media });
+          toast(`Media: ${media.dataset.media}`);
+          setTimeout(poll, 450);
+          return;
+        }
+        const tog = e.target.closest('[data-toggle]');
+        if (tog) return mutateTask('toggle', { id: tog.dataset.toggle });
+        const ed = e.target.closest('button[data-edit]');
+        if (ed) { editingId = ed.dataset.edit; render(); return; }
+        const sv = e.target.closest('button[data-save]');
+        if (sv) {
+          const v = (document.getElementById('edit-inp')?.value || '').trim();
+          const id = sv.dataset.save;
+          editingId = null;
+          if (v) return mutateTask('edit', { id, text: v });
+          return render();
+        }
+        const dl = e.target.closest('button[data-del]');
+        if (dl) return mutateTask('delete', { id: dl.dataset.del });
+
+        const ap = e.target.closest('button[data-approve]');
+        if (ap) {
+          if (!online) return toast('Laptop offline.');
+          await apiCall('/api/mobile/approval', 'POST', { id: ap.dataset.approve, decision: ap.dataset.dec });
+          toast(ap.dataset.dec === 'allow' ? 'Allowed!' : 'Denied.');
+          poll();
+          return;
+        }
+        const tm = e.target.closest('button[data-timer]');
+        if (tm) {
+          if (!online) return toast('Laptop offline.');
+          await apiCall('/api/mobile/timer', 'POST', { action: 'start', minutes: Number(tm.dataset.timer) });
+          toast(`Started ${tm.dataset.timer}m sprint!`);
+          poll();
+          return;
+        }
+        const md = e.target.closest('button[data-mode]');
+        if (md) {
+          if (!online) return toast('Laptop offline.');
+          await apiCall('/api/mobile/pet', 'POST', { mode: md.dataset.mode });
+          toast(`Pet → ${md.dataset.mode}`);
+          poll();
+          return;
+        }
+        const appBtn = e.target.closest('button[data-app]');
+        if (appBtn) {
+          if (!online) return toast('Laptop offline.');
+          const r = await apiCall('/api/mobile/launch', 'POST', { target: appBtn.dataset.app });
+          toast(r.ok ? `Opened ${appBtn.dataset.app}!` : 'Could not launch');
+        }
+      });
+
+      document.getElementById('btn-timer-stop').addEventListener('click', async () => {
+        if (!online) return toast('Laptop offline.');
+        await apiCall('/api/mobile/timer', 'POST', { action: 'stop' });
+        poll();
+      });
+
+      document.getElementById('btn-mob-dance').addEventListener('click', async () => {
+        pet.danceUntil = Date.now() + 4500;
+        if (online) await apiCall('/api/mobile/pet', 'POST', { reaction: 'dance' }).catch(() => {});
+        toast('Dancing! ♪');
+      });
+
+      document.getElementById('launch-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!online) return toast('Laptop offline.');
+        const inp = document.getElementById('launch-inp');
+        const target = inp.value.trim();
+        if (!target) return;
+        inp.value = '';
+        const r = await apiCall('/api/mobile/launch', 'POST', { target });
+        toast(r.ok ? `Opened "${target}"!` : (r.result?.error || 'Could not open'));
+      });
+
+      document.getElementById('ai-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!online) return toast('Laptop offline — Local AI runs on your laptop.');
+        const inp = document.getElementById('ai-inp');
+        const prompt = inp.value.trim();
+        if (!prompt) return;
+        inp.value = '';
+        toast(prefs.thinkMode ? '🧠 Deep thinking on laptop...' : 'Asking local AI...');
+        const r = await apiCall('/api/mobile/ask', 'POST', { prompt, thinkMode: prefs.thinkMode });
+        if (r?.result?.actionNote) toast(r.result.actionNote);
+        poll();
+      });
+
+      document.getElementById('mob-wifi').addEventListener('click', async () => {
+        if (!online) return toast('Laptop offline.');
+        await apiCall('/api/mobile/sys', 'POST', { action: 'wifi', enable: !live?.sys?.wifiOn });
+        poll();
+      });
+      document.getElementById('mob-bt').addEventListener('click', async () => {
+        if (!online) return toast('Laptop offline.');
+        await apiCall('/api/mobile/sys', 'POST', { action: 'bluetooth', enable: !live?.sys?.bluetoothOn });
+        poll();
+      });
+      document.getElementById('mob-mute').addEventListener('click', async () => {
+        if (!online) return toast('Laptop offline.');
+        await apiCall('/api/mobile/sys', 'POST', { action: 'mute' });
+        toast('Toggled laptop mute');
+      });
+      document.getElementById('mob-lock').addEventListener('click', async () => {
+        if (!online) return toast('Laptop offline.');
+        await apiCall('/api/mobile/sys', 'POST', { action: 'lock' });
+        toast('Laptop locked!');
+      });
+
+      render();
+      poll();
+      setInterval(poll, 4000);
+    })();
+  </script>
+</body>
+</html>

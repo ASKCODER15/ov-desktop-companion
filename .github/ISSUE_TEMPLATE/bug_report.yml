@@ -1,0 +1,53 @@
+name: Bug report
+description: Report a reproducible problem in OV.
+title: "bug: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include tokens, PINs, notification contents, clipboard text, private paths, Wi-Fi names, or other sensitive data. For security issues, use SECURITY.md instead.
+  - type: input
+    id: version
+    attributes:
+      label: OV version / commit
+      placeholder: "6.0.0 or commit SHA"
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: "Windows 11 24H2"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the problem clearly.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open...
+        2. Select...
+        3. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitised logs or screenshots
+      description: Remove secrets and personal information before attaching anything.
+    validations:
+      required: false

@@ -1,0 +1,17 @@
+{
+  "name": "ov-desktop-companion",
+  "version": "6.0.0",
+  "description": "A local-first Windows AI desktop companion with animated floating characters, Ollama/LM Studio chat, coding-agent awareness, productivity controls, and an optional Android remote.",
+  "main": "src/main/index.js",
+  "scripts": {
+    "start": "electron .",
+    "verify": "node scripts/verify.js",
+    "build:icon": "node -e \"require('./src/services/iconGenerator').writePetFishIco()\"",
+    "shortcut": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/create-shortcut.ps1",
+    "build:apk": "powershell -NoProfile -ExecutionPolicy Bypass -File mobile/build-apk.ps1"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^35.7.5"
+  }
+}

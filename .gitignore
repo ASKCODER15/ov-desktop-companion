@@ -1,0 +1,69 @@
+# Dependencies
+node_modules/
+
+# Local environment, auth tokens, and signing credentials (NEVER commit!)
+.env
+.env.*
+!.env.example
+.auth-token
+**/.auth-token
+.apk-keystore-pass
+**/.apk-keystore-pass
+mobile-auth.json
+**/mobile-auth.json
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+
+# Local user data, runtime state, and logs
+chat-history.json
+discovered.json
+autopilot.json
+settings.json
+logs/
+**/logs/
+*.log
+
+# Android & desktop build outputs (generated cleanly by build scripts)
+*.apk
+*.aab
+*.idsig
+mobile/*.apk
+mobile/*.idsig
+mobile/android/build/
+mobile/android/assets/
+mobile/android/res/mipmap-*/
+android/build/
+*.exe
+*.msi
+*.dmg
+*.app/
+release/
+dist/
+out/
+
+# Temporary, backup, and OS metadata files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+Desktop.ini
+
+# Editors and local tooling
+.vscode/
+.idea/
+*.code-workspace
+
+# Test and coverage artifacts
+coverage/
+.nyc_output/
+playwright-report/
+test-results/

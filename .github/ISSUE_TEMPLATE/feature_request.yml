@@ -1,0 +1,36 @@
+name: Feature request
+description: Suggest an improvement to OV.
+title: "feature: "
+labels: ["enhancement", "triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem should this solve?
+      description: Explain the user problem or workflow gap.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the behaviour you would like to see.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Impact areas
+      options:
+        - label: Windows desktop
+        - label: Local AI
+        - label: Agent integrations
+        - label: Android / mobile remote
+        - label: Security / privacy
+        - label: Documentation

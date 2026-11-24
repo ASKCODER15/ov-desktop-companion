@@ -1,0 +1,12 @@
+{
+  "bindHost": "127.0.0.1",
+  "hookPort": 47821,
+  "requireAuthToken": true,
+  "rejectCrossOrigin": true,
+  "maxPayloadBytes": 131072,
+  "rateLimitPerMinute": 120,
+  "outboundNetworkAllowed": false,
+  "privateDataDirName": "PetFish",
+  "privacyMaskDefault": false,
+  "logNotificationBodies": false
+}
