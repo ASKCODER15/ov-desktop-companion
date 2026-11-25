@@ -64,3 +64,9 @@ The following safeguards are implemented directly in the current OV repository (
 ## Scope and limitations
 
 **OV has not undergone an independent third-party security audit.** Security depends on your local Windows user account, local network trust, installed developer tools, local LLM server configuration (`Ollama` / `LM Studio`), firewall settings, and how optional integrations are used. Detailed internal audit notes and fresher learning guides are available in [`security/README.md`](security/README.md).
+
+---
+
+## License
+
+This security policy and the OV v8.0 codebase are distributed under the [MIT License](LICENSE) (`Copyright (c) 2026 OV contributors`). See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) for third-party disclosures.

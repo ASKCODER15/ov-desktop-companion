@@ -6,6 +6,13 @@
   </picture>
   <h1>OV v8.0 — Robot OS &amp; Local Whisper Voice Agent</h1>
   <p><strong>A local-first AI robot companion &amp; live coding-agent telemetry system for Windows.</strong></p>
+  <p>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-00d68f?style=flat-square" alt="MIT License" /></a>
+    <img src="https://img.shields.io/badge/Version-8.0.0-ff5500?style=flat-square" alt="Version 8.0.0" />
+    <img src="https://img.shields.io/badge/Platform-Windows%2010%2F11-181a20?style=flat-square" alt="Windows 10/11" />
+    <img src="https://img.shields.io/badge/Voice-Local%20Whisper%20(A%2BS%2BW)-181a20?style=flat-square" alt="Local Whisper A+S+W" />
+    <img src="https://img.shields.io/badge/Runtime%20Deps-Zero-00d68f?style=flat-square" alt="Zero Runtime Dependencies" />
+  </p>
   <p>4 Industrial Desktop Robots · Local Open-Source Whisper (<code>A+S+W</code>) · Live Top-of-Head Agent Timers · 7 Consistent Named Neural Voices (EN / Hinglish / Hindi) · Optional Android Remote</p>
 </div>
 
