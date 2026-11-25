@@ -1,6 +1,6 @@
-# OV Architecture
+# OV v8.0 Architecture
 
-This page summarises the architecture described in the supplied OV v6.0 project report. Verify it against the exact source revision before using it as a formal security or engineering specification.
+This page summarises the architecture of **OV v8.0 (`OV // ROBOT OS`)** — a local-first Windows AI robot companion with offline Whisper (`faster-whisper`) voice control, 7 consistent named neural voices, live coding-agent timers, and an optional Android remote.
 
 ## Overview
 
@@ -41,11 +41,12 @@ The Electron main process owns app lifecycle, desktop windows, IPC handlers, phy
 
 ## Renderer windows
 
-The documented renderer architecture separates the floating companion canvas, living-glass HUD, notification/approval toast, and click-to-move spot picker. The report specifies context isolation, disabled Node integration, sandboxing, web security, navigation blocking, and denied new-window handling.
+The renderer architecture separates the floating robot canvas (`fish-window.html`), zero-gradient hardware HUD (`hud.html`), notification/approval toast (`toast.html`), and click-to-move spot picker. Every window enforces `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`, `webSecurity: true`, `allowRunningInsecureContent: false`, navigation blocking, and denied new-window handling.
 
-## Local AI
+## Local Whisper Voice & Local AI
 
-The local AI service discovers Ollama and LM Studio over loopback HTTP, filters embedding models, maintains a recent saved conversation, supports Fast/Think modes, and can interpret structured action tags emitted by the model. The model is local; optional browser/search integrations may still use external services when invoked.
+- **Local Open-Source Whisper (`src/services/neuralVoice.js`):** Holding **`A + S + W`** anywhere on Windows captures microphone audio via `pyaudio` with RMS silence-VAD and transcribes offline using `faster-whisper` (`Systran/faster-whisper-base` cached locally, with Windows `System.Speech.Recognition` fallback). Replies use a single user-selected named neural voice (`Arjun`, `Kavya`, `Kabir`, `Meera`, `Andrew`, `Ava`, `Brian`) in English, Hinglish, or Hindi.
+- **Local LLM (`src/services/llmBrain.js`):** Auto-discovers Ollama (`127.0.0.1:11434`) and LM Studio (`127.0.0.1:1234`) over loopback HTTP, supports Fast/Think modes, per-message deletion, and works out-of-the-box with the built-in offline Task Brain even when no local LLM is running.
 
 ## Agent bridge
 
@@ -55,12 +56,12 @@ Claude Code hooks send permission and lifecycle events to the desktop's local ho
 
 The mobile web UI is bundled for browser/WebView use. Pairing uses a short-lived PIN to exchange for a bearer token. A local LAN mode is available, and worldwide mode can start a Cloudflare Quick Tunnel after explicit user action. Task changes can queue locally while the desktop is offline and sync after reconnection.
 
-## Unified Companion & Robot Agent Ecosystem, 8-Archetype Physics & Age Personas
+## 4-Robot Ecosystem, Physics Engine & Age Personas
 
-- **Data-Driven Unit Registry (`src/services/heroRegistry.js`):** Defines 7 original OV units across two distinct collections — **Heroes** (**Vesper**, **Vector**, **Umbra**, **Coral** — 20 skins) and **Robot Agents** (**Kronos** Heavy Task Monolith, **Optix** Deep Research Rover, **Orbit** Autonomous Synth Pod — 12 skins) — plus 8 movement archetypes (`swing`, `fly`, `glide`, `swim`, `float`, `stride`, `scout`, `drone`), 3 age-based persona profiles (`1–14 Young Heroes`, `15–29 Students & Builders`, `30–60 Mentors & Caretakers`), the 21-cell **Unit × Age-Profile** AI synergy matrix, and lossless safe migration (`migrateSettingsSafe`).
-- **Companion Studio & Local Store (`src/services/customHeroStore.js`):** Stores user-created custom robot agents, heroes, and custom units plus validated local raster artwork (`PNG`/`JPEG`/`WebP`, magic-byte verified, ≤ 380 KB, SVG/script blocked) strictly under `%LOCALAPPDATA%\PetFish\custom-heroes\heroes.json`. Supports full CRUD, duplicate, and schema-validated JSON import/export.
-- **8-Archetype Physics Engine (`src/services/petPhysics.js`):** Drives distinct desktop kinematics — hero archetypes (`swing`, `fly`, `glide`, `swim`, `float`) and specialized robot agent locomotion (`stride` for Kronos, `scout` for Optix, `drone` for Orbit) — all sharing damped spring elastic drag squish.
-- **Solid Retro-Tech Paper & Matte Hardware Design System (`src/renderer/styles.css` & `mobile/web/index.html`):** 100% solid opaque matte carbon (`#131417`) and archival warm paper (`#f2efe9`) surfaces with zero glass/blur, mathematical 4px/8px grid geometry, poppy tactile mechanical buttons with `cubic-bezier(0.22, 1, 0.36, 1)` spring physics, and synthesized WebAudio mechanical key click feedback.
+- **Data-Driven Robot Registry (`src/services/heroRegistry.js`):** Defines 4 original industrial robot units (**Kronos** — Interstellar 4-Slab Articulated Monolith, **Aegis** — Bipedal Field Mech, **Optix** — Deep Research Rover, **Orbit** — Autonomous Synth Pod — 16 skins total), 3 age-based persona profiles (`1–14 Young Explorers`, `15–29 Engineers & Builders`, `30–60 Architects & Mentors`), the 12-cell **Robot × Age-Profile** AI synergy matrix, and lossless safe migration (`migrateSettingsSafe`) for legacy profiles.
+- **Companion Studio & Local Store (`src/services/customHeroStore.js`):** Stores user-created custom robot units plus validated local raster artwork (`PNG`/`JPEG`/`WebP`, magic-byte verified, ≤ 380 KB, SVG/script blocked) strictly under `%LOCALAPPDATA%\PetFish\custom-heroes\heroes.json`. Supports full CRUD, duplicate, and schema-validated JSON import/export.
+- **Robot Physics Engine (`src/services/petPhysics.js`):** Drives distinct desktop kinematics (`stride`, `scout`, `drone`, plus custom movement templates) with damped spring elastic drag squish, optional Dance Mode (`settings.danceModeEnabled`), and simultaneous Multitask Mode.
+- **Zero-Gradient Hardware & Archival Paper Design System (`src/renderer/styles.css` & `mobile/web/index.html`):** 100% solid opaque matte carbon (`#101114`) and archival warm paper (`#f2efe9`) surfaces with zero glass/blur/gradients, sharp `2px`/`4px` hardware corners, hidden scrollbar sliders, tactile mechanical buttons, and synthesized WebAudio key click feedback.
 
 ## Data and trust boundaries
 

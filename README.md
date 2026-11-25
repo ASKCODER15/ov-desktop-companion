@@ -6,7 +6,7 @@
   </picture>
   <h1>OV v8.0 — Robot OS &amp; Local Whisper Voice Agent</h1>
   <p><strong>A local-first AI robot companion &amp; live coding-agent telemetry system for Windows.</strong></p>
-  <p>4 Industrial Desktop Robots · Local Open-Source Whisper (<code>A+S+W</code>) · Live Top-of-Head Agent Timers · Single Consistent Named Neural Voices (EN / Hinglish / Hindi) · Optional Android Remote</p>
+  <p>4 Industrial Desktop Robots · Local Open-Source Whisper (<code>A+S+W</code>) · Live Top-of-Head Agent Timers · 7 Consistent Named Neural Voices (EN / Hinglish / Hindi) · Optional Android Remote</p>
 </div>
 
 <p align="center">
@@ -17,32 +17,16 @@
 
 ---
 
-## Introduction
+## What You Can Do Right After Downloading OV v8.0
 
-**OV v8.0** is a local-first AI robot companion and live developer telemetry system for Windows 10/11 built with Electron, HTML5 Canvas, Web Audio, local open-source **Whisper (`faster-whisper`)**, and native Windows APIs — with **zero external runtime npm dependencies** (`~162 MB` idle RAM).
+Even with **zero coding or AI setup**, downloading OV gives you an always-on-top desktop robot that acts as your personal voice assistant, media controller, focus timer, and live coding-agent monitor:
 
-Instead of splitting your workflow across separate chat windows, notification drawers, media players, and terminal tabs, OV places an animated, physics-driven industrial robot on your desktop that opens into a crisp **Zero-Gradient Hardware & Archival Paper** workspace combining:
-
-- **Local Open-Source Whisper Voice Assistant (`A + S + W` Hotkey):** Hold **`A + S + W`** together anywhere on Windows (or click **`WHISPER MIC`**) to speak commands directly to your robot using your local **`faster-whisper`** model (`"Open Spotify"`, `"Play or pause the music"`, `"Add a task to finish system design"`, `"Start a 25 minute timer"`).
-- **Works Out-of-the-Box With OR Without a Local LLM Connected:**
-  - **Without Ollama (Zero-Setup Offline Mode):** The **Local Whisper Voice Agent (`A+S+W`)** and **Built-In Trilingual Task & Conversational Brain** run out of the box to execute laptop commands, control music, launch apps/websites, manage tasks/timers, and reply in **English, Hinglish, or Hindi**.
-  - **With Ollama or LM Studio Connected:** Connect any local model (`ollama run qwen2.5:3b` or `qwen3.5:2b`) for deep general-intelligence reasoning (`Fast` and `Think` modes) and **Focus Lens** clipboard code explanation.
-- **Single Consistent Named Neural Voice (EN / Hinglish / Hindi):** Choose one named human voice (**Arjun**, **Kavya**, **Kabir**, **Meera**, **Andrew**, **Ava**, or **Brian**) and OV sticks 100% with that single voice across every reply while the robot's OLED mouth animates in real time.
-- **Live Top-of-Head Agent Timer & Voice Announcements:** When `Antigravity`, `Claude Code`, `Cursor`, or a focus timer runs, a digital timer badge (`[ANTIGRAVITY // MM:SS · ON HH:MM]`) ticks right above the robot's head, and clicking **`REPORT`** makes the robot announce the active agent, start time, and elapsed duration out loud with a corner speech bubble and one-click **`COPY`**.
-
----
-
-## Feature Overview
-
-| Capability | What OV v8.0 Provides |
-|---|---|
-| **4 Industrial Desktop Robots** | Always-on-top `204 × 196` transparent HTML5 Canvas robot (**Kronos** 4-Slab Interstellar Monolith, **Aegis** Bipedal Field Mech, **Optix** Tracked Research Rover, **Orbit** Autonomous Synth Pod) with 16 hardware skins, recessed OLED face screens, animated speaking mouths, and elastic drag physics. |
-| **Zero-Gradient Hardware UI** | 100% solid matte carbon (`#101114`) + warm archival paper (`#f2efe9`) interface with sharp `2px`/`4px` industrial corners, crisp technical monospace typography, tactile mechanical key clicks, Mini Popover media transport (`PREV / PLAY / NEXT`) + **`DANCE: ON/OFF`** toggle, and zero scrollbar slider clutter. |
-| **Local Whisper Voice Agent (`A+S+W`)** | Press **`A + S + W`** simultaneously anywhere on Windows to activate local open-source **`faster-whisper`** speech-to-text. Speaks back with a single consistent named voice (**Arjun**, **Kavya**, **Kabir**, **Meera**, **Andrew**, **Ava**, **Brian**) in **English, Hinglish, or Hindi** with an animated moving mouth. |
-| **Live Agent Head Timer & Telemetry** | Real-time top-of-head digital timer (`[ANTIGRAVITY // MM:SS]`), automatic & on-demand voice announcements (*"Bro, I am using Antigravity, which is ON, and doing..."*), corner speech readout with **`COPY`**, Claude Code hook bridge (`PermissionRequest`, `Notification`, `Stop`), and 1-click **Allow / Deny**. |
-| **Context-Aware Robot Activities** | Optional **`DANCE: ON/OFF`** toggle (puts on wireframe **Studio Headphones** with live EQ LEDs and grooves to the beat), **Task Data Slate** reading posture when an agent works, and simultaneous **`DANCE + TASK // MULTITASK`** mode. |
-| **Age-Based Personas (`1–14`, `15–29`, `30–60`)** | 12 Robot × Age combinations (**1–14 Young Explorers** `1.25x` Fast Stride + Wide Optics, **15–29 Engineers & Builders** `1.0x` Precision Stride + Scan Optics, **30–60 Architects & Mentors** `0.78x` Steady Stride + Calm Optics) that physically adjust robot speed, optics, and spoken persona. |
-| **Android & Mobile Companion** | Self-contained mobile web UI + lightweight native Android WebView APK (`~76.5 KB` v2-signed) featuring all 4 robots, 6-digit PIN pairing, 256-bit Bearer token, offline-queued two-way task sync, and opt-in Cloudflare Quick Tunnel. |
+- **Talk to Your Laptop Hands-Free (`A + S + W`):** Hold **`A + S + W`** together anywhere on Windows and say *"Open Spotify"*, *"Play or pause the music"*, *"Turn on dance mode"*, *"Remind me in 15 minutes to push my branch"*, or *"What agent is running right now?"*. Your local open-source **Whisper (`faster-whisper`)** model transcribes your voice offline, executes the action, shows a corner speech bubble with **`COPY`**, and replies aloud while the robot's mouth animates.
+- **Pick 1 of 4 Industrial Robots (16 Skins + Custom Studio):** Switch instantly between **Kronos** (Interstellar 4-Slab Monolith), **Aegis** (Bipedal Field Mech), **Optix** (Deep Research Rover), and **Orbit** (Autonomous Synth Pod) — or build your own in Companion Studio.
+- **Live Top-of-Head Coding-Agent Timers:** When `Antigravity`, `Claude Code`, `Cursor`, or a Focus Timer runs, a live digital timer (`[ANTIGRAVITY // MM:SS · ON HH:MM]`) ticks right above your robot's head. Click **`REPORT`** to hear what it's doing, when it started, and how long it has been running.
+- **Control Music & Toggle Dance Mode Anywhere:** Use `PREV / PLAY / NEXT` and `DANCE: ON/OFF` right inside the compact **Mini Popover** or **Control Center**. When Dance Mode is ON and music plays, your robot puts on wireframe **Studio Headphones** with animated EQ bars; when an agent works simultaneously, it enters **`DANCE + TASK // MULTITASK`** mode.
+- **Single Consistent Named Voice (EN / Hinglish / Hindi):** Pick one of 7 human neural voices (**Arjun**, **Kavya**, **Kabir**, **Meera**, **Andrew**, **Ava**, **Brian**) and OV sticks 100% with that exact voice across every reply.
+- **Optional Local LLM & Android Phone Remote:** Connect **Ollama** or **LM Studio** for unrestricted local AI chat & clipboard code explanation, or build and pair the **Android Remote APK** over Wi-Fi / HTTPS with a 6-digit PIN.
 
 ---
 
@@ -53,73 +37,123 @@ Instead of splitting your workflow across separate chat windows, notification dr
 | <img src="docs/posters/pet-kronos.png" width="160" alt="Kronos Interstellar 4-Slab Monolith Robot" /> | <img src="docs/posters/pet-aegis.png" width="160" alt="Aegis Bipedal Field Mech Robot" /> | <img src="docs/posters/pet-optix.png" width="160" alt="Optix Deep Research Rover Robot" /> | <img src="docs/posters/pet-orbit.png" width="160" alt="Orbit Autonomous Synth Pod Robot" /> |
 | 4 articulated titanium slabs, OLED visor & waveform mouth | Bipedal servo legs, rotary chest dial & OLED face | Caterpillar treads, articulated neck & capsule optics | Zero-G magnetic levitation & curved OLED shield |
 
-### Hardware Interface Preview (Sanitised Demo Renders)
+---
 
-| Control Center & Music Player | Studio & Robot Customizer |
+## Hardware Interface Preview (Zero-Gradient Robot OS)
+
+| Mini Popover (Music Controls + Dance Toggle) | Multitask Mode (Headphones + Live Agent Timer) |
 | :---: | :---: |
-| <img src="docs/posters/ov-control-center.png" width="400" alt="OV Control Center and Music Player" /> | <img src="docs/posters/ov-studio-customizer.png" width="400" alt="OV Studio and Robot Customizer" /> |
+| <img src="docs/posters/ov-mini-popover.png" width="400" alt="OV Mini Popover with Music Transport and Dance Toggle" /> | <img src="docs/posters/ov-multitask-mode.png" width="260" alt="OV Kronos Multitask Mode with Headphones and Reading Tablet" /> |
 
 | Whisper Voice & AI Chat (`COPY / SPEAK / DEL`) | Live AI Coding-Agent Monitor (`START HH:MM / REPORT`) |
 | :---: | :---: |
 | <img src="docs/posters/ov-ai-chat-think.png" width="400" alt="OV Whisper Voice and AI Chat" /> | <img src="docs/posters/ov-live-agents.png" width="400" alt="OV Live Coding Agents Monitor" /> |
 
+| Control Center & Music Player | Studio & Robot Customizer |
+| :---: | :---: |
+| <img src="docs/posters/ov-control-center.png" width="400" alt="OV Control Center and Music Player" /> | <img src="docs/posters/ov-studio-customizer.png" width="400" alt="OV Studio and Robot Customizer" /> |
+
 ---
 
-## Installation & Quick Start
+## System Architecture
 
-### Prerequisites
+<p align="center">
+  <img src="docs/assets/ov-system-overview.svg" alt="OV v8.0 Robot OS System Architecture" width="100%" />
+</p>
 
-- **Windows 10 or Windows 11**
-- **Node.js 20+** and **npm**
-- **Python 3.10+** with `faster-whisper`, `pyaudio`, `numpy`, and `edge-tts` for local offline Whisper STT and natural Neural TTS:
-  ```powershell
-  pip install faster-whisper pyaudio numpy edge-tts
-  ```
-- **Optional (Local LLM Intelligence):** [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai)
+---
 
-### Run OV on Windows
+## Complete Step-by-Step Download & Setup Guide (Beginner-Friendly)
+
+### Prerequisites (Free, Official Downloads)
+1. **Windows 10 or Windows 11**
+2. **Node.js 20+ (LTS)** — download from [nodejs.org](https://nodejs.org/)
+3. **Python 3.10–3.13** *(for the Local Whisper Voice Pack & 7 Neural Voices)* — download from [python.org/downloads/windows](https://www.python.org/downloads/windows/) *(check **"Add python.exe to PATH"** during setup)*
+4. **Optional (Local AI Brain):** [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai)
+
+---
+
+### Step 1 — Download & Launch OV Desktop
+
+Open **PowerShell** (or Windows Terminal) and run:
 
 ```powershell
-# 1. Install development dependency (Electron)
+# 1. Clone the repository (or click Code -> Download ZIP on GitHub and extract it)
+git clone https://github.com/ASKCODER15/ov-desktop-companion.git
+cd ov-desktop-companion
+
+# 2. Install Electron (zero external runtime npm dependencies)
 npm install
 
-# 2. Start OV Desktop
+# 3. Launch OV v8.0 Desktop
 npm start
+```
 
-# 3. (Optional) Create an OV.lnk shortcut on your Windows Desktop
+*(Optional)* Create a desktop shortcut (`OV.lnk`) so you can launch OV with a double-click:
+```powershell
 npm run shortcut
 ```
 
 ---
 
-## How to Run the Voice Agent (With or Without a Local LLM)
+### Step 2 — Install the Local Whisper Voice Pack (`A + S + W` + 7 Named Voices)
 
-### 1. Out-of-the-Box Local Whisper Voice Agent (No Ollama Required)
-Even if you have **not** installed Ollama or LM Studio yet, the **OV Whisper Voice Agent** works immediately:
-1. Press **`A + S + W`** together anywhere on Windows (or click **`WHISPER MIC`** in the Chat tab / **`Mic`** icon in the footer).
-2. Speak naturally into your microphone in **English, Hinglish, or Hindi**:
-   - *"Bro open Spotify"* / *"Open VS Code"* / *"Open Terminal"*
-   - *"Play or pause the music"* / *"Next track"*
-   - *"Turn on dance mode"* / *"Turn off dance mode"*
-   - *"Remind me in 15 minutes to push my branch"* / *"Task review PR"*
-   - *"What agent is running right now?"*
-3. Your local open-source **`faster-whisper`** model transcribes your speech offline, executes the laptop action, displays a corner text bubble with a **`COPY`** button, and replies aloud in your selected named voice (**Arjun**, **Kavya**, **Kabir**, **Meera**, **Andrew**, **Ava**, or **Brian**) while the robot's mouth moves.
+Run our **1-click voice pack installer**:
 
-### 2. Connecting a Local LLM (Ollama / LM Studio) for Full AI Reasoning
-To unlock unrestricted coding, math, architecture, and **Focus Lens** clipboard explanation alongside voice commands:
-1. Install [Ollama](https://ollama.com) (`127.0.0.1:11434`) or [LM Studio](https://lmstudio.ai) (`127.0.0.1:1234`).
-2. Pull a fast lightweight model:
-   ```powershell
-   ollama run qwen2.5:3b
-   ```
-3. Open **OV → Chat** (or press **`A + S + D`**). OV auto-detects your running model.
+```powershell
+npm run setup:voice
+```
+
+**What `npm run setup:voice` automatically does for you:**
+1. Finds Python 3.10+ on your Windows PC.
+2. Installs `faster-whisper`, `pyaudio`, `numpy`, and `edge-tts` from [`requirements-voice.txt`](requirements-voice.txt).
+3. Pre-downloads the open-source **`Systran/faster-whisper-base`** offline speech recognition model (`~145 MB`) into your local Hugging Face cache and checks your microphone.
+
+**Now press `A + S + W` together anywhere on Windows** (or click **`WHISPER MIC`** in the Chat tab) and speak in **English, Hinglish, or Hindi**!
+- *Note:* If you skip Step 2, OV still runs cleanly and falls back to Windows built-in speech recognition.
 
 ---
 
-## Development & Verification
+### Step 3 (Optional) — Connect a Local LLM (Ollama / LM Studio)
+
+Even **without** Ollama, OV's Local Whisper Voice Agent (`A+S+W`) and Built-In Task Brain work immediately for launching apps, controlling music, toggling dance mode, managing tasks/reminders, and announcing coding agents.
+
+To unlock deep AI coding, math, and **Focus Lens** clipboard explanation locally:
+1. Install [Ollama](https://ollama.com) (`127.0.0.1:11434`) or [LM Studio](https://lmstudio.ai) (`127.0.0.1:1234`).
+2. Pull a fast model:
+   ```powershell
+   ollama run qwen2.5:3b
+   ```
+3. Open **OV → Chat** (or press **`A + S + D`**). OV auto-detects your model automatically.
+
+---
+
+### Step 4 (Optional) — Build & Pair the Android Remote Companion
+
+1. Run `npm run build:apk` to compile and v2-sign `mobile/PetFish-Mobile.apk` (`~76.5 KB`).
+2. Install the APK on your Android phone (or open the pairing URL in any mobile browser).
+3. In OV Desktop, open **Studio → Mobile Remote & Security → LAN Wi-Fi** (or **Start HTTPS**), scan the offline QR code, and enter the 6-digit pairing PIN.
+
+---
+
+## Feature Summary Table
+
+| Capability | What OV v8.0 Provides |
+|---|---|
+| **4 Industrial Desktop Robots** | Always-on-top `204 × 196` transparent HTML5 Canvas robot (**Kronos**, **Aegis**, **Optix**, **Orbit**) with 16 hardware skins, recessed OLED face screens, animated speaking mouths, and elastic drag physics. |
+| **Zero-Gradient Hardware UI** | 100% solid matte carbon (`#101114`) + warm archival paper (`#f2efe9`) interface with sharp `2px`/`4px` industrial corners, crisp monospace typography, tactile mechanical clicks, Mini Popover music controls + **`DANCE: ON/OFF`** toggle, and zero scrollbar slider clutter. |
+| **Local Whisper Voice Agent (`A+S+W`)** | Press **`A + S + W`** anywhere on Windows for offline **`faster-whisper`** speech-to-text. Speaks back with one consistent named voice (**Arjun**, **Kavya**, **Kabir**, **Meera**, **Andrew**, **Ava**, **Brian**) in **English, Hinglish, or Hindi**. |
+| **Live Agent Head Timer & Telemetry** | Real-time top-of-head digital timer (`[ANTIGRAVITY // MM:SS]`), automatic & on-demand voice announcements, corner speech readout with **`COPY`**, Claude Code hook bridge (`PermissionRequest`, `Notification`, `Stop`), and 1-click **Allow / Deny**. |
+| **Age-Based Personas (`1–14`, `15–29`, `30–60`)** | 12 Robot × Age combinations that adjust robot speed, optics, and spoken persona. |
+| **Security-First Local Architecture** | Sandboxed Electron (`contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`), loopback-only hook server (`127.0.0.1:47821`) with 256-bit constant-time token auth, `icacls` user-only file ACLs, zero telemetry, and opt-in Mobile Remote. |
+
+---
+
+## Development & Verification Commands
 
 ```powershell
 npm start            # Launch OV v8.0 Desktop via Electron
+npm run setup:voice  # 1-click install for Local Whisper (faster-whisper) & 7 Neural Voices
 npm run verify       # Run the 8-stage security, Whisper/voice, robot physics & mobile test suite
 npm run shortcut     # Create Desktop OV.lnk shortcut
 npm run build:apk    # Compile & v2-sign Android APK (mobile/PetFish-Mobile.apk)

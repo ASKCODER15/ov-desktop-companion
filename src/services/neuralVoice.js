@@ -4,14 +4,25 @@ const crypto = require('crypto');
 const { execFile } = require('child_process');
 const { getPrivateDataDir } = require('./security');
 
-const PYTHON_CANDIDATES = [
-  'C:\\Program Files\\Python312\\python.exe',
-  'C:\\Python315\\python.exe',
-  'python',
-];
+const os = require('os');
+
+function buildPythonCandidates() {
+  const cands = [];
+  if (process.env.OV_PYTHON_BIN) cands.push(process.env.OV_PYTHON_BIN);
+  cands.push(path.resolve(__dirname, '..', '..', '.venv', 'Scripts', 'python.exe'));
+  const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
+  const versions = ['Python313', 'Python312', 'Python311', 'Python310'];
+  for (const v of versions) {
+    cands.push(path.join(localAppData, 'Programs', 'Python', v, 'python.exe'));
+    cands.push(`C:\\Program Files\\${v}\\python.exe`);
+    cands.push(`C:\\${v}\\python.exe`);
+  }
+  cands.push('python');
+  return cands;
+}
 
 function resolvePythonBin() {
-  for (const cand of PYTHON_CANDIDATES) {
+  for (const cand of buildPythonCandidates()) {
     if (cand === 'python' || fs.existsSync(cand)) return cand;
   }
   return 'python';

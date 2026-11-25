@@ -1,0 +1,6 @@
+# OV v8.0.0 Local Whisper Voice Pack & Neural TTS Requirements
+# Install automatically via: npm run setup:voice
+faster-whisper>=1.0.3
+pyaudio>=0.2.14
+numpy>=1.26.0
+edge-tts>=6.1.12
