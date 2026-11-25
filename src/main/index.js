@@ -20,6 +20,15 @@ const { SystemControls } = require('../services/systemControls');
 const { MusicDetector } = require('../services/musicDetector');
 const { MobileRemoteServer } = require('../services/mobileRemote');
 const { ClipboardVault } = require('../services/clipboardVault');
+const { CustomHeroStore } = require('../services/customHeroStore');
+const { NeuralVoiceService, VOICE_CATALOG, getVoiceEntry } = require('../services/neuralVoice');
+const {
+  BUILTIN_HEROES,
+  AGE_PROFILES,
+  getHeroDescriptor,
+  buildHeroAgePersona,
+  migrateSettingsSafe,
+} = require('../services/heroRegistry');
 const {
   launchAllowlistedApp,
   openNotificationSource,
@@ -99,6 +108,8 @@ const discoveryEngine = new DiscoveryEngine();
 const systemControls = new SystemControls();
 const musicDetector = new MusicDetector();
 const clipboardVault = new ClipboardVault(clipboard);
+const customHeroStore = new CustomHeroStore();
+const neuralVoice = new NeuralVoiceService();
 const notificationMonitor = new NotificationMonitor();
 const agentMonitor = new AgentMonitor();
 const hookServer = new HookServer(DEFAULT_PORT, (item) => autoPilot.evaluatePermission(item));
@@ -111,14 +122,17 @@ const DEFAULT_SETTINGS = {
   showAlertBubbles: true,
   privacyMask: Boolean(securityConfig.privacyMaskDefault),
   voiceEnabled: true,
+  selectedVoice: 'arjun', // Sticks 100% with one single chosen named voice!
   bgmEnabled: true,
+  danceModeEnabled: false, // Explicit user toggle for Dance Mode ON/OFF
   autoStart: false,
   thinkMode: false,
-  ageGroup: '15-30', // '0-15' | '15-30' | '30-60'
-  glassTransparency: 42, // 0 (solid) -> 100 (ultra-liquid)
+  ageGroup: '15-30', // '1-15' | '15-30' | '30-60'
+  glassTransparency: 0,
   fishScale: 1.06,
   petMode: 'swim',
-  petCharacter: 'vesper', // 'vesper' | 'vector' | 'core' | 'coral'
+  petCharacter: 'kronos', // 'kronos' | 'aegis' | 'optix' | 'orbit' | 'custom-*'
+  unresolvedCharacter: null,
   petSkins: { ...DEFAULT_CHAR_SKINS },
   petNames: { ...DEFAULT_CHAR_NAMES },
   savedPos: null,
@@ -135,13 +149,19 @@ function loadSettings() {
     const file = getSettingsFile();
     if (fs.existsSync(file)) {
       const loaded = JSON.parse(fs.readFileSync(file, 'utf8'));
-      const clean = sanitizeSettingsPatch(loaded);
+      const customList = customHeroStore.list();
+      const mig = migrateSettingsSafe(loaded, customList);
+      const clean = sanitizeSettingsPatch(mig.settings, customList);
       settings = {
         ...DEFAULT_SETTINGS,
         ...clean,
+        unresolvedCharacter: mig.unresolvedCharacter || clean.unresolvedCharacter || null,
         petSkins: { ...DEFAULT_SETTINGS.petSkins, ...(clean.petSkins || {}) },
         petNames: { ...DEFAULT_SETTINGS.petNames, ...(clean.petNames || {}) },
       };
+      if (mig.migrated && !mig.unresolvedCharacter) {
+        try { fs.writeFileSync(file, JSON.stringify(settings, null, 2), 'utf8'); } catch {}
+      }
       llmBrain.setThinkMode(Boolean(settings.thinkMode));
     }
   } catch {
@@ -161,8 +181,10 @@ function applyAutoStartSetting() {
 }
 
 function persistSettings(rawPatch = {}) {
-  const patch = sanitizeSettingsPatch(rawPatch);
+  const customList = customHeroStore.list();
+  const patch = sanitizeSettingsPatch(rawPatch, customList);
   const prevAutoStart = settings.autoStart;
+  const prevAge = settings.ageGroup;
   settings = {
     ...settings,
     ...patch,
@@ -172,6 +194,30 @@ function persistSettings(rawPatch = {}) {
   if (typeof patch.thinkMode === 'boolean') llmBrain.setThinkMode(patch.thinkMode);
   if (typeof patch.autoStart === 'boolean' && patch.autoStart !== prevAutoStart) {
     applyAutoStartSetting();
+  }
+  if (patch.ageGroup && patch.ageGroup !== prevAge && physics) {
+    const ageProf = AGE_PROFILES[patch.ageGroup] || AGE_PROFILES['15-30'];
+    if (ageProf?.motionMode) {
+      physics.setMode(ageProf.motionMode);
+      settings.petMode = ageProf.motionMode;
+    }
+    const petName = getCharacterDisplayName();
+    const ageMsg = patch.ageGroup === '1-15'
+      ? `Bro! ${petName} switched to Age 1–14 Explorer Mode (Fast Bouncy Stride + Curious Wide Optics). Let's build & learn step by step!`
+      : patch.ageGroup === '30-60'
+        ? `${petName} switched to Age 30–60 Architect & Mentor Mode (Steady Precision Stride + High-Signal Executive Briefings).`
+        : `Bro! ${petName} locked into Age 15–29 Builder Mode (Active Agent Telemetry + Coding & Deep Research Co-Pilot).`;
+    triggerPetReaction('speak');
+    showToast({
+      alwaysShow: true,
+      tag: `${petName.toUpperCase()} // AGE ${patch.ageGroup}`,
+      title: `${ageProf.label} Active (${ageProf.motionMode.toUpperCase()} PACE)`,
+      body: ageMsg,
+      tabTarget: 'pet',
+    });
+    if (settings.voiceEnabled && !IS_VERIFY_RENDER) {
+      speakWithNeuralVoice(ageMsg).catch(() => {});
+    }
   }
   try {
     fs.writeFileSync(getSettingsFile(), JSON.stringify(settings, null, 2), 'utf8');
@@ -197,13 +243,26 @@ async function refreshSystemPulse() {
 
 function getFullState() {
   cachedPulse.vitals = getSystemVitals(app.getAppMetrics());
+  const customHeroes = customHeroStore.list();
+  const activeChar = physics ? physics.character : settings.petCharacter;
+  const activeHeroDesc = getHeroDescriptor(activeChar, customHeroes);
+  const activePersona = buildHeroAgePersona(activeHeroDesc, settings.ageGroup || '15-30', getCharacterDisplayName(activeChar));
+  const sharedHeroState = {
+    customHeroes,
+    heroRegistry: BUILTIN_HEROES,
+    ageProfiles: AGE_PROFILES,
+    activeHero: activeHeroDesc,
+    activePersona,
+    voiceCatalog: VOICE_CATALOG,
+  };
   if (IS_VERIFY_RENDER) {
     // Sanitized public-safe demo snapshot for README posters (zero personal Wi-Fi SSIDs, devices, or messages!)
     return {
       settings,
       hudViewMode,
       petMode: physics ? physics.mode : settings.petMode,
-      petCharacter: physics ? physics.character : settings.petCharacter,
+      petCharacter: activeChar,
+      ...sharedHeroState,
       agents: [
         {
           id: 'demo-antigravity',
@@ -307,7 +366,8 @@ function getFullState() {
     settings,
     hudViewMode,
     petMode: physics ? physics.mode : settings.petMode,
-    petCharacter: physics ? physics.character : settings.petCharacter,
+    petCharacter: activeChar,
+    ...sharedHeroState,
     agents: agentMonitor.getAgents(),
     notifications: notificationMonitor.getAll(),
     approvals: hookServer.getApprovals(),
@@ -445,9 +505,18 @@ function computeHudBounds(mode = hudViewMode) {
 function computeToastBounds() {
   const wa = screen.getPrimaryDisplay().workArea;
   const pad = 12;
+  if (hudOpen && hudWindow && !hudWindow.isDestroyed()) {
+    // Dock robot speech bubble cleanly at bottom-right corner when HUD is open so both are visible
+    return {
+      x: wa.x + wa.width - TOAST_W - pad,
+      y: wa.y + wa.height - TOAST_H - pad,
+      width: TOAST_W,
+      height: TOAST_H,
+    };
+  }
   const left = Math.max(wa.x + pad, Math.min(wa.x + wa.width - TOAST_W - pad, Math.round(physics.x - TOAST_W / 2)));
-  const above = Math.round(physics.y - 88 - TOAST_H);
-  const top = above >= wa.y + pad ? above : Math.min(wa.y + wa.height - TOAST_H - pad, Math.round(physics.y + 88));
+  const above = Math.round(physics.y - 96 - TOAST_H);
+  const top = above >= wa.y + pad ? above : Math.min(wa.y + wa.height - TOAST_H - pad, Math.round(physics.y + 92));
   return { x: left, y: top, width: TOAST_W, height: TOAST_H };
 }
 
@@ -558,7 +627,7 @@ function toggleHud(preferredTab = 'agents') {
 }
 
 function showToast(payload) {
-  if (hudOpen || !settings.showAlertBubbles) return;
+  if ((hudOpen && !payload?.alwaysShow) || !settings.showAlertBubbles) return;
   if (toastHideTimer) clearTimeout(toastHideTimer);
   ensurePetVisible();
 
@@ -677,16 +746,105 @@ function ensurePetVisible() {
 }
 
 function triggerPetReaction(type) {
-  sendWin(petWindow, 'petfish:fish-reaction', { type });
+  sendWin(petWindow, 'petfish:fish-reaction', { type, kind: type });
 }
 
 function sendAudioCmd(cmd) {
   sendWin(petWindow, 'petfish:audio-cmd', cmd);
 }
 
+let currentSpeakingUntil = 0;
+let currentSpeechSnippet = '';
+let isWhisperListening = false;
+const announcedAgentSessions = new Set();
+
+function formatClockHHMM(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function formatReadableDuration(ms) {
+  const sec = Math.max(1, Math.floor(ms / 1000));
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
+}
+
+async function speakWithNeuralVoice(text) {
+  if (IS_VERIFY_RENDER || !text) return;
+  const clean = String(text || '').trim();
+  const words = clean.split(/\s+/).filter(Boolean).length;
+  currentSpeakingUntil = Date.now() + Math.max(2800, Math.min(14000, words * 370));
+  currentSpeechSnippet = clean.slice(0, 32);
+  triggerPetReaction('speak');
+  const voiceId = settings.selectedVoice || 'arjun';
+  const res = await neuralVoice.synthesize(clean, voiceId);
+  sendAudioCmd({
+    type: 'speak',
+    character: voiceId,
+    text: clean,
+    audioDataUrl: res.ok ? res.audioDataUrl : null,
+    enabled: true,
+  });
+}
+
+function announceActiveAgent(targetId = '', speakAloud = true) {
+  const agents = agentMonitor.getAgents();
+  const running = agents.filter((a) => a.status === 'running' || a.status === 'waiting_approval');
+  const ag = (targetId && agents.find((a) => a.id === targetId)) || running[0] || agents[0];
+  const petName = getCharacterDisplayName();
+  if (!ag) {
+    const idleMsg = `Bro, ${petName} here — no coding agent is active right now. Start Antigravity, Claude Code, or a Focus Timer and I'll track its live clock above my head!`;
+    showToast({
+      alwaysShow: true,
+      tag: `${petName.toUpperCase()} // AGENT WATCH`,
+      title: 'No Active Agent Running',
+      body: idleMsg,
+      tabTarget: 'agents',
+    });
+    if (speakAloud && settings.voiceEnabled) speakWithNeuralVoice(idleMsg).catch(() => {});
+    return { ok: true, message: idleMsg };
+  }
+
+  const startTs = ag.turnStartedAt || ag.startedAt || Date.now();
+  const startClock = formatClockHHMM(startTs);
+  const elapsedStr = formatReadableDuration(Date.now() - startTs);
+  const whatStr = ag.what || ag.task || 'executing workspace tasks';
+  const howStr = ag.how ? ` (${ag.how})` : '';
+  const msg = `Bro, I am using ${ag.name}, which is ${ag.status === 'running' ? 'ON' : ag.status.toUpperCase()}, and doing: ${whatStr}${howStr}. Started at ${startClock} and running for ${elapsedStr}!`;
+
+  triggerPetReaction('task');
+  showToast({
+    alwaysShow: true,
+    tag: `${petName.toUpperCase()} // ${ag.name.toUpperCase()}`,
+    title: `${ag.name} is ON · Started ${startClock}`,
+    body: msg,
+    startedAt: startTs,
+    tabTarget: 'agents',
+  });
+  if (speakAloud && settings.voiceEnabled) {
+    speakWithNeuralVoice(msg).catch(() => {});
+  }
+  return { ok: true, message: msg, agent: ag.name, startedAt: startTs };
+}
+
 function getCharacterDisplayName(charKey) {
-  const c = normalizeCharacterId(charKey || physics?.character || settings.petCharacter) || 'vesper';
-  return settings.petNames?.[c] || DEFAULT_CHAR_NAMES[c] || 'OV';
+  const customList = customHeroStore.list();
+  const c = normalizeCharacterId(charKey || physics?.character || settings.petCharacter, customList) || 'kronos';
+  const customHero = customList.find((h) => h.id === c);
+  if (customHero) return settings.petNames?.[c] || customHero.nickname || customHero.name || 'Custom Robot';
+  return settings.petNames?.[c] || DEFAULT_CHAR_NAMES[c] || 'Kronos';
+}
+
+function getActiveAudioProfile(charKey) {
+  const customList = customHeroStore.list();
+  const desc = getHeroDescriptor(charKey || physics?.character || settings.petCharacter || 'kronos', customList);
+  return {
+    voiceProfile: desc.voiceProfile || desc.id || 'kronos',
+    soundPack: desc.soundPack || desc.id || 'kronos',
+  };
 }
 
 function setPetMode(mode, persist = true) {
@@ -698,24 +856,16 @@ function setPetMode(mode, persist = true) {
 }
 
 function setPetCharacter(char, persist = true, playIntro = true) {
-  const norm = normalizeCharacterId(char);
+  const customList = customHeroStore.list();
+  const norm = normalizeCharacterId(char, customList);
   if (!physics || !norm) return;
-  physics.setCharacter(norm);
+  physics.setCharacter(norm, customList);
   triggerPetReaction('pet');
   if (playIntro && !IS_VERIFY_RENDER) {
+    const audio = getActiveAudioProfile(norm);
     if (settings.bgmEnabled) {
-      if (bgmLoopActive) sendAudioCmd({ type: 'bgm-start', character: norm });
-      else sendAudioCmd({ type: 'motif', character: norm, vol: 0.85 });
-    }
-    if (settings.voiceEnabled) {
-      const nm = getCharacterDisplayName(norm);
-      const greets = {
-        vesper: `Hey! ${nm} here — tethered and ready to swing into work!`,
-        vector: `${nm} aero-thrusters online. Systems ready.`,
-        core: `${nm} at your service. All systems nominal.`,
-        coral: `Hi! ${nm} is gliding and ready to help!`,
-      };
-      sendAudioCmd({ type: 'speak', character: norm, text: greets[norm], enabled: true });
+      if (bgmLoopActive) sendAudioCmd({ type: 'bgm-start', character: audio.soundPack });
+      else sendAudioCmd({ type: 'motif', character: audio.soundPack, vol: 0.85 });
     }
   }
   if (persist) persistSettings({ petCharacter: norm });
@@ -775,8 +925,24 @@ async function executeLLMAction(action) {
     return `Searched ${qs.length} topic(s) in Brave`;
   }
   if (type === 'pet_dance') {
+    persistSettings({ danceModeEnabled: true });
     triggerPetReaction('dance');
-    return 'Dancing!';
+    return 'Dance Mode ON';
+  }
+  if (type === 'dance_toggle') {
+    const nextDance = typeof action.enable === 'boolean' ? action.enable : !settings.danceModeEnabled;
+    persistSettings({ danceModeEnabled: nextDance });
+    triggerPetReaction(nextDance ? 'dance' : 'dance-off');
+    return nextDance ? 'Dance Mode ON' : 'Dance Mode OFF';
+  }
+  if (type === 'pet_task') {
+    triggerPetReaction('task');
+    return 'Reading task slate!';
+  }
+  if (type === 'pet_multitask') {
+    persistSettings({ danceModeEnabled: true });
+    triggerPetReaction('multitask');
+    return 'Multitask: Headphones + Reading Task!';
   }
   if (type === 'media' && ['playPause', 'next', 'prev'].includes(action.command)) {
     await musicDetector.sendMediaKey(action.command);
@@ -817,16 +983,22 @@ function buildQuickMenuTemplate() {
       click: () => { ensurePetVisible(); physics.goToCorner('center', false); triggerPetReaction('pet'); },
     },
     { type: 'separator' },
-    { label: `${getCharacterDisplayName('vesper')} (Acrobat)`, type: 'radio', checked: currentChar === 'vesper', click: () => setPetCharacter('vesper') },
-    { label: `${getCharacterDisplayName('vector')} (Aero-Mech)`, type: 'radio', checked: currentChar === 'vector', click: () => setPetCharacter('vector') },
-    { label: `${getCharacterDisplayName('core')} (Holo AI)`, type: 'radio', checked: currentChar === 'core', click: () => setPetCharacter('core') },
-    { label: `${getCharacterDisplayName('coral')} (Reef)`, type: 'radio', checked: currentChar === 'coral', click: () => setPetCharacter('coral') },
+    { label: `${getCharacterDisplayName('kronos')} (Interstellar 4-Slab Monolith)`, type: 'radio', checked: currentChar === 'kronos', click: () => setPetCharacter('kronos') },
+    { label: `${getCharacterDisplayName('aegis')} (Bipedal Field Mech)`, type: 'radio', checked: currentChar === 'aegis', click: () => setPetCharacter('aegis') },
+    { label: `${getCharacterDisplayName('optix')} (Deep Research Rover)`, type: 'radio', checked: currentChar === 'optix', click: () => setPetCharacter('optix') },
+    { label: `${getCharacterDisplayName('orbit')} (Autonomous Synth Pod)`, type: 'radio', checked: currentChar === 'orbit', click: () => setPetCharacter('orbit') },
+    ...customHeroStore.list().slice(0, 6).map((ch) => ({
+      label: `${ch.nickname || ch.name} (Custom · ${ch.movement})`,
+      type: 'radio',
+      checked: currentChar === ch.id,
+      click: () => setPetCharacter(ch.id),
+    })),
     { type: 'separator' },
     { label: 'Roam Freely (Chalo)', type: 'radio', checked: currentMode === 'swim', click: () => setPetMode('swim') },
     { label: 'Fast / Zoom (Bhaago)', type: 'radio', checked: currentMode === 'fast', click: () => setPetMode('fast') },
     { label: 'Slow Pace (Dheere)', type: 'radio', checked: currentMode === 'slow', click: () => setPetMode('slow') },
     {
-      label: currentChar === 'vesper' ? 'Hang Inverted (Ruko)' : 'Stay Right Here (Ruko)',
+      label: currentChar === 'spidey' ? 'Web Hang (Ruko)' : currentChar === 'batman' ? 'Rooftop Perch (Ruko)' : 'Stay Right Here (Ruko)',
       type: 'radio',
       checked: currentMode === 'stay',
       click: () => setPetMode('stay'),
@@ -919,10 +1091,23 @@ function startPhysicsLoop() {
       const unreadNotifs = notificationMonitor.getAll().filter((n) => n.unread);
       const unreadWA = unreadNotifs.filter((n) => n.category === 'whatsapp').length;
       const musicSt = musicDetector.getState();
+      const runningAgents = agentMonitor.getAgents().filter((a) => a.status === 'running' || a.status === 'waiting_approval');
+      const timerActive = Boolean(autoPilot.timer && autoPilot.timer.endAt > Date.now());
+      const agentWorking = runningAgents.length > 0 || llmBrain.isThinking || timerActive;
+      const topAg = runningAgents[0] || null;
+      const agStartTs = topAg
+        ? (topAg.turnStartedAt || topAg.startedAt || now)
+        : (timerActive ? (autoPilot.timer.endAt - (autoPilot.timer.durationMs || 1500000)) : 0);
+      const agentElapsedSec = topAg
+        ? Math.max(0, Math.floor((now - agStartTs) / 1000))
+        : (timerActive ? Math.max(0, Math.ceil((autoPilot.timer.endAt - now) / 1000)) : 0);
 
+      const activeCustom = customHeroStore.get(physics.character);
       sendWin(petWindow, 'petfish:fish-state', {
         character: physics.character,
-        skin: settings.petSkins?.[physics.character] || 'classic',
+        movementArchetype: physics.movementArchetype,
+        customHero: activeCustom || null,
+        skin: settings.petSkins?.[physics.character] || DEFAULT_CHAR_SKINS[physics.character] || 'titanium',
         ageGroup: settings.ageGroup || '15-30',
         vx: physics.vx,
         vy: physics.vy,
@@ -931,11 +1116,14 @@ function startPhysicsLoop() {
         pitch: physics.pitch,
         mode: physics.mode,
         acrobatState: physics.acrobatState,
+        glideState: physics.glideState,
+        glideCycle: physics.glideCycle,
+        animalState: physics.animalState,
         swingCycle: physics.swingCycle,
         stretchX: physics.stretchX,
         stretchY: physics.stretchY,
         squishMag: physics.squishMag,
-        scale: settings.fishScale || 1.06,
+        scale: activeCustom ? (activeCustom.size || settings.fishScale || 1.06) : (settings.fishScale || 1.06),
         hudOpen,
         isDragging: physics.isDragging,
         isThinking: llmBrain.isThinking,
@@ -945,7 +1133,17 @@ function startPhysicsLoop() {
         unread: unreadNotifs.length,
         unreadWA,
         musicPlaying: Boolean(musicSt.isPlaying) || bgmLoopActive,
+        danceModeEnabled: Boolean(settings.danceModeEnabled),
+        isListening: isWhisperListening,
         musicTitle: musicSt.title || '',
+        agentWorking,
+        activeTaskLabel: topAg?.name || (timerActive ? (autoPilot.timer.label || 'SPRINT') : ''),
+        activeAgentName: topAg?.name || (timerActive ? 'TIMER' : ''),
+        activeAgentWhat: topAg ? (topAg.what || topAg.task || 'Running') : (timerActive ? (autoPilot.timer.label || 'Focus') : ''),
+        activeAgentStartStr: topAg ? formatClockHHMM(agStartTs) : '',
+        agentElapsedSec,
+        isSpeaking: now < currentSpeakingUntil,
+        speechSnippet: now < currentSpeakingUntil ? currentSpeechSnippet : '',
       });
     }
 
@@ -1051,7 +1249,21 @@ function wireMonitors() {
     }
   });
 
-  agentMonitor.on('update', () => { broadcastFullState(); updateTrayTooltip(); });
+  agentMonitor.on('update', () => {
+    broadcastFullState();
+    updateTrayTooltip();
+    const running = agentMonitor.getAgents().filter((a) => a.status === 'running');
+    for (const ag of running) {
+      const key = `${ag.id}::${ag.turnStartedAt || ag.startedAt || 0}`;
+      if (!announcedAgentSessions.has(key)) {
+        announcedAgentSessions.add(key);
+        if (!IS_VERIFY_RENDER) {
+          announceActiveAgent(ag.id, false);
+        }
+        break;
+      }
+    }
+  });
   autoPilot.on('update', () => broadcastFullState());
   musicDetector.on('update', () => broadcastFullState());
   clipboardVault.on('update', () => broadcastFullState());
@@ -1133,7 +1345,8 @@ function wireMonitors() {
       return autoPilot.getState();
     },
     controlPet: (body) => {
-      const normChar = normalizeCharacterId(body.character);
+      const customList = customHeroStore.list();
+      const normChar = normalizeCharacterId(body.character, customList);
       if (normChar) setPetCharacter(normChar);
       if (['swim', 'fast', 'slow', 'stay', 'follow'].includes(body.mode)) setPetMode(body.mode);
       if (body.skin && physics?.character) persistSettings({ petSkins: { [physics.character]: body.skin } });
@@ -1152,10 +1365,11 @@ function wireMonitors() {
     },
     askLLM: async (prompt, opts = {}) => {
       const unread = notificationMonitor.getAll().filter((n) => n.unread);
-      const charKey = physics?.character || 'vesper';
+      const charKey = physics?.character || 'spidey';
       const result = await llmBrain.ask(prompt, {
         petCharacter: charKey,
         petName: getCharacterDisplayName(charKey),
+        customHeroes: customHeroStore.list(),
         ageGroup: settings.ageGroup || '15-30',
         thinkMode: typeof opts.thinkMode === 'boolean' ? opts.thinkMode : settings.thinkMode,
         agents: agentMonitor.getAgents(),
@@ -1313,9 +1527,59 @@ function wireIpc() {
   });
 
   ipcMain.handle('petfish:set-character', (_, character) => {
-    const norm = normalizeCharacterId(character);
+    const customList = customHeroStore.list();
+    const norm = normalizeCharacterId(character, customList);
     if (norm) setPetCharacter(norm);
     return getFullState();
+  });
+
+  // Hero Creator — Custom Companion CRUD + Import/Export IPC
+  ipcMain.handle('petfish:hero-create', (_, payload) => {
+    const res = customHeroStore.create(payload);
+    if (res.ok && res.hero) {
+      setPetCharacter(res.hero.id, true, true);
+    }
+    return { ...res, state: getFullState() };
+  });
+  ipcMain.handle('petfish:hero-update', (_, { id, patch }) => {
+    const res = customHeroStore.update(id, patch);
+    if (res.ok && res.hero && physics?.character === id) {
+      physics.setCharacter(id, customHeroStore.list());
+    }
+    broadcastFullState();
+    rebuildTrayMenu();
+    return { ...res, state: getFullState() };
+  });
+  ipcMain.handle('petfish:hero-rename', (_, { id, name, nickname }) => {
+    const res = customHeroStore.rename(id, name, nickname);
+    broadcastFullState();
+    rebuildTrayMenu();
+    return { ...res, state: getFullState() };
+  });
+  ipcMain.handle('petfish:hero-duplicate', (_, id) => {
+    const res = customHeroStore.duplicate(id);
+    broadcastFullState();
+    rebuildTrayMenu();
+    return { ...res, state: getFullState() };
+  });
+  ipcMain.handle('petfish:hero-delete', (_, id) => {
+    const res = customHeroStore.delete(id);
+    if (res.ok && physics?.character === id) {
+      setPetCharacter('spidey', true, false);
+    }
+    broadcastFullState();
+    rebuildTrayMenu();
+    return { ...res, state: getFullState() };
+  });
+  ipcMain.handle('petfish:hero-export', (_, id) => customHeroStore.exportHero(id));
+  ipcMain.handle('petfish:hero-import', (_, json) => {
+    const res = customHeroStore.importHero(json);
+    if (res.ok && res.hero) {
+      setPetCharacter(res.hero.id, true, false);
+    }
+    broadcastFullState();
+    rebuildTrayMenu();
+    return { ...res, state: getFullState() };
   });
 
   ipcMain.handle('petfish:go-corner', (_, { corner, thenStay }) => {
@@ -1329,7 +1593,17 @@ function wireIpc() {
   });
 
   ipcMain.on('petfish:pet-nemo', () => triggerPetReaction('pet'));
-  ipcMain.on('petfish:pet-dance', () => triggerPetReaction('dance'));
+  ipcMain.on('petfish:pet-dance', () => {
+    const nextDance = !settings.danceModeEnabled;
+    persistSettings({ danceModeEnabled: nextDance });
+    triggerPetReaction(nextDance ? 'dance' : 'dance-off');
+  });
+  ipcMain.handle('petfish:dance-toggle', (_, enable) => {
+    const nextDance = typeof enable === 'boolean' ? enable : !settings.danceModeEnabled;
+    persistSettings({ danceModeEnabled: nextDance });
+    triggerPetReaction(nextDance ? 'dance' : 'dance-off');
+    return getFullState();
+  });
   ipcMain.handle('petfish:get-initial-state', () => getFullState());
 
   ipcMain.handle('petfish:refresh-all', async () => {
@@ -1478,10 +1752,11 @@ function wireIpc() {
   async function handleAskLLM(prompt, opts = {}) {
     broadcastFullState();
     const unread = notificationMonitor.getAll().filter((n) => n.unread);
-    const charKey = physics?.character || 'vesper';
+    const charKey = physics?.character || 'spidey';
     const result = await llmBrain.ask(prompt, {
       petCharacter: charKey,
       petName: getCharacterDisplayName(charKey),
+      customHeroes: customHeroStore.list(),
       ageGroup: settings.ageGroup || '15-30',
       thinkMode: typeof opts.thinkMode === 'boolean' ? opts.thinkMode : settings.thinkMode,
       agents: agentMonitor.getAgents(),
@@ -1497,10 +1772,24 @@ function wireIpc() {
     if (result.action && opts.allowActions !== false) {
       actionNote = await executeLLMAction(result.action);
     }
-    if (settings.voiceEnabled && result.reply) {
-      sendAudioCmd({ type: 'speak', character: charKey, text: result.reply, enabled: true });
+    if (!result.action) {
+      triggerPetReaction('speak');
     }
-    triggerPetReaction(result.action ? 'allow' : 'pet');
+    if (result.reply) {
+      const petName = getCharacterDisplayName(charKey);
+      const runningAg = agentMonitor.getAgents().find((a) => a.status === 'running');
+      showToast({
+        alwaysShow: true,
+        tag: `${petName.toUpperCase()} // CHAT`,
+        title: actionNote ? `${petName} · ${actionNote}` : `${petName} Speaking`,
+        body: result.reply,
+        startedAt: runningAg ? (runningAg.turnStartedAt || runningAg.startedAt) : 0,
+        tabTarget: 'ai',
+      });
+      if (settings.voiceEnabled) {
+        speakWithNeuralVoice(result.reply, charKey).catch(() => {});
+      }
+    }
     broadcastFullState();
     return { ...result, actionNote, state: getFullState() };
   }
@@ -1527,6 +1816,12 @@ function wireIpc() {
     return getFullState();
   });
 
+  ipcMain.handle('petfish:llm-delete-msg', (_, idx) => {
+    llmBrain.deleteMessage(idx);
+    broadcastFullState();
+    return getFullState();
+  });
+
   // Surprise Focus Lens: Explain / Debug / Summarize whatever user just copied!
   // SECURITY (OWASP LLM01): allowActions:false strictly blocks Indirect Prompt Injection from untrusted clipboard text!
   ipcMain.handle('petfish:explain-clipboard', async () => {
@@ -1539,15 +1834,44 @@ function wireIpc() {
     );
   });
 
-  // Voice, Theme BGM & Media Transport IPC
+  // Voice, Local Windows STT, Agent Announce, Native Copy, Theme BGM & Media Transport IPC
   ipcMain.on('petfish:voice-speak', (_, text) => {
-    sendAudioCmd({ type: 'speak', character: physics?.character || 'vesper', text, enabled: true });
+    const petName = getCharacterDisplayName();
+    showToast({
+      alwaysShow: true,
+      tag: `${petName.toUpperCase()} // VOICE`,
+      title: `${petName} Speaking`,
+      body: String(text || ''),
+      tabTarget: 'ai',
+    });
+    speakWithNeuralVoice(text).catch(() => {});
   });
-  ipcMain.on('petfish:voice-stop', () => sendAudioCmd({ type: 'stop-speak' }));
-  ipcMain.on('petfish:bgm-motif', () => sendAudioCmd({ type: 'motif', character: physics?.character || 'vesper', vol: 0.9 }));
+  ipcMain.on('petfish:voice-stop', () => {
+    currentSpeakingUntil = 0;
+    sendAudioCmd({ type: 'stop-speak' });
+  });
+  ipcMain.handle('petfish:voice-listen', async () => {
+    isWhisperListening = true;
+    const res = await neuralVoice.listenOnce();
+    isWhisperListening = false;
+    return res;
+  });
+  ipcMain.handle('petfish:announce-agent', (_, agentId) => {
+    return announceActiveAgent(agentId || '', true);
+  });
+  ipcMain.handle('petfish:copy-text', (_, text) => {
+    const str = String(text || '');
+    if (str) clipboard.writeText(str);
+    return { ok: Boolean(str) };
+  });
+  ipcMain.on('petfish:bgm-motif', () => {
+    const audio = getActiveAudioProfile();
+    sendAudioCmd({ type: 'motif', character: audio.soundPack, vol: 0.9 });
+  });
   ipcMain.handle('petfish:bgm-loop', (_, enable) => {
     bgmLoopActive = Boolean(enable);
-    sendAudioCmd(bgmLoopActive ? { type: 'bgm-start', character: physics?.character || 'vesper' } : { type: 'bgm-stop' });
+    const audio = getActiveAudioProfile();
+    sendAudioCmd(bgmLoopActive ? { type: 'bgm-start', character: audio.soundPack } : { type: 'bgm-stop' });
     broadcastFullState();
     return getFullState();
   });
@@ -1624,51 +1948,115 @@ async function runRenderSelfTest() {
       const postersDir = path.resolve(__dirname, '..', '..', 'docs', 'posters');
       fs.mkdirSync(postersDir, { recursive: true });
 
-      // 1. Capture All 4 Original OV Companion Canvases (Vesper, Vector, Core, Coral)
+      // 1. Capture All 4 Built-in Industrial Robot Canvases (Kronos 4-Slab Monolith, Aegis Field Mech, Optix Rover, Orbit Synth)
       physics.setMode('stay');
-      for (const ch of ['vesper', 'vector', 'core', 'coral']) {
+      const posterSlugs = [
+        ['kronos', 'kronos'],
+        ['aegis', 'aegis'],
+        ['optix', 'optix'],
+        ['orbit', 'orbit'],
+      ];
+      for (const [ch, slug] of posterSlugs) {
         setPetCharacter(ch, false, false);
         await new Promise((r) => setTimeout(r, 320));
         const petBuf = (await petWindow.webContents.capturePage()).toPNG();
-        fs.writeFileSync(path.join(logsDir, `preview-v6-pet-${ch}.png`), petBuf);
-        fs.writeFileSync(path.join(postersDir, `pet-${ch}.png`), petBuf);
+        fs.writeFileSync(path.join(logsDir, `preview-v7-pet-${slug}.png`), petBuf);
+        fs.writeFileSync(path.join(postersDir, `pet-${slug}.png`), petBuf);
       }
 
-      // 2. Capture Vesper Minimal HUD (Mini & Deep Control/Music)
-      setPetCharacter('vesper', false, false);
+      // 2. Capture Kronos Theme (Mini Popover & Deep Control Center)
+      setPetCharacter('kronos', false, false);
       openHud('agents', 'mini');
-      await new Promise((r) => setTimeout(r, 650));
-      fs.writeFileSync(path.join(logsDir, 'preview-v6-mini-vesper.png'), (await hudWindow.webContents.capturePage()).toPNG());
+      await new Promise((r) => setTimeout(r, 550));
+      const miniBuf = (await hudWindow.webContents.capturePage()).toPNG();
+      fs.writeFileSync(path.join(logsDir, 'preview-v7-mini.png'), miniBuf);
 
       setHudViewMode('deep', 'tools');
-      await new Promise((r) => setTimeout(r, 450));
-      const vesperControlBuf = (await hudWindow.webContents.capturePage()).toPNG();
-      fs.writeFileSync(path.join(logsDir, 'preview-v6-vesper-control.png'), vesperControlBuf);
-      fs.writeFileSync(path.join(postersDir, 'ov-control-center.png'), vesperControlBuf);
+      await new Promise((r) => setTimeout(r, 420));
+      const controlBuf = (await hudWindow.webContents.capturePage()).toPNG();
+      fs.writeFileSync(path.join(postersDir, 'ov-control-center.png'), controlBuf);
 
-      // 3. Capture Vector Theme (Deep Dive Studio/Customize)
-      setPetCharacter('vector', false, false);
+      // 3. Capture Optix Theme (Deep Dive Studio — 3 Robot Agents)
+      setPetCharacter('optix', false, false);
       setHudViewMode('deep', 'pet');
-      await new Promise((r) => setTimeout(r, 450));
-      const vectorBuf = (await hudWindow.webContents.capturePage()).toPNG();
-      fs.writeFileSync(path.join(logsDir, 'preview-v6-vector.png'), vectorBuf);
-      fs.writeFileSync(path.join(postersDir, 'ov-studio-customizer.png'), vectorBuf);
+      await new Promise((r) => setTimeout(r, 420));
+      const studioBuf = (await hudWindow.webContents.capturePage()).toPNG();
+      fs.writeFileSync(path.join(postersDir, 'ov-studio-customizer.png'), studioBuf);
 
-      // 4. Capture Core Holographic Gold Theme (Deep Dive Saved AI Chat + Think Mode + Wispr)
-      setPetCharacter('core', false, false);
+      // 4. Capture Orbit Theme (Deep Dive Saved AI Chat + Think Mode)
+      setPetCharacter('orbit', false, false);
       setHudViewMode('deep', 'ai');
-      await new Promise((r) => setTimeout(r, 450));
-      const coreBuf = (await hudWindow.webContents.capturePage()).toPNG();
-      fs.writeFileSync(path.join(logsDir, 'preview-v6-core.png'), coreBuf);
-      fs.writeFileSync(path.join(postersDir, 'ov-ai-chat-think.png'), coreBuf);
+      await new Promise((r) => setTimeout(r, 420));
+      const chatBuf = (await hudWindow.webContents.capturePage()).toPNG();
+      fs.writeFileSync(path.join(postersDir, 'ov-ai-chat-think.png'), chatBuf);
 
-      // 5. Capture Coral Ocean Minimal Theme (Deep Dive Agents)
-      setPetCharacter('coral', false, false);
+      // 5. Capture Kronos Theme (Deep Dive Live Agents)
+      setPetCharacter('kronos', false, false);
       setHudViewMode('deep', 'agents');
-      await new Promise((r) => setTimeout(r, 450));
-      const coralBuf = (await hudWindow.webContents.capturePage()).toPNG();
-      fs.writeFileSync(path.join(logsDir, 'preview-v6-coral.png'), coralBuf);
-      fs.writeFileSync(path.join(postersDir, 'ov-live-agents.png'), coralBuf);
+      await new Promise((r) => setTimeout(r, 420));
+      const liveBuf = (await hudWindow.webContents.capturePage()).toPNG();
+      fs.writeFileSync(path.join(postersDir, 'ov-live-agents.png'), liveBuf);
+
+      // Full V7 UI Redesign Visual Inspection Pack (all 13 screens!)
+      if (process.argv.includes('--capture-v7')) {
+        const v7Dir = path.join(logsDir, 'v7-inspection');
+        fs.mkdirSync(v7Dir, { recursive: true });
+        fs.writeFileSync(path.join(v7Dir, '01-mini-popover.png'), miniBuf);
+        fs.writeFileSync(path.join(v7Dir, '02-live-agents.png'), liveBuf);
+        fs.writeFileSync(path.join(v7Dir, '03-chat-think.png'), chatBuf);
+        fs.writeFileSync(path.join(v7Dir, '04-control-center.png'), controlBuf);
+
+        // Alerts tab
+        setPetCharacter('kronos', false, false);
+        setHudViewMode('deep', 'alerts');
+        await new Promise((r) => setTimeout(r, 320));
+        fs.writeFileSync(path.join(v7Dir, '05-alerts-tab.png'), (await hudWindow.webContents.capturePage()).toPNG());
+
+        // Studio screens: Library All, Age 1-14, Age 15-29, Age 30-60, Companion Studio top & bottom
+        setHudViewMode('deep', 'pet');
+        const captures = [
+          { file: '06-studio-library-all.png', ch: 'kronos', age: '15-30', filter: 'all', scroll: 0 },
+          { file: '07-studio-heroes-age-1-14.png', ch: 'kronos', age: '1-15', filter: 'robot', scroll: 220 },
+          { file: '08-studio-robots-age-15-29.png', ch: 'optix', age: '15-30', filter: 'robot', scroll: 220 },
+          { file: '09-studio-age-30-60.png', ch: 'orbit', age: '30-60', filter: 'all', scroll: 220 },
+          { file: '10-companion-studio-top.png', ch: 'kronos', age: '15-30', filter: 'all', scroll: 580 },
+          { file: '11-companion-studio-bottom.png', ch: 'optix', age: '15-30', filter: 'all', scroll: 1020 },
+        ];
+        for (const cap of captures) {
+          settings.ageGroup = cap.age;
+          setPetCharacter(cap.ch, false, false);
+          await new Promise((r) => setTimeout(r, 240));
+          await hudWindow.webContents.executeJavaScript(
+            `(() => {
+              const fb = document.querySelector('[data-lib-filter="${cap.filter}"]');
+              if (fb) fb.click();
+              const b = document.querySelector('.hud-body');
+              if (b) b.scrollTop = ${cap.scroll};
+            })()`
+          );
+          await new Promise((r) => setTimeout(r, 240));
+          fs.writeFileSync(path.join(v7Dir, cap.file), (await hudWindow.webContents.capturePage()).toPNG());
+        }
+
+        // 12. Android Mobile Experience (real 390x844 WebView viewport)
+        const mobWin = new BrowserWindow({
+          width: 390,
+          height: 844,
+          show: false,
+          backgroundColor: '#141416',
+          webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
+        });
+        await mobWin.loadFile(path.resolve(__dirname, '..', '..', 'mobile', 'web', 'index.html'));
+        await new Promise((r) => setTimeout(r, 450));
+        fs.writeFileSync(path.join(v7Dir, '12-android-mobile.png'), (await mobWin.webContents.capturePage()).toPNG());
+        mobWin.destroy();
+
+        // 13. Multitask Companion Canvas Preview (Headphones + Reading Task Tablet simultaneously!)
+        setPetCharacter('kronos', false, false);
+        triggerPetReaction('multitask');
+        await new Promise((r) => setTimeout(r, 380));
+        fs.writeFileSync(path.join(v7Dir, '13-multitask-headphones-reading.png'), (await petWindow.webContents.capturePage()).toPNG());
+      }
 
       closeHud();
       await new Promise((r) => setTimeout(r, 350));
@@ -1710,7 +2098,7 @@ app.whenReady().then(() => {
 
   const wa = screen.getPrimaryDisplay().workArea;
   physics = new PetPhysics(wa);
-  physics.setCharacter(settings.petCharacter || 'vesper');
+  physics.setCharacter(settings.petCharacter || 'spidey', customHeroStore.list());
   if (settings.savedPos) physics.setPosition(settings.savedPos.x, settings.savedPos.y);
   physics.setMode(settings.petMode || 'swim');
 
@@ -1736,30 +2124,60 @@ app.whenReady().then(() => {
     startPhysicsLoop();
     startDesktopAwarenessLoop();
 
-    // A+S+D simultaneous quick-wake chord -> opens saved AI chat & greets in character voice!
-    startAsdChordWatcher(() => {
+    // A+S+W simultaneous chord -> activates Local Open-Source Whisper Voice Assistant!
+    // A+S+D simultaneous chord -> opens Saved Chat window!
+    startAsdChordWatcher(async (chord) => {
       ensurePetVisible();
+      if (chord === 'ASW_VOICE') {
+        if (isWhisperListening) return;
+        const petName = getCharacterDisplayName();
+        const voiceObj = getVoiceEntry(settings.selectedVoice);
+        isWhisperListening = true;
+        showToast({
+          alwaysShow: true,
+          tag: `${petName.toUpperCase()} // WHISPER (A+S+W)`,
+          title: `Listening via Local Whisper (${voiceObj.name} Voice)...`,
+          body: 'Speak any laptop command: "Open Spotify", "Play music", "Add task...", or ask anything!',
+          tabTarget: 'ai',
+        });
+        const sttRes = await neuralVoice.listenOnce();
+        isWhisperListening = false;
+        if (sttRes?.ok && sttRes.transcript) {
+          await handleAskLLM(sttRes.transcript);
+        } else {
+          showToast({
+            alwaysShow: true,
+            tag: `${petName.toUpperCase()} // WHISPER (A+S+W)`,
+            title: 'Whisper Voice Agent Ready',
+            body: sttRes?.error || 'Press A+S+W and speak into your microphone.',
+            tabTarget: 'ai',
+          });
+        }
+        return;
+      }
       triggerPetReaction('pet');
       openHud('ai', 'deep');
       setTimeout(() => sendWin(hudWindow, 'petfish:focus-chat', {}), 220);
-      if (settings.voiceEnabled) {
-        const nm = getCharacterDisplayName();
-        sendAudioCmd({ type: 'speak', character: physics?.character || 'vesper', text: `${nm} listening!`, enabled: true });
-      }
     });
 
     setTimeout(() => {
-      triggerPetReaction('pet');
+      triggerPetReaction(process.argv.includes('--open-preview') ? 'multitask' : 'pet');
       if (settings.bgmEnabled) {
-        sendAudioCmd({ type: 'motif', character: physics.character, vol: 0.72 });
+        const audio = getActiveAudioProfile();
+        sendAudioCmd({ type: 'motif', character: audio.soundPack, vol: 0.72 });
       }
-      showToast({
-        tag: 'OV',
-        tagClass: '',
-        title: `${getCharacterDisplayName()} online`,
-        body: 'Press A+S+D together to open saved chat, or click me anytime.',
-        tabTarget: 'agents',
-      });
+      if (process.argv.includes('--open-preview')) {
+        hudPinned = true;
+        openHud('pet', 'deep');
+      } else {
+        showToast({
+          tag: 'OV',
+          tagClass: '',
+          title: `${getCharacterDisplayName()} online`,
+          body: 'Press A+S+D together to open saved chat, or click me anytime.',
+          tabTarget: 'agents',
+        });
+      }
     }, 1100);
   } else {
     startPhysicsLoop();

@@ -4,88 +4,64 @@
     <source media="(prefers-color-scheme: light)" srcset="docs/assets/ov-mark-black-transparent.png" />
     <img src="docs/assets/ov-mark-black-transparent.png" alt="OV engraved monogram" width="180" />
   </picture>
-  <h1>OV — Desktop Companion</h1>
-  <p><strong>A living AI companion for your desktop.</strong></p>
-  <p>Local-first AI · Live coding-agent awareness · Windows productivity · Optional Android remote</p>
+  <h1>OV v8.0 — Robot OS &amp; Local Whisper Voice Agent</h1>
+  <p><strong>A local-first AI robot companion &amp; live coding-agent telemetry system for Windows.</strong></p>
+  <p>4 Industrial Desktop Robots · Local Open-Source Whisper (<code>A+S+W</code>) · Live Top-of-Head Agent Timers · Single Consistent Named Neural Voices (EN / Hinglish / Hindi) · Optional Android Remote</p>
 </div>
 
 <p align="center">
   <img src="docs/assets/ov-github-social-preview.png" alt="OV GitHub social preview" width="100%" />
 </p>
 
-> **Compatibility & Release Notice:** **OV** is the official product identity for this repository (`ov-desktop-companion`). The four built-in companions (**Vesper**, **Vector**, **Core**, and **Coral**) and their 20 skins are original procedural designs created for OV, with automatic lossless migration from legacy local settings. To preserve existing user settings, saved conversations, authentication tokens, tasks, and Claude Code hooks without data loss, internal compatibility identifiers (`%LOCALAPPDATA%\PetFish`, `petfish:*` IPC channels, and `X-PetFish-Token`) are intentionally retained until a dedicated data-migration pass. Review [`docs/PRE_RELEASE_CHECKLIST.md`](docs/PRE_RELEASE_CHECKLIST.md) before public distribution.
+> **Compatibility & IP Separation Notice:** **OV v8.0** (`ov-desktop-companion`) is a local-first desktop robot companion ecosystem featuring four original industrial robot units (**Kronos** — Interstellar 4-Slab Articulated Monolith, **Aegis** — Bipedal Field Mech, **Optix** — Deep Research Rover, and **Orbit** — Autonomous Synth Pod), a **Companion Studio** for custom user robots, and an **Age-Based Persona System**. This repository contains only original procedural vector/canvas hardware artwork, zero-gradient industrial UI templates, and synthesized Web Audio motifs — **zero** copyrighted third-party bitmaps, movie stills, trademarked logos, or soundtrack files are included. All user-uploaded artwork and custom robot packs remain strictly local on your device (`%LOCALAPPDATA%\PetFish\custom-heroes\`). Review [`docs/PRE_RELEASE_CHECKLIST.md`](docs/PRE_RELEASE_CHECKLIST.md) before public distribution.
 
 ---
 
 ## Introduction
 
-**OV** is a local-first AI desktop companion for Windows 10/11 built with Electron, HTML5 Canvas, Web Audio, and native Windows APIs — with **zero external runtime npm dependencies** (`~162 MB` idle RAM).
+**OV v8.0** is a local-first AI robot companion and live developer telemetry system for Windows 10/11 built with Electron, HTML5 Canvas, Web Audio, local open-source **Whisper (`faster-whisper`)**, and native Windows APIs — with **zero external runtime npm dependencies** (`~162 MB` idle RAM).
 
-Instead of splitting your workflow across separate chat windows, notification drawers, launchers, and terminal tabs, OV places an animated, physics-driven floating character on your desktop that opens into a minimal **Living-Glass** workspace combining:
+Instead of splitting your workflow across separate chat windows, notification drawers, media players, and terminal tabs, OV places an animated, physics-driven industrial robot on your desktop that opens into a crisp **Zero-Gradient Hardware & Archival Paper** workspace combining:
 
-- **Local AI Intelligence** powered by your own **Ollama** or **LM Studio** models (`Fast` and `Think` reasoning modes, saved chat, structured actions, and **Focus Lens** clipboard explanation) — no cloud AI subscription required.
-- **Live AI Coding-Agent Awareness** (`Claude Code` hooks, `Antigravity`, `Cursor`, `Ollama`, `LM Studio`, and other local developer tools) with real-time `WHAT / HOW / WHY` telemetry and 1-click **Allow / Deny** permission controls.
-- **Daily Productivity & Native Windows Controls** (universal app/website launcher, Wi-Fi, Bluetooth, Flight Mode, audio mute, PC lock, media playback controls, smart voice reminders, tasks, focus sprint timer + XP, and a RAM-only clipboard vault).
-- **Optional Android & Mobile Web Remote** featuring its own 60 FPS interactive canvas companion, PIN pairing, 256-bit Bearer authentication, offline task queue, and opt-in Cloudflare Quick Tunnel access.
+- **Local Open-Source Whisper Voice Assistant (`A + S + W` Hotkey):** Hold **`A + S + W`** together anywhere on Windows (or click **`WHISPER MIC`**) to speak commands directly to your robot using your local **`faster-whisper`** model (`"Open Spotify"`, `"Play or pause the music"`, `"Add a task to finish system design"`, `"Start a 25 minute timer"`).
+- **Works Out-of-the-Box With OR Without a Local LLM Connected:**
+  - **Without Ollama (Zero-Setup Offline Mode):** The **Local Whisper Voice Agent (`A+S+W`)** and **Built-In Trilingual Task & Conversational Brain** run out of the box to execute laptop commands, control music, launch apps/websites, manage tasks/timers, and reply in **English, Hinglish, or Hindi**.
+  - **With Ollama or LM Studio Connected:** Connect any local model (`ollama run qwen2.5:3b` or `qwen3.5:2b`) for deep general-intelligence reasoning (`Fast` and `Think` modes) and **Focus Lens** clipboard code explanation.
+- **Single Consistent Named Neural Voice (EN / Hinglish / Hindi):** Choose one named human voice (**Arjun**, **Kavya**, **Kabir**, **Meera**, **Andrew**, **Ava**, or **Brian**) and OV sticks 100% with that single voice across every reply while the robot's OLED mouth animates in real time.
+- **Live Top-of-Head Agent Timer & Voice Announcements:** When `Antigravity`, `Claude Code`, `Cursor`, or a focus timer runs, a digital timer badge (`[ANTIGRAVITY // MM:SS · ON HH:MM]`) ticks right above the robot's head, and clicking **`REPORT`** makes the robot announce the active agent, start time, and elapsed duration out loud with a corner speech bubble and one-click **`COPY`**.
 
 ---
 
 ## Feature Overview
 
-| Capability | What OV Provides |
+| Capability | What OV v8.0 Provides |
 |---|---|
-| **Floating Desktop Companion** | Always-on-top `204 × 196` transparent HTML5 Canvas character, 5 movement modes (`swim`, `fast`, `slow`, `stay`, `follow`), elastic squash-and-stretch drag physics with spring recoil, 20 skins, custom nicknames, and age-group style profiles (`0–15`, `15–30`, `30–60`). |
-| **Living-Glass Interface** | Morphs smoothly between a compact **Mini Popover** (`392 × 418`) and a 5-tab **Deep Dive Studio** (`458 × 632`: `Live`, `Chat`, `Control`, `Alerts`, `Studio`) with a live `0%–100%` Solid-to-Liquid glass transparency slider. |
-| **Local AI Brain** | Auto-discovers local **Ollama** (`127.0.0.1:11434`) and **LM Studio** (`127.0.0.1:1234`) models, supports `⚡ Fast` vs `🧠 Think` collapsible reasoning, persists recent chat history locally, executes safe structured actions, and explains copied code/errors via **`✦ Focus Lens`** (with indirect prompt injection blocked). |
-| **Coding-Agent Awareness** | Zero-delay discovery of installed AI tools, live `WHAT / HOW / WHY` activity briefs, color-coded active badges vs `Stop.` completed indicators, Claude Code hook bridge (`PermissionRequest`, `Notification`, `Stop`), 1-click **Allow / Deny**, and configurable Auto-Pilot guardrails. |
-| **Windows Controls & Launcher** | Indexes installed Windows Start Apps (`Get-StartApps`) + curated dev shells (`Terminal`, `CMD`, `PowerShell`, `VS Code`, `Brave`, `Spotify`, `Wispr Flow`) + Brave Web App mode (`--app=`); native Wi-Fi, Bluetooth, Flight Mode, Mute, Lock PC, and Windows Action Center notification reader. |
-| **Voice, Music & Daily Tools** | Simultaneous **`A + S + D`** wake chord, offline Windows OneCore per-character speech synthesis, synthesized Web Audio motifs/loops, Windows SMTC Now-Playing media controls (`⏮ / ⏯ / ⏭`) + Dance Mode, smart voice reminders, two-way tasks, focus sprints + XP, RAM-only clipboard vault (16 snippets), and Windows login auto-start toggle. |
-| **Android & Mobile Companion** | Self-contained mobile web UI + lightweight native Android WebView APK (`~60–85 KB` v2-signed) with floating touch-interactive canvas companion, 6-digit PIN pairing, 256-bit Bearer token, offline-queued two-way task sync, and opt-in Cloudflare Quick Tunnel. |
+| **4 Industrial Desktop Robots** | Always-on-top `204 × 196` transparent HTML5 Canvas robot (**Kronos** 4-Slab Interstellar Monolith, **Aegis** Bipedal Field Mech, **Optix** Tracked Research Rover, **Orbit** Autonomous Synth Pod) with 16 hardware skins, recessed OLED face screens, animated speaking mouths, and elastic drag physics. |
+| **Zero-Gradient Hardware UI** | 100% solid matte carbon (`#101114`) + warm archival paper (`#f2efe9`) interface with sharp `2px`/`4px` industrial corners, crisp technical monospace typography, tactile mechanical key clicks, Mini Popover media transport (`PREV / PLAY / NEXT`) + **`DANCE: ON/OFF`** toggle, and zero scrollbar slider clutter. |
+| **Local Whisper Voice Agent (`A+S+W`)** | Press **`A + S + W`** simultaneously anywhere on Windows to activate local open-source **`faster-whisper`** speech-to-text. Speaks back with a single consistent named voice (**Arjun**, **Kavya**, **Kabir**, **Meera**, **Andrew**, **Ava**, **Brian**) in **English, Hinglish, or Hindi** with an animated moving mouth. |
+| **Live Agent Head Timer & Telemetry** | Real-time top-of-head digital timer (`[ANTIGRAVITY // MM:SS]`), automatic & on-demand voice announcements (*"Bro, I am using Antigravity, which is ON, and doing..."*), corner speech readout with **`COPY`**, Claude Code hook bridge (`PermissionRequest`, `Notification`, `Stop`), and 1-click **Allow / Deny**. |
+| **Context-Aware Robot Activities** | Optional **`DANCE: ON/OFF`** toggle (puts on wireframe **Studio Headphones** with live EQ LEDs and grooves to the beat), **Task Data Slate** reading posture when an agent works, and simultaneous **`DANCE + TASK // MULTITASK`** mode. |
+| **Age-Based Personas (`1–14`, `15–29`, `30–60`)** | 12 Robot × Age combinations (**1–14 Young Explorers** `1.25x` Fast Stride + Wide Optics, **15–29 Engineers & Builders** `1.0x` Precision Stride + Scan Optics, **30–60 Architects & Mentors** `0.78x` Steady Stride + Calm Optics) that physically adjust robot speed, optics, and spoken persona. |
+| **Android & Mobile Companion** | Self-contained mobile web UI + lightweight native Android WebView APK (`~76.5 KB` v2-signed) featuring all 4 robots, 6-digit PIN pairing, 256-bit Bearer token, offline-queued two-way task sync, and opt-in Cloudflare Quick Tunnel. |
 
 ---
 
-## System Architecture & Visuals
+## Original OV Robot Units (4 Core Robots · 16 Skins · Companion Studio)
 
-<p align="center">
-  <img src="docs/assets/ov-system-overview.svg" alt="OV system overview diagram" width="100%" />
-</p>
-
-### Original OV Companions (4 Companions · 20 Original Skins)
-
-| Vesper — Acrobat | Vector — Aero-Mech | Core — Holographic AI | Coral — Reef |
+| Kronos — Interstellar 4-Slab Monolith | Aegis — Bipedal Field Mech | Optix — Deep Research Rover | Orbit — Autonomous Synth Pod |
 | :---: | :---: | :---: | :---: |
-| <img src="docs/posters/pet-vesper.png" width="170" alt="Vesper Acrobat Companion" /> | <img src="docs/posters/pet-vector.png" width="170" alt="Vector Aero-Mech Companion" /> | <img src="docs/posters/pet-core.png" width="170" alt="Core Holographic AI Companion" /> | <img src="docs/posters/pet-coral.png" width="170" alt="Coral Reef Companion" /> |
-| Pendulum tether arcs, mid-air flips, 6 skins | Jet-hover cruise, twin ion wings, 5 skins | Zero-G orbital rings, sonar pulse, 5 skins | Ribbon-fin swim, rising bubbles, 4 skins |
+| <img src="docs/posters/pet-kronos.png" width="160" alt="Kronos Interstellar 4-Slab Monolith Robot" /> | <img src="docs/posters/pet-aegis.png" width="160" alt="Aegis Bipedal Field Mech Robot" /> | <img src="docs/posters/pet-optix.png" width="160" alt="Optix Deep Research Rover Robot" /> | <img src="docs/posters/pet-orbit.png" width="160" alt="Orbit Autonomous Synth Pod Robot" /> |
+| 4 articulated titanium slabs, OLED visor & waveform mouth | Bipedal servo legs, rotary chest dial & OLED face | Caterpillar treads, articulated neck & capsule optics | Zero-G magnetic levitation & curved OLED shield |
 
-### Living-Glass Interface Preview (Sanitised Demo Renders)
+### Hardware Interface Preview (Sanitised Demo Renders)
 
-> *Note: Screenshots below are generated automatically via `electron . --verify-render` using sanitised demo data (`Studio-5G`, `Studio Headphones`) so zero personal networks, devices, or messages appear.*
-
-| Control Center & Music Player | Studio & Companion Customizer |
+| Control Center & Music Player | Studio & Robot Customizer |
 | :---: | :---: |
-| <img src="docs/posters/ov-control-center.png" width="400" alt="OV Control Center and Music Player" /> | <img src="docs/posters/ov-studio-customizer.png" width="400" alt="OV Studio and Glass Customizer" /> |
+| <img src="docs/posters/ov-control-center.png" width="400" alt="OV Control Center and Music Player" /> | <img src="docs/posters/ov-studio-customizer.png" width="400" alt="OV Studio and Robot Customizer" /> |
 
-| Local AI Chat (`Think` Mode) | Live AI Coding-Agent Monitor |
+| Whisper Voice & AI Chat (`COPY / SPEAK / DEL`) | Live AI Coding-Agent Monitor (`START HH:MM / REPORT`) |
 | :---: | :---: |
-| <img src="docs/posters/ov-ai-chat-think.png" width="400" alt="OV Local AI Thinking Chat" /> | <img src="docs/posters/ov-live-agents.png" width="400" alt="OV Live Coding Agents Monitor" /> |
-
-### How OV Fits Together
-
-- **Electron Main Process (`src/main/index.js`):** Owns single-instance lifecycle, 4 desktop windows (lazy-created and destroyed on close to keep idle RAM low), adaptive physics loop, tray controls, `A+S+D` chord listener, IPC handlers, and dual HTTP servers.
-- **Sandboxed Preload Bridge (`src/main/preload.js`):** Exposes a narrow `window.petFishAPI` surface via `contextBridge` (`contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`).
-- **18 Modular Services (`src/services/`):** Dedicated Node.js modules for physics, local LLM inference, agent telemetry, hook server (`127.0.0.1:47821`), mobile bridge (`:47822`), notifications, system radios, universal app launching, music detection, reminders/tasks, RAM-only clipboard vault, and offline SVG QR generation.
-
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`agent/ARCHITECTURE_AND_BUILD_LOG.md`](agent/ARCHITECTURE_AND_BUILD_LOG.md) for the complete module map, and [`BRAND_GUIDE.md`](BRAND_GUIDE.md) for official OV monogram usage rules.
-
----
-
-## Technology Stack
-
-- **Desktop Runtime:** Electron `^35.7.5`, Node.js (built-in `http`, `crypto`, `fs`, `child_process`, `node:sqlite`) — **0 external runtime npm dependencies**
-- **Frontend & Audio:** Vanilla JavaScript, HTML5 2D Canvas, CSS3 Living-Glass Variables, Web Audio API, Windows OneCore `speechSynthesis`
-- **Windows Integration:** PowerShell + WinRT (`Windows.Devices.Radios`, `GlobalSystemMediaTransportControlsSessionManager`), Win32 (`user32.dll`, `BluetoothAPIs.dll`), `netsh wlan`, Action Center SQLite snapshot
-- **Local AI Providers:** Ollama (`127.0.0.1:11434`) & LM Studio (`127.0.0.1:1234`)
-- **Mobile & Remote:** Vanilla HTML5/Canvas PWA (`mobile/web/index.html`), Android Java WebView (`minSdk 24`, `targetSdk 34`), Android SDK Build-Tools (`aapt2`, `d8`, `zipalign`, `apksigner`), optional `cloudflared` Quick Tunnel
+| <img src="docs/posters/ov-ai-chat-think.png" width="400" alt="OV Whisper Voice and AI Chat" /> | <img src="docs/posters/ov-live-agents.png" width="400" alt="OV Live Coding Agents Monitor" /> |
 
 ---
 
@@ -95,9 +71,11 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`agent/ARCHITECTURE_AND_
 
 - **Windows 10 or Windows 11**
 - **Node.js 20+** and **npm**
-- **Optional (Local AI):** [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai) installed locally
-- **Optional (Worldwide Mobile Tunnel):** `cloudflared` on `PATH`
-- **Optional (Rebuild Android APK from source):** JDK 17+ and Android SDK Platform 34 + Build-Tools 34.0.0
+- **Python 3.10+** with `faster-whisper`, `pyaudio`, `numpy`, and `edge-tts` for local offline Whisper STT and natural Neural TTS:
+  ```powershell
+  pip install faster-whisper pyaudio numpy edge-tts
+  ```
+- **Optional (Local LLM Intelligence):** [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai)
 
 ### Run OV on Windows
 
@@ -114,110 +92,45 @@ npm run shortcut
 
 ---
 
-## Local AI Setup
+## How to Run the Voice Agent (With or Without a Local LLM)
 
-1. Install and start **Ollama** (`127.0.0.1:11434`) or **LM Studio** (`127.0.0.1:1234`) on your PC.
-2. Pull at least one local chat model — for fast, low-VRAM desktop responsiveness:
+### 1. Out-of-the-Box Local Whisper Voice Agent (No Ollama Required)
+Even if you have **not** installed Ollama or LM Studio yet, the **OV Whisper Voice Agent** works immediately:
+1. Press **`A + S + W`** together anywhere on Windows (or click **`WHISPER MIC`** in the Chat tab / **`Mic`** icon in the footer).
+2. Speak naturally into your microphone in **English, Hinglish, or Hindi**:
+   - *"Bro open Spotify"* / *"Open VS Code"* / *"Open Terminal"*
+   - *"Play or pause the music"* / *"Next track"*
+   - *"Turn on dance mode"* / *"Turn off dance mode"*
+   - *"Remind me in 15 minutes to push my branch"* / *"Task review PR"*
+   - *"What agent is running right now?"*
+3. Your local open-source **`faster-whisper`** model transcribes your speech offline, executes the laptop action, displays a corner text bubble with a **`COPY`** button, and replies aloud in your selected named voice (**Arjun**, **Kavya**, **Kabir**, **Meera**, **Andrew**, **Ava**, or **Brian**) while the robot's mouth moves.
+
+### 2. Connecting a Local LLM (Ollama / LM Studio) for Full AI Reasoning
+To unlock unrestricted coding, math, architecture, and **Focus Lens** clipboard explanation alongside voice commands:
+1. Install [Ollama](https://ollama.com) (`127.0.0.1:11434`) or [LM Studio](https://lmstudio.ai) (`127.0.0.1:1234`).
+2. Pull a fast lightweight model:
    ```powershell
-   ollama pull qwen3.5:2b
+   ollama run qwen2.5:3b
    ```
-3. Open **OV → Deep Dive → Chat** (or press **`A + S + D`** simultaneously anywhere on Windows). OV automatically discovers available local models.
-4. Toggle **`⚡ Fast`** for instant replies and actions, or **`🧠 Think`** for step-by-step collapsible reasoning.
-
----
-
-## Android & Mobile Companion Setup
-
-1. **Build or install the APK** (or use any modern mobile browser):
-   ```powershell
-   npm run build:apk
-   ```
-   This compiles and v2-signs `mobile/PetFish-Mobile.apk` using a locally generated, user-locked keystore stored outside Git in `%LOCALAPPDATA%\PetFish\`.
-2. On your Windows PC, open **OV → Deep Dive → Studio → Worldwide Mobile Remote**.
-3. Choose **LAN Mode** (same Wi-Fi network) or click **Go Worldwide (HTTPS)** to start an opt-in temporary Cloudflare Quick Tunnel (`https://*.trycloudflare.com`).
-4. Pair your phone by scanning the **offline SVG QR code**, pasting the **Pairing Link**, or entering the Server URL + **one-time 6-digit PIN** (expires in 3 minutes).
-5. When your laptop is turned OFF, your mobile companion stays interactive locally and queues task edits offline — automatically syncing as soon as your laptop reconnects.
-6. Click **Stop** when remote access is no longer needed, or **Rotate Key** to immediately revoke paired devices.
+3. Open **OV → Chat** (or press **`A + S + D`**). OV auto-detects your running model.
 
 ---
 
 ## Development & Verification
 
-All available npm scripts in [`package.json`](package.json):
-
 ```powershell
-npm start            # Launch OV Desktop via Electron
-npm run verify       # Run the 8-stage security, LLM, physics, clipboard & mobile test suite
-npm run shortcut     # Create Desktop OV.lnk shortcut using docs/assets/ov-icon.ico
-npm run build:icon   # Regenerate fallback procedural .ico asset
-npm run build:apk    # Compile & v2-sign Android APK via Android SDK build-tools
-```
-
-To run the headless Electron render check and regenerate sanitised showcase posters:
-
-```powershell
-Start-Process -FilePath ".\node_modules\electron\dist\electron.exe" -ArgumentList ". --verify-render" -PassThru -Wait
-```
-
----
-
-## Repository Structure
-
-```text
-src/
-  main/          Electron main process (index.js) and sandboxed preload bridge (preload.js)
-  renderer/      Canvas companion renderer, Living-Glass HUD, sound/TTS engine, toast, picker
-  services/      18 modular services: AI brain, agent monitor, hook server, mobile bridge,
-                 security, system controls, launcher, notifications, music, clipboard, QR
-mobile/
-  web/           Self-contained offline-first mobile web app + 60 FPS canvas companion
-  android/       Hardened Android WebView wrapper + zero-Gradle PowerShell APK build script
-scripts/         Automated verification suite, Claude Code hook script, shortcut creator
-config/          Loopback & renderer security configuration (security.json)
-docs/
-  assets/        Official engraved OV logos, icon, social preview, and architecture SVG
-  posters/       Sanitised UI showcase screenshots
-  ARCHITECTURE.md
-  PRE_RELEASE_CHECKLIST.md
-security/        Internal AppSec audit scorecard, applied fixes, and fresher security guide
-agent/           Persistent engineering memory, architecture log, invariants & playbook
-.github/         Issue templates, PR template, and Dependabot configuration
+npm start            # Launch OV v8.0 Desktop via Electron
+npm run verify       # Run the 8-stage security, Whisper/voice, robot physics & mobile test suite
+npm run shortcut     # Create Desktop OV.lnk shortcut
+npm run build:apk    # Compile & v2-sign Android APK (mobile/PetFish-Mobile.apk)
 ```
 
 ---
 
 ## Security & Privacy Notes
 
-OV interacts with sensitive local desktop data (Windows notifications, clipboard text, active windows, coding-agent transcripts, and wireless/system controls). Please review [`SECURITY.md`](SECURITY.md) before running OV on a shared or work machine:
-
-- **Renderer Isolation & Network Block:** All Electron windows run with `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`, strict CSP, and blocked outbound renderer requests.
-- **Authenticated Bridges:** Hook server binds strictly to `127.0.0.1:47821` (`X-PetFish-Token` + `Host`/`Origin` validation). Mobile server (`:47822`) is **OFF by default**, enforces 256-bit Bearer auth, 3-minute single-use PINs, 5-attempt IP lockout, and strict CORS Origin checks.
-- **Indirect Prompt Injection Protection:** `✦ Focus Lens` (`explain-clipboard`) disables automatic LLM action execution (`allowActions: false`).
-- **Secrets Outside Git:** Tokens, signing keys, settings, and chat history live under `%LOCALAPPDATA%\PetFish\`; Clipboard Vault is RAM-only.
-- **Disclaimer:** OV has **not** undergone an independent third-party security audit, and Auto-Pilot regex rules are a convenience guardrail rather than a substitute for reviewing agent commands.
-
----
-
-## Roadmap
-
-- [x] **Original OV Companion Pack:** Four original OV-designed companions (**Vesper**, **Vector**, **Core**, **Coral**), 20 original skins, and neutral royalty-free music search links with automatic legacy settings migration.
-- [ ] **Safe Data-Directory Migration:** Optional automated migration from `%LOCALAPPDATA%\PetFish` to `%LOCALAPPDATA%\OV` with zero data loss.
-- [ ] **Windows Installer Packaging:** Signed Windows NSIS / MSIX installer alongside portable source execution.
-- [ ] **Persistent Named Tunnels:** Optional Tailscale / Cloudflare Named Tunnel support for static mobile URLs.
-- [ ] **Expanded Automated Testing:** Dedicated unit/E2E runner and GitHub Actions CI matrix.
-
----
-
-## Contributing & Support
-
-Contributions, bug reports, and documentation improvements are welcome!
-
-- Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before opening a pull request.
-- Follow [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) in all project spaces.
-- See [`SUPPORT.md`](SUPPORT.md) for usage help and [`SECURITY.md`](SECURITY.md) for private vulnerability disclosure.
-
----
+Please review [`SECURITY.md`](SECURITY.md) for complete details on renderer sandboxing, loopback token authentication (`127.0.0.1:47821`), opt-in mobile PIN/Bearer security (`:47822`), indirect prompt-injection blocking on `Focus Lens`, and local data isolation in `%LOCALAPPDATA%\PetFish\`.
 
 ## License
 
-Code in this repository is provided under the [MIT License](LICENSE) (`Copyright (c) 2026 OV contributors` — confirm legal copyright holder name prior to public release). See [`docs/PRE_RELEASE_CHECKLIST.md`](docs/PRE_RELEASE_CHECKLIST.md) for release verification and licensing review items.
+Provided under the [MIT License](LICENSE). See [`docs/PRE_RELEASE_CHECKLIST.md`](docs/PRE_RELEASE_CHECKLIST.md) and [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) for pre-release verification items.

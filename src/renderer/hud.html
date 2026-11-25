@@ -2,164 +2,131 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none';" />
-  <title>OV</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none';" />
+  <title>OV — Personal AI Companion</title>
   <link rel="stylesheet" href="styles.css" />
   <style>html, body { padding: 6px; }</style>
 </head>
-<body class="mode-mini" data-theme="vesper">
-  <section id="hud" class="hud" aria-label="OV Companion Hub">
-    <!-- WHISPER-SUBTLE AMBIENT THEME GEOMETRY -->
-    <div class="theme-fx" aria-hidden="true">
-      <div class="fx-layer fx-vesper">
-        <svg class="web-corner" viewBox="0 0 160 160" fill="none">
-          <g stroke="rgba(226,232,240,0.85)" stroke-width="0.9">
-            <line x1="160" y1="0" x2="24" y2="136"/><line x1="160" y1="24" x2="54" y2="130"/><line x1="136" y1="0" x2="30" y2="106"/>
-            <circle cx="136" cy="24" r="3.5" fill="rgba(226,232,240,0.6)"/>
-            <circle cx="104" cy="56" r="2.2" fill="rgba(226,232,240,0.5)"/>
-          </g>
-        </svg>
-      </div>
-      <div class="fx-layer fx-vector">
-        <svg class="hud-ring-bg" viewBox="0 0 160 160" fill="none">
-          <circle cx="80" cy="80" r="62" stroke="#e0a943" stroke-width="1" stroke-dasharray="28 14"/>
-          <circle cx="80" cy="80" r="46" stroke="#38bdf8" stroke-width="0.9" stroke-dasharray="16 10"/>
-        </svg>
-      </div>
-      <div class="fx-layer fx-core">
-        <svg class="hud-ring-bg" viewBox="0 0 160 160" fill="none">
-          <circle cx="80" cy="80" r="66" stroke="#f0b429" stroke-width="1" stroke-dasharray="18 8"/>
-          <circle cx="80" cy="80" r="50" stroke="#fbbf24" stroke-width="0.8" stroke-dasharray="4 6"/>
-          <circle cx="80" cy="80" r="32" stroke="#f0b429" stroke-width="0.8"/>
-        </svg>
-      </div>
-      <div class="fx-layer fx-coral">
-        <span class="bubble b1"></span><span class="bubble b2"></span><span class="bubble b3"></span>
-        <div class="ocean-waves">
-          <svg class="wave-svg" viewBox="0 0 1200 60" preserveAspectRatio="none">
-            <path d="M0 32 Q150 8 300 32 T600 32 T900 32 T1200 32 L1200 60 L0 60 Z" fill="rgba(45,212,191,0.2)"/>
-          </svg>
-        </div>
-      </div>
-    </div>
-
-    <!-- MATHEMATICAL MINIMAL HEADER -->
+<body class="mode-mini" data-theme="kronos">
+  <section id="hud" class="hud" aria-label="OV Personal AI Robot System">
+    <!-- HEADER -->
     <header class="hud-header">
       <div class="hud-brand">
-        <div class="app-logo" aria-hidden="true">
-          <!-- Vesper Original Acrobat Visor Emblem -->
-          <svg class="logo-svg logo-vesper" viewBox="0 0 32 32" width="20" height="20" fill="none">
-            <circle cx="16" cy="16" r="10.5" fill="#e11d48"/>
-            <rect x="8.5" y="11.5" width="15" height="8" rx="4" fill="#0b1120" stroke="#38bdf8" stroke-width="1.1"/>
-            <circle cx="13" cy="15.5" r="2" fill="#e0f2fe"/><circle cx="19" cy="15.5" r="2" fill="#e0f2fe"/>
-          </svg>
-          <!-- Vector Original Aero-Mech Emblem -->
-          <svg class="logo-svg logo-vector" viewBox="0 0 32 32" width="20" height="20" fill="none">
-            <rect x="6" y="6" width="20" height="20" rx="8" fill="#d97706"/>
-            <rect x="9" y="10.5" width="14" height="9" rx="4.5" fill="#0c1424"/>
-            <rect x="11" y="13.8" width="3.8" height="2.4" rx="1.1" fill="#38bdf8"/>
-            <rect x="17.2" y="13.8" width="3.8" height="2.4" rx="1.1" fill="#38bdf8"/>
-          </svg>
-          <!-- Core Holographic Orb Emblem -->
-          <svg class="logo-svg logo-core" viewBox="0 0 32 32" width="20" height="20" fill="none">
-            <circle cx="16" cy="16" r="11" stroke="#f0b429" stroke-width="1.4" stroke-dasharray="6 3"/>
-            <circle cx="16" cy="16" r="6.5" fill="#f0b429" fill-opacity="0.3" stroke="#fef0c7" stroke-width="1.3"/>
-            <circle cx="16" cy="16" r="2.6" fill="#fef0c7"/>
-          </svg>
-          <!-- Coral Original Reef Emblem -->
-          <svg class="logo-svg logo-coral" viewBox="0 0 32 32" width="20" height="20" fill="none">
-            <path d="M10.5 16C7 10.5 3.5 11.2 4.2 16C3.5 20.8 7 21.5 10.5 16Z" fill="#2dd4bf"/>
-            <ellipse cx="18.8" cy="16" rx="9.2" ry="6.4" fill="#f97316"/>
-            <circle cx="16.5" cy="14" r="2.4" fill="#fff7ed" opacity="0.85"/>
-            <circle cx="23.4" cy="14.7" r="1.4" fill="#0b1926"/>
-            <circle cx="25.8" cy="8.2" r="1.4" fill="#2dd4bf"/>
-          </svg>
-        </div>
+        <div class="ov-mark" aria-hidden="true">OV</div>
         <div class="hud-brand-text">
           <div class="hud-title-row">
-            <span class="hud-title">OV</span>
-            <span id="header-pill" class="ram-pill deep-only">155 MB</span>
+            <span class="hud-title">OV // ROBOT OS</span>
+            <span class="hud-descriptor mini-only">AGENT TELEMETRY</span>
+            <span id="header-pill" class="ram-pill deep-only">160 MB</span>
           </div>
-          <div id="hud-subtitle" class="hud-subtitle">Vesper · 0 active</div>
+          <div id="hud-subtitle" class="hud-subtitle">Kronos · 0 active</div>
         </div>
       </div>
 
       <div class="hud-header-right">
-        <button id="btn-deep-dive" class="morph-btn mini-only" type="button" title="Expand full hub">Deep Dive ↗</button>
-        <button id="btn-compact" class="morph-btn deep-only" type="button" title="Compact view">Mini ↙</button>
+        <button id="btn-deep-dive" class="morph-btn mini-only" type="button" title="Open Deep Dive">
+          <span>Open</span>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </button>
+        <button id="btn-compact" class="morph-btn deep-only" type="button" title="Compact view">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+          <span>Compact</span>
+        </button>
 
         <button id="btn-refresh" class="icon-btn deep-only" type="button" title="Refresh">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
         </button>
-        <button id="btn-pin" class="icon-btn deep-only" type="button" title="Pin open">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16h14v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+        <button id="btn-pin" class="icon-btn deep-only" type="button" title="Keep on top">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16h14v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
         </button>
         <button id="btn-close-hud" class="icon-btn" type="button" title="Close (Esc)">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
     </header>
 
     <!-- ===========================================================
-         STAGE 1: MINIMAL COMPACT MINI POPOVER
+         MINI POPOVER
          =========================================================== -->
     <div id="mini-body" class="mini-body mini-only">
-      <div class="char-strip" role="group" aria-label="Switch Companion">
-        <button class="char-chip active" data-char="vesper" type="button">Vesper</button>
-        <button class="char-chip" data-char="vector" type="button">Vector</button>
-        <button class="char-chip" data-char="core" type="button">Core</button>
-        <button class="char-chip" data-char="coral" type="button">Coral</button>
+      <div class="mini-companion-bar">
+        <img id="mini-companion-img" class="mini-companion-thumb" src="../../docs/posters/pet-kronos.png" alt="Active robot" />
+        <div class="mini-companion-info">
+          <div id="mini-companion-name" class="mini-companion-name">KRONOS</div>
+          <div id="mini-companion-meta" class="mini-companion-meta">Heavy Task Monolith · Bipedal Stride</div>
+        </div>
+        <button id="btn-mini-announce" class="mini-btn primary" type="button" style="height:22px;padding:0 7px;font-size:9.5px" title="Have robot announce active agent &amp; timer">REPORT</button>
+      </div>
+
+      <div class="char-strip" role="group" aria-label="Switch Robot Unit">
+        <button class="char-chip active" data-char="kronos" type="button">KRONOS // MONOLITH</button>
+        <button class="char-chip" data-char="aegis" type="button">AEGIS // MECH</button>
+        <button class="char-chip" data-char="optix" type="button">OPTIX // ROVER</button>
+        <button class="char-chip" data-char="orbit" type="button">ORBIT // SYNTH</button>
+      </div>
+
+      <!-- MINI POPOVER MUSIC & DANCE TOGGLE BAR -->
+      <div class="mini-pulse-card" style="cursor:default;gap:5px">
+        <div class="mini-pulse-top">
+          <span id="mini-mp-track" class="mini-pulse-label" style="font-size:10.5px">MEDIA READY</span>
+          <div style="display:flex;align-items:center;gap:4px">
+            <button class="mini-btn" data-media="prev" type="button" style="height:21px;padding:0 6px;font-size:9.5px" title="Previous Track">PREV</button>
+            <button class="mini-btn primary" data-media="playPause" type="button" style="height:21px;padding:0 7px;font-size:9.5px" title="Play / Pause Music">PLAY</button>
+            <button class="mini-btn" data-media="next" type="button" style="height:21px;padding:0 6px;font-size:9.5px" title="Next Track">NEXT</button>
+            <button id="btn-mini-dance" class="mini-btn" type="button" style="height:21px;padding:0 6px;font-size:9.5px" title="Toggle Dance Mode On/Off">DANCE: OFF</button>
+          </div>
+        </div>
       </div>
 
       <div id="mini-approval-slot" class="hidden"></div>
 
-      <div id="mini-agent-card" class="mini-pulse-card" title="Click to open Live Agents">
+      <div id="mini-agent-card" class="mini-pulse-card" title="Open Live Activity">
         <div class="mini-pulse-top">
-          <span class="mini-pulse-label"><span class="agent-dot" id="mini-ag-dot" style="background:#38bdf8"></span><span id="mini-ag-name">Agents</span></span>
-          <span id="mini-ag-meta" class="elapsed-pill">Live</span>
+          <span class="mini-pulse-label"><span class="agent-dot" id="mini-ag-dot" style="background:#30d158"></span><span id="mini-ag-name">Activity</span></span>
+          <span id="mini-ag-meta" class="elapsed-pill">Idle</span>
         </div>
-        <div id="mini-ag-brief" class="mini-pulse-text">Monitoring agents cleanly in real time...</div>
+        <div id="mini-ag-brief" class="mini-pulse-text">Monitoring local coding agents cleanly.</div>
       </div>
 
-      <div class="mini-sys-row">
-        <button id="mini-btn-wifi" class="mini-sys-pill on" type="button">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-          <span class="mini-sys-meta"><span class="mini-sys-name">Wi-Fi</span><span id="mini-wifi-sub" class="mini-sys-sub">On</span></span>
-        </button>
-        <button id="mini-btn-bt" class="mini-sys-pill on" type="button">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg>
-          <span class="mini-sys-meta"><span class="mini-sys-name">BT</span><span id="mini-bt-sub" class="mini-sys-sub">On</span></span>
-        </button>
-        <button id="mini-btn-flight" class="mini-sys-pill flight" type="button">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
-          <span class="mini-sys-meta"><span class="mini-sys-name">Flight</span><span id="mini-flight-sub" class="mini-sys-sub">Off</span></span>
-        </button>
-      </div>
-
-      <div id="mini-alert-card" class="mini-pulse-card hidden" title="Click to open app">
+      <div id="mini-alert-card" class="mini-pulse-card hidden" title="Open application">
         <div class="mini-pulse-top">
-          <span class="mini-pulse-label"><span class="agent-dot" id="mini-al-dot" style="background:#25d366"></span><span id="mini-al-app">Message</span></span>
+          <span class="mini-pulse-label"><span class="agent-dot" id="mini-al-dot" style="background:#30d158"></span><span id="mini-al-app">Notification</span></span>
           <span id="mini-al-time" class="section-meta">Now</span>
         </div>
         <div id="mini-al-body" class="mini-pulse-text"></div>
       </div>
 
       <div id="mini-ai-reply" class="mini-ai-reply hidden">
-        <div class="mini-ai-meta"><span id="mini-ai-model">qwen3.5:2b</span><span id="mini-ai-action"></span></div>
+        <div class="mini-ai-meta"><span id="mini-ai-model">Local AI</span><span id="mini-ai-action"></span></div>
         <div id="mini-ai-text"></div>
+      </div>
+
+      <div class="mini-sys-row">
+        <button id="mini-btn-wifi" class="mini-sys-pill on" type="button">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+          <span class="mini-sys-meta"><span class="mini-sys-name">Wi-Fi</span><span id="mini-wifi-sub" class="mini-sys-sub">On</span></span>
+        </button>
+        <button id="mini-btn-bt" class="mini-sys-pill on" type="button">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg>
+          <span class="mini-sys-meta"><span class="mini-sys-name">Bluetooth</span><span id="mini-bt-sub" class="mini-sys-sub">On</span></span>
+        </button>
+        <button id="mini-btn-flight" class="mini-sys-pill flight" type="button">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+          <span class="mini-sys-meta"><span class="mini-sys-name">Airplane</span><span id="mini-flight-sub" class="mini-sys-sub">Off</span></span>
+        </button>
       </div>
 
       <div class="mini-dock-row">
         <button class="mini-dock-pill" data-app="brave" type="button">Brave</button>
-        <button class="mini-dock-pill" data-app="spotify" type="button">Spotify</button>
-        <button class="mini-dock-pill" data-app="terminal" type="button">Term</button>
-        <button class="mini-dock-pill" id="btn-mini-lens" type="button" title="Explain copied text/code">✦ Lens</button>
-        <button class="mini-dock-pill" data-app="whatsapp" type="button">WA</button>
+        <button class="mini-dock-pill" data-app="spotify" type="button">Music</button>
+        <button class="mini-dock-pill" data-app="terminal" type="button">Terminal</button>
+        <button class="mini-dock-pill" id="btn-mini-lens" type="button" title="Explain copied text">Explain</button>
+        <button class="mini-dock-pill" data-app="whatsapp" type="button">Messages</button>
       </div>
     </div>
 
     <!-- ===========================================================
-         STAGE 2: DEEP DIVE MATHEMATICAL COMMAND CENTER
+         DEEP DIVE NAVIGATION
          =========================================================== -->
     <div class="hud-tabs-wrap deep-only">
       <nav class="hud-tabs" role="tablist">
@@ -172,130 +139,120 @@
     </div>
 
     <main class="hud-body deep-only">
-      <!-- TAB 1: LIVE AGENTS -->
+      <!-- TAB 1: LIVE -->
       <div id="pane-agents" class="tab-pane active">
         <div id="approvals-section" class="section hidden">
-          <div class="section-head"><span class="section-title urgent">Pending Approvals</span><span id="approvals-count-label" class="section-meta">0</span></div>
+          <div class="section-head"><span class="section-title urgent">Permission Requests</span><span id="approvals-count-label" class="section-meta">0</span></div>
           <div id="approvals-list" class="card-list"></div>
         </div>
 
         <div id="discovery-section" class="section hidden">
-          <div class="section-head"><span class="section-title">Auto-Detected Installs</span><span class="section-meta">Live</span></div>
+          <div class="section-head"><span class="section-title">Detected Tools</span><span class="section-meta">Local</span></div>
           <div id="discovery-chips" class="chip-row"></div>
         </div>
 
         <div class="section">
-          <div class="section-head"><span class="section-title">Active AI Agents</span><span id="agents-meta" class="section-meta">Live</span></div>
+          <div class="section-head">
+            <span class="section-title">Active Agents</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span id="agents-meta" class="section-meta">0 active</span>
+              <button id="btn-announce-agent" class="link-btn" type="button" title="Robot announces active agent, start time &amp; elapsed timer">ANNOUNCE LIVE</button>
+            </div>
+          </div>
           <div id="agents-list" class="card-list"></div>
           <div id="idle-agents-section" class="section hidden" style="margin-top:4px">
-            <div class="section-head"><span class="section-title">Stopped / Completed</span><span id="idle-agents-meta" class="section-meta">0</span></div>
+            <div class="section-head"><span class="section-title">Completed &amp; Idle</span><span id="idle-agents-meta" class="section-meta">0</span></div>
             <div id="idle-agents-list" class="idle-agents-wrap"></div>
           </div>
         </div>
 
         <div class="section">
-          <div class="section-head"><span class="section-title">Open Windows</span><span class="section-meta">Focus</span></div>
+          <div class="section-head"><span class="section-title">Open Windows</span><span class="section-meta">Click to focus</span></div>
           <div id="windows-list" class="window-strip"></div>
         </div>
 
         <div id="hook-banner" class="hook-banner">
           <div class="hook-banner-text">
-            <strong id="hook-banner-title">Claude Code Allow/Deny Bridge</strong>
-            <span id="hook-banner-desc">Authenticated local bridge for live approvals.</span>
+            <strong id="hook-banner-title">Claude Code Approval Bridge</strong>
+            <span id="hook-banner-desc">Authenticated local bridge for live tool approvals.</span>
           </div>
-          <button id="btn-quick-hook" class="mini-btn primary" type="button">Connect</button>
+          <button id="btn-quick-hook" class="mini-btn" type="button">Connect</button>
         </div>
       </div>
 
-      <!-- TAB 2: SAVED AI CHAT (A+S+D WAKE) + THINKING MODEL + WISPR + LENS -->
+      <!-- TAB 2: CHAT & WHISPER VOICE ASSISTANT -->
       <div id="pane-ai" class="tab-pane">
         <div class="section">
           <div class="section-head">
-            <span class="section-title">Local AI Brain · Press A+S+D Anywhere</span>
-            <button id="btn-clear-ai" class="link-btn muted" type="button">Clear</button>
+            <span class="section-title">Whisper Voice &amp; AI Agent (Hotkey: A+S+W)</span>
+            <button id="btn-clear-ai" class="link-btn muted" type="button">CLEAR ALL</button>
           </div>
           <div class="llm-controls">
-            <select id="model-select" class="model-select" aria-label="Select local LLM"></select>
-            <button id="btn-think-mode" class="mini-btn" type="button" title="Toggle Deep Thinking Model (Chain-of-Thought)">⚡ Fast</button>
-            <button id="btn-voice-toggle" class="mini-btn active" type="button" title="Toggle character voice reply">🔊</button>
+            <select id="model-select" class="model-select" style="min-width:0;width:0;flex:1" aria-label="Select local model"></select>
+            <button id="btn-think-mode" class="mini-btn" type="button" title="Toggle reasoning mode">Fast</button>
+            <button id="btn-voice-toggle" class="mini-btn" type="button" title="Toggle Human Neural Voice Replies">Voice: On</button>
+          </div>
+          <div class="llm-controls">
+            <select id="voice-select" class="model-select" style="min-width:0;width:0;flex:1" aria-label="Select consistent named human voice">
+              <option value="arjun">Voice: Arjun — Warm Indian Male (EN/HI)</option>
+              <option value="kavya">Voice: Kavya — Expressive Indian Female (EN/HI)</option>
+              <option value="kabir">Voice: Kabir — Studio Hindi &amp; Hinglish Male</option>
+              <option value="meera">Voice: Meera — Studio Hindi &amp; Hinglish Female</option>
+              <option value="andrew">Voice: Andrew — Deep Studio Multilingual Male</option>
+              <option value="ava">Voice: Ava — Crisp Studio Multilingual Female</option>
+              <option value="brian">Voice: Brian — Calm Monolith Baritone Male</option>
+            </select>
+            <button id="btn-whisper-talk" class="mini-btn primary" type="button" title="Speak via Local Open-Source Whisper (or press A+S+W)">WHISPER MIC</button>
+          </div>
+          <div id="llm-setup-guide" class="persona-banner" style="padding:6px 9px;font-size:10px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <span><strong>LOCAL WHISPER (A+S+W):</strong> Ready offline for voice commands. Connect Ollama for deep LLM chat:</span>
+            <button class="mini-btn" data-copy-raw="ollama run qwen2.5:3b" type="button" style="height:20px;padding:0 6px;font-size:9.5px">COPY OLLAMA CMD</button>
           </div>
           <div class="chip-row">
-            <button class="micro-chip actionable" id="btn-chat-lens" type="button">✦ Explain Copied</button>
-            <button class="micro-chip actionable" data-app="wispr" type="button">🎙 Wispr Flow</button>
-            <button class="micro-chip actionable" data-quick-prompt="search react bits and tailwind" type="button">🔍 Multi-Search</button>
-            <button class="micro-chip actionable" data-quick-prompt="remind me in 15 min to take a break" type="button">⏰ Quick Remind</button>
+            <button class="micro-chip actionable" id="btn-chat-lens" type="button">Explain Clipboard</button>
+            <button class="micro-chip actionable" data-quick-prompt="Play or pause the music" type="button">Play/Pause Music</button>
+            <button class="micro-chip actionable" data-quick-prompt="Let's put on headphones and read our task together!" type="button">Multitask Mode</button>
           </div>
         </div>
         <div id="chat-feed" class="chat-feed"></div>
       </div>
 
-      <!-- TAB 3: MUSIC PLAYER + CONTROL CENTER + APPS + REMINDERS + CLIPBOARD VAULT -->
+      <!-- TAB 3: CONTROL -->
       <div id="pane-tools" class="tab-pane">
-        <!-- Integrated Music Player & Character Theme BGM -->
+        <!-- Connectivity -->
         <div class="section">
-          <div class="section-head">
-            <span class="section-title">Music Player & Theme BGM</span>
-            <span id="mp-source-meta" class="section-meta">Ready</span>
-          </div>
-          <div class="music-player-card">
-            <div class="mp-top">
-              <div class="mp-info">
-                <div class="mp-disc">♪</div>
-                <div style="min-width:0;flex:1">
-                  <div id="mp-track" class="mp-track">No track playing</div>
-                  <div id="mp-artist" class="mp-artist">Play Spotify, YouTube, or Character BGM</div>
-                </div>
-              </div>
-              <div class="mp-controls">
-                <button class="icon-btn" data-media="prev" type="button" title="Previous">⏮</button>
-                <button class="icon-btn active" data-media="playPause" type="button" title="Play / Pause">⏯</button>
-                <button class="icon-btn" data-media="next" type="button" title="Next">⏭</button>
-              </div>
-            </div>
-            <div class="mp-foot">
-              <div class="chip-row">
-                <button id="btn-bgm-loop" class="mini-btn" type="button">♫ Theme BGM: Off</button>
-                <button id="btn-theme-playlist" class="mini-btn" type="button">▶ Character OST</button>
-              </div>
-              <button id="btn-ctrl-dance" class="mini-btn" type="button">Dance ♪</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Connectivity Control Center -->
-        <div class="section">
-          <div class="section-head"><span class="section-title">Connectivity</span><button id="btn-sys-refresh" class="link-btn" type="button">Scan</button></div>
+          <div class="section-head"><span class="section-title">Connectivity</span><button id="btn-sys-refresh" class="link-btn" type="button">Refresh</button></div>
           <div class="cc-grid">
             <button id="cc-tile-wifi" class="cc-tile on" type="button">
               <div class="cc-tile-top">
-                <span class="cc-icon-ring"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></span>
-                <span id="cc-wifi-badge" class="cc-state-dot">ON</span>
+                <span class="cc-icon-ring"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></span>
+                <span id="cc-wifi-badge" class="cc-state-dot">On</span>
               </div>
               <div class="cc-tile-title">Wi-Fi</div>
               <div id="cc-wifi-sub" class="cc-tile-sub">Checking...</div>
             </button>
             <button id="cc-tile-bt" class="cc-tile on" type="button">
               <div class="cc-tile-top">
-                <span class="cc-icon-ring"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg></span>
-                <span id="cc-bt-badge" class="cc-state-dot">ON</span>
+                <span class="cc-icon-ring"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg></span>
+                <span id="cc-bt-badge" class="cc-state-dot">On</span>
               </div>
               <div class="cc-tile-title">Bluetooth</div>
               <div id="cc-bt-sub" class="cc-tile-sub">Checking...</div>
             </button>
             <button id="cc-tile-flight" class="cc-tile flight" type="button">
               <div class="cc-tile-top">
-                <span class="cc-icon-ring"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></span>
-                <span id="cc-flight-badge" class="cc-state-dot">OFF</span>
+                <span class="cc-icon-ring"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></span>
+                <span id="cc-flight-badge" class="cc-state-dot">Off</span>
               </div>
-              <div class="cc-tile-title">Flight</div>
-              <div id="cc-flight-sub" class="cc-tile-sub">Normal</div>
+              <div class="cc-tile-title">Airplane</div>
+              <div id="cc-flight-sub" class="cc-tile-sub">Off</div>
             </button>
           </div>
 
           <div class="cc-drawer-tabs">
             <div class="cc-drawer-pills">
-              <button id="btn-drawer-wifi" class="cc-pill-btn" type="button">Wi-Fi ▾</button>
-              <button id="btn-drawer-bt" class="cc-pill-btn" type="button">Bluetooth ▾</button>
+              <button id="btn-drawer-wifi" class="cc-pill-btn" type="button">Wi-Fi Networks</button>
+              <button id="btn-drawer-bt" class="cc-pill-btn" type="button">Bluetooth Devices</button>
             </div>
             <div class="cc-drawer-pills">
               <button id="btn-sys-mute" class="cc-pill-btn" type="button">Mute</button>
@@ -304,20 +261,59 @@
           </div>
 
           <div id="cc-wifi-drawer" class="cc-drawer hidden">
-            <div class="cc-drawer-head"><span>Saved & Nearby Wi-Fi</span><button id="btn-wifi-panel" class="link-btn" type="button">All ↗</button></div>
+            <div class="cc-drawer-head"><span>Saved &amp; Nearby Networks</span><button id="btn-wifi-panel" class="link-btn" type="button">System Settings</button></div>
             <div id="cc-wifi-list" class="card-list"></div>
           </div>
           <div id="cc-bt-drawer" class="cc-drawer hidden">
-            <div class="cc-drawer-head"><span>Paired Bluetooth</span><button id="btn-bt-panel" class="link-btn" type="button">Settings ↗</button></div>
+            <div class="cc-drawer-head"><span>Paired Devices</span><button id="btn-bt-panel" class="link-btn" type="button">System Settings</button></div>
             <div id="cc-bt-list" class="card-list"></div>
           </div>
         </div>
 
-        <!-- Universal App & Website Launcher -->
+        <!-- Now Playing -->
         <div class="section">
-          <div class="section-head"><span class="section-title">Apps, Shells & Any Website</span><span id="apps-indexed-meta" class="section-meta">PC Apps</span></div>
+          <div class="section-head">
+            <span class="section-title">Now Playing</span>
+            <span id="mp-source-meta" class="section-meta">Ready</span>
+          </div>
+          <div class="music-player-card">
+            <div class="mp-top">
+              <div class="mp-info">
+                <div class="mp-disc">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                </div>
+                <div style="min-width:0;flex:1">
+                  <div id="mp-track" class="mp-track">Not Playing</div>
+                  <div id="mp-artist" class="mp-artist">Play audio from Spotify, YouTube, or Companion Theme</div>
+                </div>
+              </div>
+              <div class="mp-controls">
+                <button class="icon-btn" data-media="prev" type="button" title="Previous">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+                </button>
+                <button class="icon-btn active" data-media="playPause" type="button" title="Play / Pause">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                </button>
+                <button class="icon-btn" data-media="next" type="button" title="Next">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="mp-foot">
+              <div class="chip-row">
+                <button id="btn-bgm-loop" class="mini-btn" type="button">Theme Audio: Off</button>
+                <button id="btn-theme-playlist" class="mini-btn" type="button">Companion Sound</button>
+              </div>
+              <button id="btn-ctrl-dance" class="mini-btn" type="button">DANCE: OFF</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Applications & Launcher -->
+        <div class="section">
+          <div class="section-head"><span class="section-title">Applications &amp; Web</span><span id="apps-indexed-meta" class="section-meta">Indexed</span></div>
           <form id="omni-launch-form" class="omni-launch-form">
-            <input id="omni-launch-input" type="text" autocomplete="off" placeholder="Website (chatgpt.com) or app (cmd, discord)..." />
+            <input id="omni-launch-input" type="text" autocomplete="off" placeholder="Open URL or installed application..." />
             <button class="mini-btn primary" type="submit">Open</button>
             <button id="btn-omni-webapp" class="mini-btn" type="button">Web App</button>
           </form>
@@ -325,33 +321,17 @@
             <button class="dock-btn" data-app="brave" type="button">Brave</button>
             <button class="dock-btn" data-app="spotify" type="button">Spotify</button>
             <button class="dock-btn" data-app="youtube" type="button">YouTube</button>
-            <button class="dock-btn" data-app="reddit" type="button">Reddit</button>
-            <button class="dock-btn" data-app="terminal" type="button">Terminal</button>
-            <button class="dock-btn" data-app="cmd" type="button">CMD</button>
-            <button class="dock-btn" data-app="powershell" type="button">PowerShell</button>
             <button class="dock-btn" data-app="vscode" type="button">VS Code</button>
+            <button class="dock-btn" data-app="terminal" type="button">Terminal</button>
+            <button class="dock-btn" data-app="powershell" type="button">PowerShell</button>
             <button class="dock-btn" data-app="whatsapp" type="button">WhatsApp</button>
-            <button class="dock-btn" data-app="discord" type="button">Discord</button>
-            <button class="dock-btn" data-app="wispr" type="button">Wispr</button>
             <button class="dock-btn" data-app="explorer" type="button">Files</button>
           </div>
         </div>
 
-        <!-- Copy & Paste Clipboard Vault + Focus Lens -->
+        <!-- Focus Timer & Tasks -->
         <div class="section">
-          <div class="section-head">
-            <span class="section-title">Copy & Paste Vault (In-Memory)</span>
-            <div class="filter-actions">
-              <button id="btn-cb-explain" class="link-btn" type="button">✦ Explain Latest</button>
-              <button id="btn-cb-clear" class="link-btn muted" type="button">Clear</button>
-            </div>
-          </div>
-          <div id="clipboard-list" class="card-list"></div>
-        </div>
-
-        <!-- Reminders, Tasks & Study Focus Streak -->
-        <div class="section">
-          <div class="section-head"><span class="section-title">Study Sprint & Focus XP</span><span id="focus-xp-meta" class="section-meta">Lv.1 · 0 XP</span></div>
+          <div class="section-head"><span class="section-title">Focus Timer</span><span id="focus-xp-meta" class="section-meta">Level 1 · 0 XP</span></div>
           <div class="sprint-card">
             <div id="sprint-display" class="sprint-time">25:00</div>
             <div class="sprint-btns">
@@ -363,37 +343,57 @@
           </div>
         </div>
 
-        <div class="section">
-          <div class="section-head"><span class="section-title">Smart Reminders</span><span id="reminders-count" class="section-meta">0</span></div>
-          <form id="rem-form" class="task-add-row">
-            <input id="rem-input" type="text" placeholder="Remind me to..." autocomplete="off" />
-            <input id="rem-mins" type="text" value="10" style="max-width:48px;text-align:center" title="Minutes" />
-            <button class="mini-btn primary" type="submit">Set</button>
-          </form>
-          <div id="reminders-list" class="card-list"></div>
-        </div>
+        <details class="disclosure">
+          <summary>
+            <span>Reminders &amp; Tasks</span>
+            <span class="disc-meta"><span id="tasks-count">0 open</span><span class="chev">›</span></span>
+          </summary>
+          <div class="disclosure-body">
+            <div class="section-head"><span class="section-title">Reminders</span><span id="reminders-count" class="section-meta">0</span></div>
+            <form id="rem-form" class="task-add-row">
+              <input id="rem-input" type="text" placeholder="Reminder note..." autocomplete="off" />
+              <input id="rem-mins" type="text" value="10" style="max-width:48px;text-align:center" title="Minutes" />
+              <button class="mini-btn primary" type="submit">Set</button>
+            </form>
+            <div id="reminders-list" class="card-list"></div>
 
-        <div class="section">
-          <div class="section-head"><span class="section-title">Synced To-Do Tasks</span><span id="tasks-count" class="section-meta">0</span></div>
-          <form id="task-form" class="task-add-row">
-            <input id="task-input" type="text" placeholder="Add a synced task..." autocomplete="off" />
-            <button class="mini-btn primary" type="submit">Add</button>
-          </form>
-          <div id="tasks-list" class="card-list"></div>
-        </div>
+            <div class="section-head" style="margin-top:4px"><span class="section-title">Synced Tasks</span></div>
+            <form id="task-form" class="task-add-row">
+              <input id="task-input" type="text" placeholder="Add a synced task..." autocomplete="off" />
+              <button class="mini-btn primary" type="submit">Add</button>
+            </form>
+            <div id="tasks-list" class="card-list"></div>
+          </div>
+        </details>
 
-        <div class="section">
-          <div class="section-head"><span class="section-title">Auto-Pilot & Dev Ports</span></div>
-          <div class="setting-row">
-            <div><div class="setting-name">Auto-Allow Read-Only</div><div class="setting-desc">Silently approve Read/Glob/Grep</div></div>
-            <label class="switch"><input id="toggle-ap-readonly" type="checkbox" /><span class="slider"></span></label>
+        <details class="disclosure">
+          <summary>
+            <span>Clipboard &amp; Developer Automation</span>
+            <span class="disc-meta"><span>In-Memory</span><span class="chev">›</span></span>
+          </summary>
+          <div class="disclosure-body">
+            <div class="section-head">
+              <span class="section-title">Clipboard History</span>
+              <div class="filter-actions">
+                <button id="btn-cb-explain" class="link-btn" type="button">Explain Latest</button>
+                <button id="btn-cb-clear" class="link-btn muted" type="button">Clear</button>
+              </div>
+            </div>
+            <div id="clipboard-list" class="card-list"></div>
+
+            <div class="group-box" style="margin-top:4px">
+              <div class="setting-row">
+                <div><div class="setting-name">Auto-Allow Read-Only</div><div class="setting-desc">Silently approve read, glob, and grep calls</div></div>
+                <label class="switch"><input id="toggle-ap-readonly" type="checkbox" /><span class="slider"></span></label>
+              </div>
+              <div class="setting-row">
+                <div><div class="setting-name">Block Destructive Shell Commands</div><div class="setting-desc">Automatically deny format and recursive delete</div></div>
+                <label class="switch"><input id="toggle-ap-danger" type="checkbox" checked /><span class="slider"></span></label>
+              </div>
+            </div>
+            <div id="ports-list" class="port-grid"></div>
           </div>
-          <div class="setting-row">
-            <div><div class="setting-name">Auto-Block Dangerous Shell</div><div class="setting-desc">Deny rm -rf /, format, destructive cmds</div></div>
-            <label class="switch"><input id="toggle-ap-danger" type="checkbox" checked /><span class="slider"></span></label>
-          </div>
-          <div id="ports-list" class="port-grid"></div>
-        </div>
+        </details>
       </div>
 
       <!-- TAB 4: ALERTS -->
@@ -401,129 +401,396 @@
         <div class="filter-row">
           <div class="filter-pills">
             <button class="filter-pill active" data-filter="all" type="button">All</button>
-            <button class="filter-pill" data-filter="whatsapp" type="button">WhatsApp</button>
+            <button class="filter-pill" data-filter="whatsapp" type="button">Messages</button>
             <button class="filter-pill" data-filter="agent" type="button">Agents</button>
-            <button class="filter-pill" data-filter="system" type="button">Apps</button>
+            <button class="filter-pill" data-filter="system" type="button">System</button>
           </div>
           <div class="filter-actions">
-            <button id="btn-read-all" class="link-btn" type="button">Read all</button>
+            <button id="btn-read-all" class="link-btn" type="button">Mark all read</button>
             <button id="btn-clear-all" class="link-btn muted" type="button">Clear</button>
           </div>
         </div>
         <div id="notifications-list" class="card-list"></div>
       </div>
 
-      <!-- TAB 5: STUDIO (4 COMPANIONS, SKINS, CUSTOM NAME, AGE GROUP, LIQUID GLASS, VOICE, AUTO-START, MOBILE) -->
+      <!-- TAB 5: STUDIO (COMPANION LIBRARY + PERSONALIZATION + COMPANION STUDIO + SETTINGS) -->
       <div id="pane-pet" class="tab-pane">
+        <div id="unresolved-char-banner" class="migration-banner hidden"></div>
+
+        <!-- Active Robot Showcase -->
+        <div class="active-showcase">
+          <div class="showcase-art-wrap">
+            <img id="studio-showcase-img" class="showcase-art" src="../../docs/posters/pet-kronos.png" alt="Selected robot preview" />
+          </div>
+          <div class="showcase-meta">
+            <div class="showcase-top">
+              <span id="studio-active-label" class="showcase-name">Kronos</span>
+              <span id="studio-active-badge" class="showcase-badge">ROBOT · 4 SKINS</span>
+            </div>
+            <div id="studio-active-desc" class="showcase-desc">Articulated monolith robot engineered for heavy tasks, builds, and terminal execution.</div>
+            <div id="studio-active-move" class="showcase-caps">LOCOMOTION: BIPEDAL STRIDE</div>
+          </div>
+        </div>
+
+        <!-- Robot Agent Library (Kronos, Aegis, Optix, Orbit + Custom) -->
         <div class="section">
-          <div class="section-head"><span class="section-title">Companions & Living Themes</span></div>
-          <div class="pet-cards-4">
-            <button class="pet-card active" data-char="vesper" type="button">
-              <span class="pet-card-title" data-char-label="vesper">Vesper</span>
-              <span class="pet-card-sub">Acrobat · Elastic Tether</span>
+          <div class="section-head">
+            <span class="section-title">Robot Agent Units</span>
+            <span class="section-meta">4 Built-In Robots · Custom</span>
+          </div>
+          <div class="seg-3" role="group" aria-label="Robot Collection Filter">
+            <button class="seg-btn active" data-lib-filter="all" type="button">ALL UNITS</button>
+            <button class="seg-btn" data-lib-filter="robot" type="button">CORE ROBOTS</button>
+            <button class="seg-btn" data-lib-filter="custom" type="button">CUSTOM BOTS</button>
+          </div>
+
+          <div id="lib-grid" class="lib-grid">
+            <button class="pet-card active" data-char="kronos" data-group="robot" type="button">
+              <img class="pet-card-art" src="../../docs/posters/pet-kronos.png" alt="Kronos" />
+              <div class="pet-card-body">
+                <div class="pet-card-head"><span class="pet-card-title" data-char-label="kronos">Kronos</span><span class="pet-card-skins">4 SKINS</span></div>
+                <div class="pet-card-desc">Interstellar 4-Slab Monolith</div>
+                <div class="pet-card-move">4-SLAB STRIDE</div>
+              </div>
             </button>
-            <button class="pet-card" data-char="vector" type="button">
-              <span class="pet-card-title" data-char-label="vector">Vector</span>
-              <span class="pet-card-sub">Aero-Mech · Ion Flight</span>
+            <button class="pet-card" data-char="aegis" data-group="robot" type="button">
+              <img class="pet-card-art" src="../../docs/posters/pet-aegis.png" alt="Aegis" />
+              <div class="pet-card-body">
+                <div class="pet-card-head"><span class="pet-card-title" data-char-label="aegis">Aegis</span><span class="pet-card-skins">4 SKINS</span></div>
+                <div class="pet-card-desc">Bipedal Field Mech</div>
+                <div class="pet-card-move">BIPEDAL SERVO</div>
+              </div>
             </button>
-            <button class="pet-card" data-char="core" type="button">
-              <span class="pet-card-title" data-char-label="core">Core</span>
-              <span class="pet-card-sub">Holo Sphere · HUD Rings</span>
+            <button class="pet-card" data-char="optix" data-group="robot" type="button">
+              <img class="pet-card-art" src="../../docs/posters/pet-optix.png" alt="Optix" />
+              <div class="pet-card-body">
+                <div class="pet-card-head"><span class="pet-card-title" data-char-label="optix">Optix</span><span class="pet-card-skins">4 SKINS</span></div>
+                <div class="pet-card-desc">Deep Research Rover</div>
+                <div class="pet-card-move">OPTICAL SCAN</div>
+              </div>
             </button>
-            <button class="pet-card" data-char="coral" type="button">
-              <span class="pet-card-title" data-char-label="coral">Coral</span>
-              <span class="pet-card-sub">Reef Glass · Bubbles</span>
+            <button class="pet-card" data-char="orbit" data-group="robot" type="button">
+              <img class="pet-card-art" src="../../docs/posters/pet-orbit.png" alt="Orbit" />
+              <div class="pet-card-body">
+                <div class="pet-card-head"><span class="pet-card-title" data-char-label="orbit">Orbit</span><span class="pet-card-skins">4 SKINS</span></div>
+                <div class="pet-card-desc">Autonomous Synth Pod</div>
+                <div class="pet-card-move">MAGNETIC DRONE</div>
+              </div>
             </button>
           </div>
         </div>
 
-        <!-- Customize Active Companion (Custom Name + Skin Colors + Age Profile) -->
+        <!-- Personalization (Skins, Nickname, Age Profile) -->
         <div class="section">
-          <div class="section-head"><span class="section-title">Personalize Companion</span><span id="studio-active-label" class="section-meta">Vesper</span></div>
-          <form id="rename-form" class="task-add-row">
-            <input id="rename-input" type="text" maxlength="22" placeholder="Edit character name..." autocomplete="off" />
-            <button class="mini-btn primary" type="submit">Rename</button>
-          </form>
-          <div id="skin-swatches" class="skin-row"></div>
-          <div class="seg-3" role="group" aria-label="Age Style Profile">
-            <button class="seg-btn" data-age="0-15" type="button">0–15 Youth</button>
-            <button class="seg-btn active" data-age="15-30" type="button">15–30 Student</button>
-            <button class="seg-btn" data-age="30-60" type="button">30–60 Pro</button>
+          <div class="section-head"><span class="section-title">Personalization</span><span class="section-meta">Appearance &amp; Tone</span></div>
+          <div class="group-box">
+            <div class="group-pad">
+              <div class="studio-group-label">Finish &amp; Skins</div>
+              <div id="skin-swatches" class="skin-row"></div>
+            </div>
+            <div class="group-pad">
+              <div class="studio-group-label">Nickname</div>
+              <form id="rename-form" class="task-add-row">
+                <input id="rename-input" type="text" maxlength="24" placeholder="Custom companion name..." autocomplete="off" />
+                <button class="mini-btn" type="submit">Save</button>
+              </form>
+            </div>
+            <div class="group-pad">
+              <div class="studio-group-label">Age-Based Persona Profile</div>
+              <div class="seg-3" role="group" aria-label="Age-Based Persona Profile">
+                <button class="seg-btn" data-age="1-15" type="button">1–14 Young</button>
+                <button class="seg-btn active" data-age="15-30" type="button">15–29 Builders</button>
+                <button class="seg-btn" data-age="30-60" type="button">30–60 Mentors</button>
+              </div>
+              <div id="persona-synergy-banner" class="persona-banner">
+                <strong>Vesper · Students &amp; Builders:</strong> Motivational productivity partner
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Liquid Glass Transparency & Scale -->
+        <!-- COMPANION STUDIO (6-Group Structured Editor) -->
         <div class="section">
-          <div class="section-head"><span class="section-title">Glass Material & Scale</span></div>
-          <div class="setting-row">
-            <div><div class="setting-name">Glass Transparency</div><div class="setting-desc" id="trans-label">Frosted (42%)</div></div>
-            <input id="range-trans" class="range-input" type="range" min="0" max="100" step="2" value="42" />
+          <div class="section-head">
+            <span class="section-title">Companion Studio</span>
+            <span id="custom-heroes-count" class="section-meta">0 custom</span>
           </div>
-          <div class="setting-row">
-            <div><div class="setting-name">Companion Size</div><div class="setting-desc" id="size-label">106%</div></div>
-            <input id="range-size" class="range-input" type="range" min="0.75" max="1.28" step="0.04" value="1.06" />
+          <div class="creator-card">
+            <div class="creator-preview-row">
+              <canvas id="hero-creator-preview" class="creator-canvas" width="96" height="96"></canvas>
+              <div class="creator-preview-meta">
+                <div id="hc-preview-name" class="creator-preview-name">New Companion</div>
+                <div id="hc-preview-sub" class="creator-preview-sub">Acrobat template · Swing</div>
+                <div class="chip-row" style="margin-top:2px">
+                  <label class="mini-btn" style="cursor:pointer">
+                    Upload Image
+                    <input id="hc-art-file" type="file" accept="image/png,image/jpeg,image/webp" style="display:none" />
+                  </label>
+                  <button id="hc-art-clear" class="mini-btn hidden" type="button">Clear</button>
+                  <button id="hc-import-toggle" class="mini-btn" type="button">Import JSON</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="hc-import-box" class="hidden" style="padding:10px 12px;border-bottom:1px solid var(--sep);display:flex;flex-direction:column;gap:6px">
+              <textarea id="hc-import-json" rows="3" placeholder="Paste exported companion JSON..."></textarea>
+              <div class="chip-row">
+                <button id="hc-import-apply" class="mini-btn primary" type="button">Import</button>
+                <button id="hc-import-cancel" class="mini-btn" type="button">Cancel</button>
+              </div>
+            </div>
+
+            <form id="hero-creator-form" class="studio-form">
+              <input id="hc-edit-id" type="hidden" value="" />
+
+              <!-- 1. Identity -->
+              <div class="studio-group">
+                <div class="studio-group-label">1. Identity</div>
+                <div class="creator-field">
+                  <label for="hc-category">Collection</label>
+                  <select id="hc-category">
+                    <option value="robot">Robot Agent</option>
+                    <option value="hero">Hero Unit</option>
+                    <option value="custom">Custom Unit</option>
+                  </select>
+                </div>
+                <div class="creator-grid">
+                  <div class="creator-field">
+                    <label for="hc-name">Name</label>
+                    <input id="hc-name" type="text" maxlength="28" placeholder="e.g. Axiom-9" required />
+                  </div>
+                  <div class="creator-field">
+                    <label for="hc-nickname">Callsign</label>
+                    <input id="hc-nickname" type="text" maxlength="24" placeholder="Optional" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. Appearance -->
+              <div class="studio-group">
+                <div class="studio-group-label">2. Appearance</div>
+                <div class="creator-field">
+                  <label for="hc-template">Chassis Form</label>
+                  <select id="hc-template">
+                    <option value="kronos">Kronos (Heavy Task Monolith)</option>
+                    <option value="optix">Optix (Deep Research Rover)</option>
+                    <option value="orbit">Orbit (Autonomous Synth Pod)</option>
+                    <option value="mech">Vector (Aero-Mech)</option>
+                    <option value="acrobat">Vesper (Acrobat)</option>
+                    <option value="guardian">Umbra (Guardian)</option>
+                    <option value="aquatic">Coral (Hydro Scout)</option>
+                    <option value="holo">Holographic Core</option>
+                  </select>
+                </div>
+                <div class="creator-color-row">
+                  <label class="creator-color-pill"><input id="hc-primary" type="color" value="#ff5500" /> Primary</label>
+                  <label class="creator-color-pill"><input id="hc-secondary" type="color" value="#00d68f" /> Secondary</label>
+                  <label class="creator-color-pill"><input id="hc-accent" type="color" value="#f2efe9" /> Accent</label>
+                </div>
+              </div>
+
+              <!-- 3. Movement -->
+              <div class="studio-group">
+                <div class="studio-group-label">3. Movement</div>
+                <div class="creator-field">
+                  <label for="hc-movement">Locomotion</label>
+                  <select id="hc-movement">
+                    <option value="stride">Stride (Articulated Monolith)</option>
+                    <option value="scout">Scout (Tracked Optical Rover)</option>
+                    <option value="drone">Drone (Zero-G Magnetic Synth)</option>
+                    <option value="fly">Fly (Jet Propulsion)</option>
+                    <option value="swing">Swing (Tether Pendulum)</option>
+                    <option value="glide">Glide (Mantle &amp; Grapple)</option>
+                    <option value="swim">Swim (Hydro Wave)</option>
+                    <option value="float">Float (Orbital Zero-G)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- 4. Personality -->
+              <div class="studio-group">
+                <div class="studio-group-label">4. Specialty &amp; Directive</div>
+                <div class="creator-field">
+                  <label for="hc-personality">Task Directive</label>
+                  <input id="hc-personality" type="text" maxlength="180" placeholder="e.g. Heavy build automation &amp; deep research robot" />
+                </div>
+              </div>
+
+              <!-- 5. Audio Telemetry -->
+              <div class="studio-group">
+                <div class="studio-group-label">5. Audio Telemetry</div>
+                <div class="creator-grid">
+                  <div class="creator-field">
+                    <label for="hc-voice">Telemetry Profile</label>
+                    <select id="hc-voice">
+                      <option value="kronos">Monolith Pulse</option>
+                      <option value="optix">Optical Scanner</option>
+                      <option value="orbit">Synth Harmonic</option>
+                      <option value="ironman">Aero-Mech</option>
+                      <option value="spidey">Acrobat</option>
+                      <option value="batman">Dark Stealth</option>
+                      <option value="nemo">Hydro</option>
+                    </select>
+                  </div>
+                  <div class="creator-field">
+                    <label for="hc-sound">Synth Motif</label>
+                    <select id="hc-sound">
+                      <option value="kronos">Monolith Analog</option>
+                      <option value="optix">Rover Bleep-Arp</option>
+                      <option value="orbit">Zero-G Triad</option>
+                      <option value="ironman">Synth Harmonic</option>
+                      <option value="spidey">Acrobat Pulse</option>
+                      <option value="batman">Dark Ambient</option>
+                      <option value="nemo">Hydro Harp</option>
+                      <option value="ambient">Crystalline</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 6. Advanced Settings (Collapsible) -->
+              <div class="studio-group">
+                <details class="disclosure" style="border:none;background:transparent;box-shadow:none">
+                  <summary style="padding:2px 0;font-size:11.5px;color:var(--text-2)">
+                    <span>6. Advanced Settings</span>
+                    <span class="disc-meta"><span>Scale, Speed &amp; Reactions</span><span class="chev">›</span></span>
+                  </summary>
+                  <div style="padding-top:8px;display:flex;flex-direction:column;gap:8px">
+                    <div class="creator-field">
+                      <label for="hc-reaction">Reaction Effect</label>
+                      <select id="hc-reaction">
+                        <option value="thruster">Thruster Burst</option>
+                        <option value="scan">Optical Scan</option>
+                        <option value="pulse">Synth Pulse</option>
+                        <option value="sparks">Sparks</option>
+                        <option value="stealth">Shimmer</option>
+                        <option value="ripple">Hydro Ripple</option>
+                      </select>
+                    </div>
+                    <div class="creator-grid">
+                      <div class="creator-field">
+                        <label for="hc-size">Scale</label>
+                        <input id="hc-size" class="range-input" type="range" min="0.75" max="1.35" step="0.05" value="1.05" style="width:100%" />
+                      </div>
+                      <div class="creator-field">
+                        <label for="hc-speed">Speed</label>
+                        <input id="hc-speed" class="range-input" type="range" min="0.6" max="1.6" step="0.1" value="1.0" style="width:100%" />
+                      </div>
+                    </div>
+                  </div>
+                </details>
+
+                <div class="test-row" style="margin-top:4px">
+                  <button id="hc-submit-btn" class="mini-btn primary" type="submit">Create Companion</button>
+                  <button id="hc-cancel-edit" class="mini-btn hidden" type="button">Cancel</button>
+                </div>
+                <div id="hc-feedback" class="setup-feedback"></div>
+              </div>
+            </form>
+
+            <div id="custom-heroes-list" class="custom-hero-list"></div>
           </div>
         </div>
 
-        <!-- Voice, BGM & Windows Startup -->
+        <!-- Appearance & Scale -->
         <div class="section">
-          <div class="section-head"><span class="section-title">Voice, BGM & Startup</span><button id="btn-test-voice" class="link-btn" type="button">Test Voice</button></div>
-          <div class="setting-row">
-            <div><div class="setting-name">Character Voice Replies</div><div class="setting-desc">Distinct voice per companion (Vesper, Vector, Core, Coral)</div></div>
-            <label class="switch"><input id="toggle-voice" type="checkbox" checked /><span class="slider"></span></label>
-          </div>
-          <div class="setting-row">
-            <div><div class="setting-name">Startup Character BGM</div><div class="setting-desc">Play signature theme motif on start & switch</div></div>
-            <label class="switch"><input id="toggle-bgm" type="checkbox" checked /><span class="slider"></span></label>
-          </div>
-          <div class="setting-row">
-            <div><div class="setting-name">Start Automatically with Windows</div><div class="setting-desc">Launch AURA automatically on login (or keep Manual)</div></div>
-            <label class="switch"><input id="toggle-autostart" type="checkbox" /><span class="slider"></span></label>
-          </div>
-          <div class="setting-row">
-            <div><div class="setting-name">Desktop-Only Mode</div><div class="setting-desc">Hide pet over apps; roam only on desktop</div></div>
-            <label class="switch"><input id="toggle-desktop-only" type="checkbox" /><span class="slider"></span></label>
-          </div>
-          <div class="setting-row">
-            <div><div class="setting-name">Privacy Mask</div><div class="setting-desc">Blur message & clipboard previews until hover</div></div>
-            <label class="switch"><input id="toggle-privacy-mask" type="checkbox" /><span class="slider"></span></label>
-          </div>
-          <div class="setting-row">
-            <div><div class="setting-name">Wake on Alerts & Preview Toasts</div><div class="setting-desc">Surface companion on urgent approvals/messages</div></div>
-            <label class="switch"><input id="toggle-wake-alerts" type="checkbox" checked /><span class="slider"></span></label>
+          <div class="section-head"><span class="section-title">Hardware &amp; Scale</span></div>
+          <div class="group-box">
+            <div class="setting-row hidden">
+              <div><div class="setting-name">Surface Mode</div><div class="setting-desc" id="trans-label">Solid Matte</div></div>
+              <input id="range-trans" class="range-input" type="range" min="0" max="100" step="2" value="0" />
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-name">Unit Scale</div><div class="setting-desc" id="size-label">106%</div></div>
+              <input id="range-size" class="range-input" type="range" min="0.75" max="1.28" step="0.04" value="1.06" />
+            </div>
           </div>
         </div>
 
-        <!-- Movement -->
+        <!-- Behaviour -->
         <div class="section">
-          <div class="section-head"><span class="section-title">Movement & Dance</span><span id="hud-mode-label" class="section-meta">Roaming</span></div>
-          <div class="control-grid">
-            <button class="ctrl-btn" data-mode="swim" type="button">Roam<small>Chalo</small></button>
-            <button class="ctrl-btn" data-mode="fast" type="button">Fast<small>Bhaago</small></button>
-            <button class="ctrl-btn" data-mode="slow" type="button">Slow<small>Dheere</small></button>
-            <button class="ctrl-btn" data-mode="stay" type="button">Stay<small>Ruko</small></button>
-            <button class="ctrl-btn" data-mode="follow" type="button">Follow<small>Cursor</small></button>
-            <button class="ctrl-btn" id="btn-pet-dance" type="button">Dance<small>Vibe ♪</small></button>
-          </div>
-          <div class="corner-row">
-            <button class="corner-btn" data-corner="top-left" type="button">TL</button>
-            <button class="corner-btn" data-corner="top-right" type="button">TR</button>
-            <button class="corner-btn" id="btn-pick-spot" type="button">Pick</button>
-            <button class="corner-btn" data-corner="bottom-left" type="button">BL</button>
-            <button class="corner-btn" data-corner="bottom-right" type="button">BR</button>
+          <div class="section-head"><span class="section-title">Locomotion &amp; Position</span><span id="hud-mode-label" class="section-meta">Roaming</span></div>
+          <div class="group-box">
+            <div class="group-pad">
+              <div class="control-grid">
+                <button class="ctrl-btn" data-mode="swim" type="button">Roam</button>
+                <button class="ctrl-btn" data-mode="fast" type="button">Overdrive</button>
+                <button class="ctrl-btn" data-mode="slow" type="button">Precision</button>
+                <button class="ctrl-btn" data-mode="stay" type="button">Hold</button>
+                <button class="ctrl-btn" data-mode="follow" type="button">Track Cursor</button>
+                <button class="ctrl-btn" id="btn-pet-dance" type="button">DANCE: OFF</button>
+              </div>
+              <div class="corner-row">
+                <button class="corner-btn" data-corner="top-left" type="button">Top L</button>
+                <button class="corner-btn" data-corner="top-right" type="button">Top R</button>
+                <button class="corner-btn" id="btn-pick-spot" type="button">Pick</button>
+                <button class="corner-btn" data-corner="bottom-left" type="button">Bot L</button>
+                <button class="corner-btn" data-corner="bottom-right" type="button">Bot R</button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Worldwide Mobile Remote & Android APK -->
+        <!-- Audio & System -->
         <div class="section">
-          <div class="section-head"><span class="section-title">Worldwide Mobile Remote & APK</span><span id="mobile-status-meta" class="section-meta">Offline</span></div>
-          <div class="mobile-card">
-            <div class="setting-desc">Control AURA, see your moving pet on phone, edit synced tasks & chat from anywhere on Earth while laptop is ON.</div>
+          <div class="section-head"><span class="section-title">Audio, Voice &amp; System</span><button id="btn-test-voice" class="link-btn" type="button">Test Selected Voice</button></div>
+          <div class="group-box">
+            <div class="setting-row">
+              <div><div class="setting-name">Named Voice Profile (Single Consistent Voice)</div><div class="setting-desc">Sticks with your selected human voice across all replies</div></div>
+              <select id="studio-voice-select" class="model-select" style="max-width:170px;height:26px;font-size:10.5px">
+                <option value="arjun">Arjun (Indian Male)</option>
+                <option value="kavya">Kavya (Indian Female)</option>
+                <option value="kabir">Kabir (Hindi Male)</option>
+                <option value="meera">Meera (Hindi Female)</option>
+                <option value="andrew">Andrew (Studio Male)</option>
+                <option value="ava">Ava (Studio Female)</option>
+                <option value="brian">Brian (Baritone Male)</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-name">Human Neural Voice Replies (EN / Hinglish / Hindi)</div><div class="setting-desc">Speak replies &amp; A+S+W Whisper voice assistant tasks</div></div>
+              <label class="switch"><input id="toggle-voice" type="checkbox" checked /><span class="slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-name">Dance Mode (Headphones &amp; Groove)</div><div class="setting-desc">Toggle robot dance &amp; studio headphones ON or OFF</div></div>
+              <label class="switch"><input id="toggle-dance-mode" type="checkbox" /><span class="slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-name">Tactile Synth Audio &amp; Motifs</div><div class="setting-desc">Play mechanical button clicks and unit activation motifs</div></div>
+              <label class="switch"><input id="toggle-bgm" type="checkbox" checked /><span class="slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-name">Launch at Sign-In</div><div class="setting-desc">Start OV automatically with Windows</div></div>
+              <label class="switch"><input id="toggle-autostart" type="checkbox" /><span class="slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-name">Desktop-Only Mode</div><div class="setting-desc">Hide companion over active application windows</div></div>
+              <label class="switch"><input id="toggle-desktop-only" type="checkbox" /><span class="slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-name">Privacy Mask</div><div class="setting-desc">Blur notification and clipboard previews until hovered</div></div>
+              <label class="switch"><input id="toggle-privacy-mask" type="checkbox" /><span class="slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <div><div class="setting-name">Wake on Alerts</div><div class="setting-desc">Surface companion on urgent approvals and messages</div></div>
+              <label class="switch"><input id="toggle-wake-alerts" type="checkbox" checked /><span class="slider"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Remote & Security (Progressive Disclosure) -->
+        <details class="disclosure">
+          <summary>
+            <span>Mobile Remote &amp; Security</span>
+            <span class="disc-meta"><span id="mobile-status-meta">Offline</span><span class="chev">›</span></span>
+          </summary>
+          <div class="disclosure-body">
+            <div class="setting-desc">Pair your Android device to control OV, view your companion, and sync tasks over encrypted HTTPS or local Wi-Fi.</div>
             <div class="test-row">
-              <button id="btn-mobile-world" class="mini-btn primary" type="button">Go Worldwide (HTTPS)</button>
+              <button id="btn-mobile-world" class="mini-btn primary" type="button">Start HTTPS</button>
               <button id="btn-mobile-lan" class="mini-btn" type="button">LAN Wi-Fi</button>
               <button id="btn-mobile-stop" class="mini-btn deny hidden" type="button">Stop</button>
-              <button id="btn-mobile-apk" class="mini-btn" type="button">APK File</button>
+              <button id="btn-mobile-apk" class="mini-btn" type="button">APK Folder</button>
             </div>
             <div id="mobile-qr-panel" class="mobile-qr-box hidden">
               <div id="mobile-qr-svg" class="mobile-qr-svg"></div>
@@ -539,38 +806,37 @@
               </div>
             </div>
             <div class="threat-box">
-              <strong>Security Advisory:</strong> Mobile Remote is OFF by default with a unique 256-bit local key & rate limit. Never share your Pairing Link publicly; use <em>Rotate Key</em> anytime.
+              Mobile Remote is disabled by default and protected by a 256-bit local key. Rotate keys anytime if a pairing link is shared.
             </div>
-          </div>
-        </div>
 
-        <div class="section">
-          <div class="section-head"><span class="section-title">Security & Hooks</span><span id="hook-port-label" class="section-meta">127.0.0.1:47821</span></div>
-          <div class="security-pill-row">
-            <span class="sec-pill">256-bit Auth</span>
-            <span class="sec-pill">Zero Telemetry</span>
-            <span class="sec-pill">Local LLM</span>
-            <span class="sec-pill">A+S+D Chord</span>
+            <div class="section-head" style="margin-top:4px"><span class="section-title">Local Security &amp; Hooks</span><span id="hook-port-label" class="section-meta">127.0.0.1:47821</span></div>
+            <div class="security-pill-row">
+              <span class="sec-pill">256-bit Auth</span>
+              <span class="sec-pill">Zero Telemetry</span>
+              <span class="sec-pill">Local AI</span>
+            </div>
+            <div class="test-row">
+              <button id="btn-setup-hooks" class="mini-btn" type="button">Connect Claude Hooks</button>
+              <button id="btn-test-approval" class="mini-btn" type="button">Test Approval</button>
+              <button id="btn-test-wa" class="mini-btn" type="button">Test Alert</button>
+            </div>
+            <div id="setup-feedback" class="setup-feedback"></div>
           </div>
-          <div class="test-row">
-            <button id="btn-setup-hooks" class="mini-btn primary" type="button">Connect Claude Hooks</button>
-            <button id="btn-test-approval" class="mini-btn" type="button">Test Allow</button>
-            <button id="btn-test-wa" class="mini-btn" type="button">Test Alert</button>
-          </div>
-          <div id="setup-feedback" class="setup-feedback"></div>
-        </div>
+        </details>
       </div>
     </main>
 
-    <!-- SPOTLIGHT UNIVERSAL ASK BAR -->
+    <!-- SPOTLIGHT UNIVERSAL INPUT -->
     <footer class="hud-footer">
       <div id="cmd-feedback" class="cmd-feedback hidden"></div>
       <form id="cmd-form" class="cmd-form">
-        <input id="cmd-input" type="text" autocomplete="off" placeholder='Ask AI, "remind me in 10m...", "vector", "core", "open cmd"...' />
-        <button id="btn-voice" class="icon-btn mic-btn" type="button" title="Voice / Wispr Flow">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+        <input id="cmd-input" type="text" autocomplete="off" placeholder="Ask OV or run a command..." />
+        <button id="btn-voice" class="icon-btn mic-btn" type="button" title="Voice input">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
         </button>
-        <button class="send-btn" type="submit" title="Send">→</button>
+        <button class="send-btn" type="submit" title="Send">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
       </form>
     </footer>
   </section>

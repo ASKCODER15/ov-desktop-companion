@@ -4,11 +4,11 @@ Recommended repository name: `ov-desktop-companion`
 
 Recommended description:
 
-> A local-first Windows AI desktop companion with animated floating characters, Ollama/LM Studio chat, coding-agent awareness, productivity controls, and an optional Android remote.
+> A local-first Windows AI robot companion with 4 industrial robots, local open-source Whisper voice assistant (A+S+W), live coding-agent timers, Ollama/LM Studio chat, and an optional Android remote.
 
 Recommended topics:
 
-`desktop-companion`, `ai-assistant`, `electron`, `windows`, `local-first`, `ollama`, `lm-studio`, `ai-agents`, `android`, `productivity`, `desktop-pet`, `privacy`
+`desktop-companion`, `ai-assistant`, `whisper`, `faster-whisper`, `voice-assistant`, `electron`, `windows`, `local-first`, `ollama`, `lm-studio`, `ai-agents`, `android`, `productivity`, `privacy`
 
 Recommended website field: leave blank until you have a stable project page or documentation site.
 

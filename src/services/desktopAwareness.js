@@ -183,9 +183,9 @@ if ($first) {
 let chordProc = null;
 
 /**
- * Lightweight simultaneous A+S+D key-chord watcher:
- * Fires ONLY when A (0x41), S (0x53), and D (0x44) are held down at the exact same instant
- * (~85ms hold, 1.5s cooldown) so normal sequential typing never misfires!
+ * Lightweight simultaneous A+S+W (Whisper Voice Agent) & A+S+D (Quick Chat) key-chord watcher:
+ * - A (0x41) + S (0x53) + W (0x57) -> Fires 'ASW_VOICE' (activates Local Whisper Voice Assistant)
+ * - A (0x41) + S (0x53) + D (0x44) -> Fires 'ASD_WAKE' (opens Saved Chat)
  */
 function startAsdChordWatcher(onTrigger) {
   if (chordProc && !chordProc.killed) return;
@@ -198,23 +198,33 @@ public static class AuraKeyChord {
 }
 "@
 [Console]::Out.AutoFlush = $true
-$held = 0
+$heldAsw = 0
+$heldAsd = 0
 $cool = 0
 while ($true) {
   Start-Sleep -Milliseconds 45
   if ($cool -gt 0) { $cool--; continue }
   $a = ([AuraKeyChord]::GetAsyncKeyState(0x41) -band 0x8000) -ne 0
   $s = ([AuraKeyChord]::GetAsyncKeyState(0x53) -band 0x8000) -ne 0
+  $w = ([AuraKeyChord]::GetAsyncKeyState(0x57) -band 0x8000) -ne 0
   $d = ([AuraKeyChord]::GetAsyncKeyState(0x44) -band 0x8000) -ne 0
-  if ($a -and $s -and $d) {
-    $held++
-    if ($held -ge 2) {
+  if ($a -and $s -and $w) {
+    $heldAsw++
+    if ($heldAsw -ge 2) {
+      [Console]::Out.WriteLine("ASW_VOICE")
+      $heldAsw = 0
+      $cool = 36
+    }
+  } elseif ($a -and $s -and $d) {
+    $heldAsd++
+    if ($heldAsd -ge 2) {
       [Console]::Out.WriteLine("ASD_WAKE")
-      $held = 0
+      $heldAsd = 0
       $cool = 32
     }
   } else {
-    $held = 0
+    $heldAsw = 0
+    $heldAsd = 0
   }
 }
 `;
@@ -226,8 +236,11 @@ while ($true) {
     );
     chordProc.stdout.setEncoding('utf8');
     chordProc.stdout.on('data', (chunk) => {
-      if (String(chunk).includes('ASD_WAKE')) {
-        try { onTrigger(); } catch {}
+      const s = String(chunk);
+      if (s.includes('ASW_VOICE')) {
+        try { onTrigger('ASW_VOICE'); } catch {}
+      } else if (s.includes('ASD_WAKE')) {
+        try { onTrigger('ASD_WAKE'); } catch {}
       }
     });
     chordProc.on('exit', () => { chordProc = null; });

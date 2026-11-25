@@ -3,23 +3,111 @@
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none';" />
-  <title>OV Alert</title>
+  <title>OV Robot Telemetry</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
-    html, body { padding: 6px; }
+    html, body { padding: 4px; background: transparent; }
     .mini-toast {
       position: static;
       width: 100%;
-      min-height: 92px;
-      animation: popIn 0.18s ease-out;
+      min-height: 104px;
+      border-radius: 3px;
+      background: #111215;
+      border: 2px solid var(--accent, #ff5500);
+      box-shadow: 3px 3px 0 #050608;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .mini-toast-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      border-bottom: 1px solid #262932;
+      padding-bottom: 4px;
+    }
+    .mini-toast-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+    .mini-toast-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #111215;
+      background: var(--paper, #f2efe9);
+      padding: 1px 5px;
+      border-radius: 2px;
+      border: 1px solid #050608;
+    }
+    .mini-toast-timer {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      color: #00d68f;
+      background: #091d16;
+      border: 1px solid #00d68f;
+      padding: 1px 5px;
+      border-radius: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+    .mini-toast-right {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .mini-toast-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: #f2efe9;
+      line-height: 1.25;
+    }
+    .mini-toast-body {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: #c4c9d4;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .toast-copy-btn {
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 2px;
+      border: 1px solid #3b404d;
+      background: #1b1d22;
+      color: #f2efe9;
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .toast-copy-btn:hover {
+      background: #f2efe9;
+      color: #111215;
     }
   </style>
 </head>
-<body>
+<body data-theme="kronos">
   <div id="mini-toast" class="mini-toast" role="status">
     <div class="mini-toast-header">
-      <span id="mini-toast-tag" class="mini-toast-tag">OV</span>
-      <button id="mini-toast-close" class="icon-btn tiny" type="button" aria-label="Close">×</button>
+      <div class="mini-toast-left">
+        <span id="mini-toast-tag" class="mini-toast-tag">KRONOS</span>
+        <span id="mini-toast-timer" class="mini-toast-timer hidden">00:00</span>
+      </div>
+      <div class="mini-toast-right">
+        <button id="mini-toast-copy" class="toast-copy-btn" type="button" title="Copy robot text">COPY</button>
+        <button id="mini-toast-close" class="toast-copy-btn" type="button" aria-label="Close">X</button>
+      </div>
     </div>
     <div id="mini-toast-title" class="mini-toast-title"></div>
     <div id="mini-toast-body" class="mini-toast-body"></div>

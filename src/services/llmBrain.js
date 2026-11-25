@@ -159,17 +159,147 @@ class LocalLLMBrain {
     return this.getState();
   }
 
+  deleteMessage(index) {
+    const idx = Number(index);
+    const sliceStart = Math.max(0, this.history.length - 20);
+    const realIdx = sliceStart + idx;
+    if (Number.isInteger(idx) && realIdx >= 0 && realIdx < this.history.length) {
+      this.history.splice(realIdx, 1);
+      this.saveHistory();
+    }
+    return this.getState();
+  }
+
   getState() {
     const active = this.models.find((m) => m.id === this.selectedModel) || null;
     return {
       models: this.models,
       selectedModel: this.selectedModel,
-      activeLabel: active ? active.rawName : 'Offline',
-      provider: active ? active.provider : null,
+      activeLabel: active ? active.rawName : 'OV Human Brain (EN/HI/Hinglish)',
+      provider: active ? active.provider : 'builtin-human',
       isThinking: this.isThinking,
       thinkMode: this.thinkMode,
       history: this.history.slice(-20),
     };
+  }
+
+  /**
+   * Built-in Trilingual (English, Hinglish, Hindi) Human-Feel Conversational Engine
+   * Ensures OV always talks like a warm, witty, genuine human friend & co-pilot even when Ollama/LM Studio is offline.
+   */
+  buildHumanTrilingualReply(text, liveContext = {}, persona = {}) {
+    const lower = text.toLowerCase();
+    const isDevanagari = /[\u0900-\u097F]/.test(text);
+    const isHinglish = /\b(bhai|yaar|arre|kya|kaise|kaisa|haal|batao|bata|chalo|chal|gaana|kaam|padhai|mast|sahi|bilkul|acha|accha|theek|thik|karo|karna|raha|rahi|hoon|hain|nahi|aur|dekho|suno|mazaa|maza|dost|ekdum|fatafat|jaldi|namaste|bol|bolo)\b/i.test(text);
+    const name = persona.displayName || 'Kronos';
+    const agents = (liveContext.agents || []).filter((a) => a.status === 'running' || a.status === 'waiting_approval');
+    const music = liveContext.music || {};
+    const openTasks = (liveContext.tasks || []).filter((t) => !t.done);
+
+    // 0. Direct Voice Assistant Laptop Commands ("open X", "play/pause music", "next song", "dance on/off", "timer", "task")
+    const openVoiceMatch = lower.match(/\b(?:open|launch|start|chala|chalao|kholo|khol)\s+(spotify|brave|youtube|whatsapp|vscode|terminal|cmd|powershell|discord|github|claude|chatgpt|notepad|calculator|explorer)\b/i);
+    if (openVoiceMatch) {
+      const target = openVoiceMatch[1].toLowerCase();
+      return {
+        reply: isHinglish || isDevanagari ? `Done bhai! ${target} open kar diya hai.` : `Done bro! Opening ${target} right now.`,
+        action: { type: 'open_app', target },
+      };
+    }
+    if (/\b(play|pause|resume|stop)\b.*\b(music|song|track|gaana|audio)\b|\b(music|gaana)\b.*\b(play|pause|band|chalu|roko)\b/i.test(lower)) {
+      return {
+        reply: isHinglish || isDevanagari ? `Music play/pause toggle kar diya bhai!` : `Toggled your music playback!`,
+        action: { type: 'media', command: 'playPause' },
+      };
+    }
+    if (/\b(next|skip|agla)\b.*\b(song|track|music|gaana)\b/i.test(lower)) {
+      return {
+        reply: isHinglish || isDevanagari ? `Agla track laga diya bhai!` : `Skipped to the next track!`,
+        action: { type: 'media', command: 'next' },
+      };
+    }
+    if (/\b(dance)\b.*\b(off|stop|band)\b/i.test(lower)) {
+      return {
+        reply: isHinglish || isDevanagari ? `Dance mode OFF kar diya bhai.` : `Dance mode turned OFF.`,
+        action: { type: 'dance_toggle', enable: false },
+      };
+    }
+
+    // 1. Multitask: Music/Headphones + Task Reading simultaneously
+    if (/(both|multitask|headphone.*read|music.*task|gaana.*kaam|music.*work|dance.*read|padhai.*music|गाना.*काम|हेडफ़ोन.*पढ़)/i.test(lower)) {
+      const action = { type: 'pet_multitask' };
+      if (isDevanagari) {
+        return { reply: `अरे बिल्कुल भाई! हेडफ़ोन और टास्क टैबलेट दोनों चालू हैं — गाना और काम एक साथ!`, action };
+      }
+      if (isHinglish) {
+        return { reply: `Bilkul bhai! Headphones on hain aur task slate bhi read kar raha hoon.`, action };
+      }
+      return { reply: `Locked in! Studio headphones on and reading our task slate at the same time.`, action };
+    }
+
+    // 2. Music / Dance / Headphones request
+    if (/(headphone|dance|vibe|groove|naach|gaana|song|music|video)/i.test(lower) && !/stop|pause|band|off/i.test(lower)) {
+      const action = { type: 'dance_toggle', enable: true };
+      if (isDevanagari) {
+        return { reply: `डांस मोड और हेडफ़ोन चालू कर दिए हैं भाई!`, action };
+      }
+      if (isHinglish) {
+        return { reply: `Dance mode ON bhai! Headphones laga ke beat pe groove kar raha hoon.`, action };
+      }
+      return { reply: `Dance mode toggled ON — studio headphones locked to the beat!`, action };
+    }
+
+    // 3. Reading / Task / Working posture request
+    if (/(read|study|research|work on task|padh|padhai|kaam kar|focus mode|sit and work)/i.test(lower)) {
+      const action = { type: 'pet_task' };
+      if (isDevanagari) {
+        return { reply: `टास्क टैबलेट खोल लिया है भाई, पूरा फोकस काम पर है!`, action };
+      }
+      if (isHinglish) {
+        return { reply: `Full focus mode bhai! Task slate open kar ke scan kar raha hoon.`, action };
+      }
+      return { reply: `Task slate open — scanning through our active work right now.`, action };
+    }
+
+    // 4. Greeting / "Kya haal hai" / Casual Human Check-in
+    if (/^(hi|hello|hey|yo|sup|namaste|aur bhai|kya haal|kaise ho|kaisa hai|what's up|whats up|kem cho|ram ram)/i.test(lower) || /(kya chal raha|kya haal|kaise ho|how are you|नमस्ते|क्या हाल|कैसे हो|कैसा है|क्या चल रहा)/i.test(lower)) {
+      if (isDevanagari) {
+        return { reply: `अरे भाई, सब बढ़िया! मैं ${name} हूँ — बोलो आज क्या काम करना है?`, action: null };
+      }
+      if (isHinglish) {
+        return { reply: `Arre bhai ekdum mast! ${name} ready hai — A+S+W daba ke voice me bol ya seedha bata kya karna hai.`, action: null };
+      }
+      return { reply: `Hey bro! ${name} online (${agents.length} agent active, ${openTasks.length} open tasks). Press A+S+W anytime to talk via Local Whisper!`, action: null };
+    }
+
+    // 5. Language capability questions
+    if (/(hindi|hinglish|english|language|bhasha|baat kar)/i.test(lower)) {
+      return {
+        reply: isHinglish || isDevanagari
+          ? `Haan bhai, English, Hinglish aur Hindi teeno me ek hi fixed natural voice me baat karenge!`
+          : `I speak English, Hinglish, and Hindi using your selected voice + local Whisper STT (A+S+W).`,
+        action: null,
+      };
+    }
+
+    // 6. Status / Agents / What are you doing
+    if (/(what are you doing|kya kar raha|agent status|active agent|status kya hai)/i.test(lower)) {
+      const act = agents.length > 0 ? { type: 'pet_task' } : { type: 'pet_multitask' };
+      return {
+        reply: isHinglish || isDevanagari
+          ? `Abhi ${agents.length} coding agent (${agents.map((a) => a.name).join(', ') || 'idle'}) aur ${openTasks.length} open tasks track kar raha hoon.`
+          : `Tracking ${agents.length} active agent(s) and ${openTasks.length} open task(s) on my data slate.`,
+        action: act,
+      };
+    }
+
+    // 7. Concise general intelligent response
+    if (isDevanagari) {
+      return { reply: `समझ गया भाई! "${text.slice(0, 48)}" पर काम चालू है — कोई ऐप या टाइमर चलाना हो तो बस बोलो।`, action: { type: 'pet_task' } };
+    }
+    if (isHinglish) {
+      return { reply: `Samajh gaya bhai! "${text.slice(0, 48)}" note kar liya hai. A+S+W daba ke koi bhi laptop command bol sakta hai!`, action: { type: 'pet_task' } };
+    }
+    return { reply: `Got it bro — scanning "${text.slice(0, 48)}" on my task slate. Press A+S+W or ask me to open any app, control music, or add a task!`, action: { type: 'pet_task' } };
   }
 
   /**
@@ -196,17 +326,35 @@ class LocalLLMBrain {
       await this.discoverModels();
     }
 
-    const active = this.models.find((m) => m.id === this.selectedModel);
-    if (!active) {
-      return {
-        ok: false,
-        reply: 'No local LLM server responded (checked Ollama :11434 & LM Studio :1234). Start Ollama and retry!',
-      };
-    }
+    const { getHeroDescriptor, buildHeroAgePersona } = require('./heroRegistry');
+    const customHeroes = Array.isArray(liveContext.customHeroes) ? liveContext.customHeroes : [];
+    const heroDesc = getHeroDescriptor(liveContext.petCharacter || 'spidey', customHeroes);
+    const persona = buildHeroAgePersona(heroDesc, liveContext.ageGroup || '15-30', liveContext.petName || '');
 
     this.isThinking = true;
     this.history.push({ role: 'user', content: text, ts: Date.now() });
     if (this.history.length > 20) this.history = this.history.slice(-20);
+
+    const active = this.models.find((m) => m.id === this.selectedModel);
+    if (!active) {
+      this.isThinking = false;
+      const fallback = this.buildHumanTrilingualReply(text, liveContext, persona);
+      this.history.push({
+        role: 'assistant',
+        content: fallback.reply,
+        thinking: '',
+        action: fallback.action,
+        ts: Date.now(),
+      });
+      this.saveHistory();
+      return {
+        ok: true,
+        reply: fallback.reply,
+        thinking: '',
+        action: fallback.action,
+        model: 'OV Human Brain (EN/HI/Hinglish)',
+      };
+    }
 
     const agentSummary = (liveContext.agents || [])
       .slice(0, 4)
@@ -221,28 +369,15 @@ class LocalLLMBrain {
       .map((t) => `[${t.done ? 'x' : ' '}] ${t.text}`)
       .join(' | ');
 
-    const { normalizeCharacterId, DEFAULT_CHAR_NAMES } = require('./security');
-    const charKey = normalizeCharacterId(liveContext.petCharacter) || 'vesper';
-    const customName = liveContext.petName || DEFAULT_CHAR_NAMES[charKey] || 'OV';
-    const ageGroup = liveContext.ageGroup || '15-30';
-    const personaMap = {
-      vesper: `${customName} (agile, witty, encouraging acrobat companion)`,
-      vector: `${customName} (sharp, confident, high-tech aero-mech companion)`,
-      core: `${customName} (calm, articulate, precision holographic AI strategist)`,
-      coral: `${customName} (warm, cheerful, bright reef companion)`,
-    };
-    const ageTone =
-      ageGroup === '0-15'
-        ? 'Use fun, clear, encouraging explanations suitable for young learners.'
-        : ageGroup === '30-60'
-          ? 'Keep tone crisp, executive, calm, and high-signal.'
-          : 'Keep tone sharp, aesthetic, relatable for a student & AI engineer (match English or Hinglish naturally).';
+    const systemPrompt = `You are OV embodying ${persona.displayName}, an expressive, witty, genuinely human-feeling AI companion and co-pilot running on the user's laptop.
 
-    const systemPrompt = `You are OV embodying ${personaMap[charKey] || personaMap.vesper}, an unrestricted local AI brain and desktop companion running directly on the user's laptop.
+${persona.systemDirective}
 
-IMPORTANT — FULL GENERAL INTELLIGENCE:
-- Answer ANY question on ANY topic — coding, math, DSA, science, history, career, casual chat, off-topic questions, or brainstorming — with full depth! NEVER refuse off-topic questions.
-- ${ageTone}
+HUMAN COMMUNICATION & TRILINGUAL FLUENCY (CRITICAL):
+- Talk like a real, sharp, warm human friend and co-builder — NEVER sound like a stiff robot or generic corporate assistant!
+- You natively speak THREE languages: **English**, **Hinglish** (casual Roman Hindi + English like "Arre bhai, bilkul! Music bhi chal raha hai aur main task bhi padh raha hoon"), and **Hindi** (Devanagari like "अरे भाई, सब बढ़िया!").
+- Automatically match whichever language (English, Hinglish, or Hindi) the user writes or speaks in, with natural humor and warmth.
+- Answer ANY question on ANY topic — coding, math, DSA, science, career, casual banter, or brainstorming — with full depth.
 
 Live PC Context (use when relevant):
 - Active Agents:
@@ -262,8 +397,9 @@ Desktop Actions (ONLY append ONE single action tag at the very end IF the user a
 - Start sprint timer: [[ACTION:{"type":"start_timer","minutes":25,"label":"Study Sprint"}]]
 - Music control (playPause, next, prev): [[ACTION:{"type":"media","command":"playPause"}]]
 - Wi-Fi / Bluetooth / Flight / Mute: [[ACTION:{"type":"wifi","enable":true}]] | [[ACTION:{"type":"bluetooth","enable":true}]] | [[ACTION:{"type":"flight_mode","enable":true}]] | [[ACTION:{"type":"mute"}]]
-- Control pet (swim, fast, slow, stay, follow) or Dance: [[ACTION:{"type":"pet_mode","mode":"stay"}]] | [[ACTION:{"type":"pet_dance"}]]
-- Switch character & theme (vesper, vector, core, coral): [[ACTION:{"type":"pet_char","character":"core"}]]
+- Companion activity animations — Wear headphones & dance: [[ACTION:{"type":"pet_dance"}]] | Sit & read task tablet: [[ACTION:{"type":"pet_task"}]] | Do BOTH simultaneously (headphones + reading task): [[ACTION:{"type":"pet_multitask"}]]
+- Control pet movement (swim, fast, slow, stay, follow): [[ACTION:{"type":"pet_mode","mode":"stay"}]]
+- Switch unit & theme (spidey, ironman, batman, nemo, kronos, optix, orbit, or custom id): [[ACTION:{"type":"pet_char","character":"kronos"}]]
 
 For general/off-topic questions with NO desktop action requested, just answer naturally with NO [[ACTION:...]] tag!`;
 
@@ -326,10 +462,22 @@ For general/off-topic questions with NO desktop action requested, just answer na
       this.saveHistory();
       return { ok: true, reply, thinking: thinkingText, action, model: active.rawName };
     } catch (err) {
-      const msg = `Local model (${active.rawName}) busy or timed out: ${err.message}`;
-      this.history.push({ role: 'assistant', content: msg, ts: Date.now() });
+      const fallback = this.buildHumanTrilingualReply(text, liveContext, persona);
+      this.history.push({
+        role: 'assistant',
+        content: fallback.reply,
+        thinking: '',
+        action: fallback.action,
+        ts: Date.now(),
+      });
       this.saveHistory();
-      return { ok: false, reply: msg, thinking: '', action: null };
+      return {
+        ok: true,
+        reply: fallback.reply,
+        thinking: '',
+        action: fallback.action,
+        model: 'OV Human Brain (EN/HI/Hinglish)',
+      };
     } finally {
       this.isThinking = false;
     }

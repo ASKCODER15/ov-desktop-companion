@@ -148,49 +148,141 @@ async function run() {
   assert.strictEqual(parse('flight mode').action, 'sys-flight');
   assert.strictEqual(parse('connect wifi HomeWiFi').ssid, 'HomeWiFi');
   assert.strictEqual(parse('dance').action, 'pet-dance');
-  assert.strictEqual(parse('vector').action, 'character');
-  assert.strictEqual(parse('vector').character, 'vector');
-  assert.strictEqual(parse('core').action, 'character');
-  assert.strictEqual(parse('core').character, 'core');
-  assert.strictEqual(parse('vesper').character, 'vesper');
-  assert.strictEqual(parse('coral').character, 'coral');
+  assert.strictEqual(parse('kronos').action, 'character');
+  assert.strictEqual(parse('kronos').character, 'kronos');
+  assert.strictEqual(parse('aegis').character, 'aegis');
+  assert.strictEqual(parse('optix').character, 'optix');
+  assert.strictEqual(parse('orbit').character, 'orbit');
+  assert.strictEqual(parse('spidey').character, 'kronos');
+  assert.strictEqual(parse('ironman').character, 'aegis');
+  assert.strictEqual(parse('batman').character, 'optix');
+  assert.strictEqual(parse('nemo').character, 'orbit');
   assert.strictEqual(parse('remind me in 15 min to revise OS').action, 'add-reminder');
   assert.strictEqual(parse('remind me in 15 min to revise OS').minutes, 15);
   assert.strictEqual(parse('next song').action, 'media');
   assert.strictEqual(parse('explain clipboard').action, 'explain-clipboard');
   assert.strictEqual(parse('search react bits and tailwind').action, 'search-multi');
   assert.strictEqual(parse('Explain quantum physics simply').action, 'ask-llm');
-  console.log('OK: Command parser verified (4 original OV companions, Reminders, Media, Focus Lens, CMD, PowerShell, Off-topic LLM)');
+  console.log('OK: Command parser verified (4 Robot Agents + legacy aliases, Reminders, Media, Focus Lens, CMD, PowerShell, Off-topic LLM)');
 
-  console.log('\n=== 7. OV v6 Engine Checks (4-Char Physics, Legacy Settings Migration, Elastic Squish, Clipboard Vault, Reminders, A+S+D) ===');
-  // Verify lossless backward-compatibility migration of legacy settings!
-  const migrated = sanitizeSettingsPatch({
-    petCharacter: 'spidey',
-    petSkins: { spidey: 'classic', ironman: 'mark85', jarvis: 'stark', nemo: 'dory' },
-    petNames: { spidey: 'Spidey', ironman: 'MyCustomMech' },
+  console.log('\n=== 7. OV V8 4-Robot Ecosystem (Kronos 4-Slab Monolith, Aegis Mech, Optix Rover, Orbit Synth), 12 Age Combos, Single Named Voice & Per-Message Chat Delete ===');
+  const os = require('os');
+  const {
+    BUILTIN_HERO_IDS,
+    BUILTIN_HEROES,
+    AGE_PROFILES,
+    resolveAgeProfileId,
+    buildHeroAgePersona,
+    migrateSettingsSafe,
+  } = require('../src/services/heroRegistry');
+  const { CustomHeroStore } = require('../src/services/customHeroStore');
+  const { VOICE_CATALOG, getVoiceEntry } = require('../src/services/neuralVoice');
+
+  // 7a. Safe backward-compatibility migration to the 4 Robot Agents!
+  const migKnown = migrateSettingsSafe({
+    petCharacter: 'vesper',
+    ageGroup: '0-15',
+    petSkins: { vesper: 'crimson', ironman: 'mark85', batman: 'darkknight', nemo: 'classic' },
+    petNames: { kronos: 'MyCustomMech' },
   });
-  assert.strictEqual(migrated.petCharacter, 'vesper');
-  assert.strictEqual(migrated.petSkins.vesper, 'crimson');
-  assert.strictEqual(migrated.petSkins.vector, 'valkyrie');
-  assert.strictEqual(migrated.petSkins.core, 'solar');
-  assert.strictEqual(migrated.petSkins.coral, 'sapphire');
-  assert.strictEqual(migrated.petNames.vesper, 'Vesper');
-  assert.strictEqual(migrated.petNames.vector, 'MyCustomMech');
-  console.log('OK: Legacy settings migration verified (preserves custom nicknames & maps all legacy IDs/skins)');
+  assert.strictEqual(migKnown.settings.petCharacter, 'kronos');
+  assert.strictEqual(migKnown.settings.ageGroup, '1-15');
+  assert.strictEqual(migKnown.settings.petSkins.kronos, 'titanium');
+  assert.strictEqual(migKnown.settings.petSkins.aegis, 'signal');
+  assert.strictEqual(migKnown.settings.petSkins.optix, 'cobalt');
+  assert.strictEqual(migKnown.settings.petSkins.orbit, 'ceramic');
+  assert.strictEqual(migKnown.settings.petNames.kronos, 'MyCustomMech');
+  console.log('OK: Safe legacy migration to 4 Robot Agents verified');
 
+  // 7b. Deterministic Age-Based Personas & all 12 Robot x Age combinations (4 built-in robots x 3 age profiles)
+  assert.strictEqual(BUILTIN_HERO_IDS.length, 4);
+  assert.strictEqual(resolveAgeProfileId(14), '1-15');
+  assert.strictEqual(resolveAgeProfileId(15), '15-30');
+  assert.strictEqual(resolveAgeProfileId(29), '15-30');
+  assert.strictEqual(resolveAgeProfileId(30), '30-60');
+  assert.strictEqual(resolveAgeProfileId('0-15'), '1-15');
+  let comboCount = 0;
+  for (const hKey of BUILTIN_HERO_IDS) {
+    for (const aKey of Object.keys(AGE_PROFILES)) {
+      const p = buildHeroAgePersona(BUILTIN_HEROES[hKey], aKey);
+      assert(p.tagline && p.systemDirective.includes(BUILTIN_HEROES[hKey].name));
+      assert(p.motionMode && p.eyeStyle);
+      comboCount++;
+    }
+  }
+  assert.strictEqual(comboCount, 12);
+  assert(VOICE_CATALOG.length >= 7 && getVoiceEntry('arjun').voice === 'en-IN-PrabhatNeural');
+  console.log('OK: All 12 Robot x Age-Profile combinations (4 robots x 3 profiles) & 7 Single Named Voices verified');
+
+  // 7c. All 4 Robot Movement Archetypes (stride/scout/drone) + custom archetypes + elastic squish
   const phys = new PetPhysics({ x: 0, y: 0, width: 1536, height: 864 });
-  for (const ch of ['vesper', 'vector', 'core', 'coral']) {
+  const expectedArch = {
+    kronos: 'stride', aegis: 'stride', optix: 'scout', orbit: 'drone',
+  };
+  for (const [ch, arch] of Object.entries(expectedArch)) {
     phys.setCharacter(ch);
     assert.strictEqual(phys.character, ch);
+    assert.strictEqual(phys.movementArchetype, arch);
     phys.step(0.032);
   }
-  phys.setCharacter('spidey'); // verify legacy fallback mapping
-  assert.strictEqual(phys.character, 'vesper');
+  phys.setMovementArchetype('float', 1.2);
+  assert.strictEqual(phys.movementArchetype, 'float');
+  phys.step(0.032);
+  phys.setCharacter('vesper');
+  assert.strictEqual(phys.character, 'kronos');
   phys.applyDragPull(65, -40);
   assert(phys.squishMag > 0.3, 'Expected elastic squish deformation on drag pull');
   phys.releaseDragSpring();
   phys.step(0.032);
-  console.log('OK: 4-character physics & elastic squish spring verified');
+  console.log('OK: Robot physics (stride/scout/drone) & elastic squish verified');
+
+  // 7d. Unified Companion Studio Store (Hero + Robot Agent categories, CRUD, persistence, duplicate, import/export, SVG-XSS blocking)
+  const tmpHeroDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ov-hero-test-'));
+  try {
+    const store1 = new CustomHeroStore(tmpHeroDir);
+    const created = store1.create({
+      category: 'robot',
+      name: 'Axiom-9',
+      nickname: 'Axiom',
+      template: 'kronos',
+      movement: 'stride',
+      primaryColor: '#ff5500',
+      secondaryColor: '#00d68f',
+      personality: 'Heavy build and deep research monolith unit',
+      voiceProfile: 'kronos',
+      soundPack: 'kronos',
+      size: 1.1,
+      speed: 0.9,
+    });
+    assert(created.ok && created.hero.id.startsWith('custom-') && created.hero.category === 'robot');
+
+    // Reject SVG script injection in artwork!
+    const badSvg = store1.create({
+      name: 'EvilSVG',
+      artworkDataUrl: 'data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9ImFsZXJ0KDEpIi8+',
+    });
+    assert.strictEqual(badSvg.ok, false);
+
+    // Survive restart (reload from disk)
+    const store2 = new CustomHeroStore(tmpHeroDir);
+    assert.strictEqual(store2.list().length, 1);
+    assert.strictEqual(store2.get(created.hero.id).name, 'Axiom-9');
+
+    // Edit, Duplicate, Export, Import, Delete
+    const upd = store2.update(created.hero.id, { nickname: 'NovaX', movement: 'fly' });
+    assert(upd.ok && upd.hero.nickname === 'NovaX' && upd.hero.movement === 'fly');
+    const dup = store2.duplicate(created.hero.id);
+    assert(dup.ok && store2.list().length === 2);
+    const exp = store2.exportHero(created.hero.id);
+    assert(exp.ok && exp.json.includes('ov-custom-hero-v1'));
+    const imp = store2.importHero(exp.json);
+    assert(imp.ok && store2.list().length === 3);
+    const del = store2.delete(dup.hero.id);
+    assert(del.ok && store2.list().length === 2);
+    console.log('OK: Hero Creator CRUD, persistence, duplicate, export/import & SVG-XSS blocking verified');
+  } finally {
+    fs.rmSync(tmpHeroDir, { recursive: true, force: true });
+  }
 
   const fakeClip = { _val: '', readText() { return this._val; }, writeText(v) { this._val = v; } };
   const vault = new ClipboardVault(fakeClip);

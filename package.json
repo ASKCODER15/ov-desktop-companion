@@ -1,7 +1,7 @@
 {
   "name": "ov-desktop-companion",
-  "version": "6.0.0",
-  "description": "A local-first Windows AI desktop companion with animated floating characters, Ollama/LM Studio chat, coding-agent awareness, productivity controls, and an optional Android remote.",
+  "version": "8.0.0",
+  "description": "OV v8.0 — Local-First AI & Robot Agent Desktop System for Windows with 4 industrial desktop robots (Kronos 4-Slab Interstellar Monolith, Aegis Field Mech, Optix Research Rover, Orbit Synth Pod), Local Open-Source Whisper (faster-whisper) Voice Assistant (A+S+W), live coding-agent top-of-head timers, single consistent named neural voices (EN/Hinglish/Hindi), and optional Android remote.",
   "main": "src/main/index.js",
   "scripts": {
     "start": "electron .",

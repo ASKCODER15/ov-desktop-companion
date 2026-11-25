@@ -18,12 +18,20 @@ contextBridge.exposeInMainWorld('petFishAPI', {
   pickSpotResult: (x, y) => ipcRenderer.send('petfish:picker-result', { x, y }),
   cancelSpotPicker: () => ipcRenderer.send('petfish:picker-cancel'),
 
-  // Movement & Pet character
+  //Movement & Pet character + Hero Creator
   setPetMode: (mode) => ipcRenderer.invoke('petfish:set-mode', mode),
   setPetCharacter: (character) => ipcRenderer.invoke('petfish:set-character', character),
   goToCorner: (corner, thenStay) => ipcRenderer.invoke('petfish:go-corner', { corner, thenStay }),
   petNemo: () => ipcRenderer.send('petfish:pet-nemo'),
   dancePet: () => ipcRenderer.send('petfish:pet-dance'),
+  toggleDanceMode: (enable) => ipcRenderer.invoke('petfish:dance-toggle', enable),
+  customHeroCreate: (payload) => ipcRenderer.invoke('petfish:hero-create', payload),
+  customHeroUpdate: (id, patch) => ipcRenderer.invoke('petfish:hero-update', { id, patch }),
+  customHeroRename: (id, name, nickname) => ipcRenderer.invoke('petfish:hero-rename', { id, name, nickname }),
+  customHeroDuplicate: (id) => ipcRenderer.invoke('petfish:hero-duplicate', id),
+  customHeroDelete: (id) => ipcRenderer.invoke('petfish:hero-delete', id),
+  customHeroExport: (id) => ipcRenderer.invoke('petfish:hero-export', id),
+  customHeroImport: (json) => ipcRenderer.invoke('petfish:hero-import', json),
 
   // State & Settings
   getInitialState: () => ipcRenderer.invoke('petfish:get-initial-state'),
@@ -37,16 +45,20 @@ contextBridge.exposeInMainWorld('petFishAPI', {
   resolveApproval: (id, decision) => ipcRenderer.invoke('petfish:approval-resolve', { id, decision }),
   focusApp: (processHint) => ipcRenderer.invoke('petfish:focus-app', processHint),
 
-  // Local LLM Brain (Ollama + LM Studio + Thinking Mode + Saved Chat)
+  // Local LLM Brain (Ollama + LM Studio + Thinking Mode + Saved Chat + Per-Message Delete)
   askLLM: (prompt, opts) => ipcRenderer.invoke('petfish:llm-ask', { prompt, opts: opts || {} }),
   setLLMModel: (modelId) => ipcRenderer.invoke('petfish:llm-model', modelId),
   setThinkMode: (enabled) => ipcRenderer.invoke('petfish:llm-think', Boolean(enabled)),
   clearLLMChat: () => ipcRenderer.invoke('petfish:llm-clear'),
+  deleteChatMsg: (idx) => ipcRenderer.invoke('petfish:llm-delete-msg', idx),
   explainClipboard: () => ipcRenderer.invoke('petfish:explain-clipboard'),
 
-  // Voice TTS, Theme BGM & Media Transport Controls
+  // Voice TTS, Local Windows STT, Agent Announce & Native Copy Controls
   speakText: (text) => ipcRenderer.send('petfish:voice-speak', text),
   stopSpeaking: () => ipcRenderer.send('petfish:voice-stop'),
+  listenVoice: () => ipcRenderer.invoke('petfish:voice-listen'),
+  announceAgent: (agentId) => ipcRenderer.invoke('petfish:announce-agent', agentId || ''),
+  copyText: (text) => ipcRenderer.invoke('petfish:copy-text', String(text || '')),
   playMotif: () => ipcRenderer.send('petfish:bgm-motif'),
   toggleBgmLoop: (enable) => ipcRenderer.invoke('petfish:bgm-loop', Boolean(enable)),
   mediaControl: (command) => ipcRenderer.invoke('petfish:media-control', command),

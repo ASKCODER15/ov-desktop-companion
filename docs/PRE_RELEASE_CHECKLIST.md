@@ -13,7 +13,7 @@ This checklist is a release gate. Complete it against the exact commit that will
 
 ## 2. Intellectual property & licensing — mandatory review
 
-The public release replaces earlier development placeholder themes with four original OV companions (**Vesper**, **Vector**, **Core**, and **Coral**), 20 original skins, and neutral music search links. Before publishing, independently verify:
+The V8 public release replaces earlier superhero/animal placeholders with four original OV industrial robots (**Kronos** — Interstellar 4-Slab Monolith, **Aegis** — Bipedal Field Mech, **Optix** — Deep Research Rover, and **Orbit** — Autonomous Synth Pod), 16 original hardware skins, local open-source Whisper (`faster-whisper`) voice control (`A+S+W`), and neutral music search links. Before publishing, independently verify:
 
 - [ ] Review all companion visuals, skin names, voice profiles, UI copy, posters (`docs/posters/`), icons, and mobile assets to confirm no unintended third-party trademarks, likenesses, or copyrighted material remain.
 - [ ] Confirm that any third-party fonts, icons, or tools referenced or bundled have licenses compatible with public distribution.

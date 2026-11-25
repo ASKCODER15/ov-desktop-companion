@@ -320,21 +320,33 @@ const ALLOWLISTED_APPS = {
       path.join(process.env.LOCALAPPDATA || '', 'WisprFlow', 'Wispr Flow.exe'),
     ],
   },
-  'bgm-coral': {
+  'bgm-nemo': {
     label: 'Coral Ocean Focus',
     urlInBrave: 'https://www.youtube.com/results?search_query=calm+underwater+ambient+study+music+deep+ocean+focus',
   },
-  'bgm-vesper': {
-    label: 'Vesper Lo-Fi Beats',
+  'bgm-spidey': {
+    label: 'Vesper Acrobat Lo-Fi',
     urlInBrave: 'https://www.youtube.com/results?search_query=chill+lofi+hip+hop+beats+coding+study+session',
   },
-  'bgm-vector': {
-    label: 'Vector Synthwave Mix',
+  'bgm-ironman': {
+    label: 'Vector Tech Synthwave',
     urlInBrave: 'https://www.youtube.com/results?search_query=electronic+synthwave+instrumental+coding+focus+mix',
   },
-  'bgm-core': {
-    label: 'Core Deep Ambient',
-    urlInBrave: 'https://www.youtube.com/results?search_query=minimal+futuristic+ambient+electronic+deep+work+music',
+  'bgm-batman': {
+    label: 'Umbra Dark Focus Ambient',
+    urlInBrave: 'https://www.youtube.com/results?search_query=dark+cinematic+ambient+deep+focus+study+music',
+  },
+  'bgm-capybara': {
+    label: 'Capybara Zen Nature Lo-Fi',
+    urlInBrave: 'https://www.youtube.com/results?search_query=relaxing+nature+lofi+acoustic+calm+study+music',
+  },
+  'bgm-cat': {
+    label: 'Cat Cozy Cafe Jazz',
+    urlInBrave: 'https://www.youtube.com/results?search_query=cozy+rainy+cafe+jazz+piano+focus+music',
+  },
+  'bgm-dog': {
+    label: 'Dog Upbeat Acoustic Focus',
+    urlInBrave: 'https://www.youtube.com/results?search_query=upbeat+acoustic+indie+instrumental+happy+work+music',
   },
   explorer: {
     label: 'Files',

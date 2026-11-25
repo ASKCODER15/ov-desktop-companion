@@ -3,34 +3,37 @@
   const hud = document.getElementById('hud');
 
   const SKIN_CATALOG = {
-    vesper: [
-      { id: 'crimson', label: 'Crimson Volt', color: '#e11d48' },
-      { id: 'obsidian', label: 'Obsidian Flux', color: '#1e293b' },
-      { id: 'eclipse', label: 'Eclipse Mono', color: '#475569' },
-      { id: 'gilded', label: 'Gilded Pulse', color: '#eab308' },
-      { id: 'frost', label: 'Frost Prism', color: '#ec4899' },
-      { id: 'emerald', label: 'Emerald Drift', color: '#10b981' },
+    kronos: [
+      { id: 'titanium', label: 'Brushed Titanium', color: '#94a3b8' },
+      { id: 'obsidian', label: 'Obsidian Slab', color: '#18181b' },
+      { id: 'signal', label: 'Field Orange', color: '#ff5500' },
+      { id: 'brass', label: 'Lunar Brass', color: '#ca8a04' },
     ],
-    vector: [
-      { id: 'valkyrie', label: 'Valkyrie Gold', color: '#d97706' },
-      { id: 'titanium', label: 'Titanium Aero', color: '#cbd5e1' },
-      { id: 'cobalt', label: 'Cobalt Heavy', color: '#2563eb' },
-      { id: 'orbital', label: 'Orbital Pearl', color: '#f8fafc' },
-      { id: 'stealth', label: 'Midnight Ion', color: '#1e293b' },
+    aegis: [
+      { id: 'titanium', label: 'Alloy Grey', color: '#94a3b8' },
+      { id: 'obsidian', label: 'Carbon Mech', color: '#18181b' },
+      { id: 'signal', label: 'Signal Orange', color: '#ff5500' },
+      { id: 'brass', label: 'Industrial Gold', color: '#ca8a04' },
     ],
-    core: [
-      { id: 'solar', label: 'Solar Amber', color: '#f59e0b' },
-      { id: 'aether', label: 'Aether Cyan', color: '#38bdf8' },
-      { id: 'matrix', label: 'Emerald Matrix', color: '#10b981' },
-      { id: 'nova', label: 'Crimson Nova', color: '#e11d48' },
-      { id: 'pearl', label: 'Pearl Glass', color: '#e2e8f0' },
+    optix: [
+      { id: 'archive', label: 'Archive Yellow', color: '#eab308' },
+      { id: 'lab', label: 'Lab Ceramic', color: '#e2e8f0' },
+      { id: 'olive', label: 'Field Recon', color: '#65a30d' },
+      { id: 'cobalt', label: 'Telemetry Blue', color: '#2563eb' },
     ],
-    coral: [
-      { id: 'tangerine', label: 'Tangerine', color: '#f97316' },
-      { id: 'sapphire', label: 'Sapphire Tide', color: '#2563eb' },
-      { id: 'koi', label: 'Pearl Koi', color: '#f59e0b' },
-      { id: 'blossom', label: 'Blossom', color: '#ec4899' },
+    orbit: [
+      { id: 'ceramic', label: 'Ceramic White', color: '#f2efe9' },
+      { id: 'carbon', label: 'Stealth Carbon', color: '#27272a' },
+      { id: 'phosphor', label: 'Phosphor Terminal', color: '#10b981' },
+      { id: 'crimson', label: 'Core Red', color: '#e11d48' },
     ],
+  };
+
+  const COMPANION_META = {
+    kronos: { slug: 'kronos', group: 'Robot', skins: 4, desc: 'Interstellar 4-slab articulated monolith robot built for heavy tasks, builds, and terminal execution.', move: '4-SLAB STRIDE' },
+    aegis: { slug: 'aegis', group: 'Robot', skins: 4, desc: 'Compact bipedal field-engineering mech with rotary dial telemetry and expressive OLED visor.', move: 'BIPEDAL SERVO' },
+    optix: { slug: 'optix', group: 'Robot', skins: 4, desc: 'Tracked binocular research rover built for deep codebase indexing and synthesis.', move: 'OPTICAL SCAN' },
+    orbit: { slug: 'orbit', group: 'Robot', skins: 4, desc: 'Zero-G magnetic synth pod designed for multi-agent orchestration and live timers.', move: 'MAGNETIC DRONE' },
   };
 
   const state = {
@@ -41,19 +44,24 @@
       showAlertBubbles: true,
       privacyMask: false,
       voiceEnabled: true,
+      selectedVoice: 'arjun',
       bgmEnabled: true,
+      danceModeEnabled: false,
       autoStart: false,
       thinkMode: false,
       ageGroup: '15-30',
-      glassTransparency: 42,
+      glassTransparency: 0,
       fishScale: 1.06,
       petMode: 'swim',
-      petCharacter: 'vesper',
-      petSkins: { vesper: 'crimson', vector: 'valkyrie', core: 'solar', coral: 'tangerine' },
-      petNames: { vesper: 'Vesper', vector: 'Vector', core: 'Core', coral: 'Coral' },
+      petCharacter: 'kronos',
+      unresolvedCharacter: null,
+      petSkins: { kronos: 'titanium', aegis: 'titanium', optix: 'archive', orbit: 'ceramic' },
+      petNames: { kronos: 'Kronos', aegis: 'Aegis', optix: 'Optix', orbit: 'Orbit' },
     },
     petMode: 'swim',
-    petCharacter: 'vesper',
+    petCharacter: 'kronos',
+    customHeroes: [],
+    activePersona: null,
     agents: [],
     notifications: [],
     approvals: [],
@@ -69,6 +77,7 @@
     claudeHooks: { installed: false },
     hookPort: 47821,
     activeTab: 'agents',
+    libFilter: 'all',
     notifFilter: 'all',
     activeDrawer: null,
     expandedIdleAgents: new Set(),
@@ -115,8 +124,16 @@
   }
 
   function getCharName(ch) {
-    const c = ch || state.petCharacter || 'vesper';
-    return state.settings.petNames?.[c] || { vesper: 'Vesper', vector: 'Vector', core: 'Core', coral: 'Coral' }[c] || 'OV';
+    const c = ch || state.petCharacter || 'kronos';
+    const custom = (state.customHeroes || []).find((h) => h.id === c);
+    if (custom) return state.settings.petNames?.[c] || custom.nickname || custom.name || 'Custom Bot';
+    return state.settings.petNames?.[c] || { kronos: 'Kronos', aegis: 'Aegis', optix: 'Optix', orbit: 'Orbit' }[c] || 'Kronos';
+  }
+
+  function formatClockTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   }
 
   function getAgentPalette(agent) {
@@ -130,14 +147,14 @@
   }
 
   function renderAgentMascotSvg(pal, charKey) {
-    if (charKey === 'coral') {
-      return `<svg class="agent-mascot-svg" viewBox="0 0 28 28" fill="none"><path d="M8 14C5 9.5 2.5 10.5 3 14C2.5 17.5 5 18.5 8 14Z" fill="${pal.dark}"/><ellipse cx="16.5" cy="14" rx="8" ry="5.5" fill="${pal.main}"/><circle cx="14.5" cy="12.5" r="2" fill="#fff" opacity="0.8"/><circle cx="20.6" cy="12.8" r="1.3" fill="#0b1324"/></svg>`;
+    if (charKey === 'nemo') {
+      return `<svg class="agent-mascot-svg" viewBox="0 0 28 28" fill="none"><path d="M8 14C5 9.5 2.5 10.5 3 14C2.5 17.5 5 18.5 8 14Z" fill="#2dd4bf"/><ellipse cx="16.5" cy="14" rx="8" ry="5.5" fill="${pal.main}"/><circle cx="14.2" cy="12.5" r="2" fill="#fff" opacity="0.85"/><circle cx="20.6" cy="12.8" r="1.3" fill="#0b1324"/></svg>`;
     }
-    if (charKey === 'core') {
-      return `<svg class="agent-mascot-svg" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="10" stroke="${pal.main}" stroke-width="1.3" stroke-dasharray="5 3"/><circle cx="14" cy="14" r="5.5" fill="${pal.main}" fill-opacity="0.35" stroke="#fff" stroke-width="1.1"/><circle cx="14" cy="14" r="2.2" fill="#fff"/></svg>`;
+    if (charKey === 'batman') {
+      return `<svg class="agent-mascot-svg" viewBox="0 0 28 28" fill="none"><polygon points="5,12 9,8 19,8 23,12 20,20 14,23 8,20" fill="#1e293b" stroke="${pal.main}" stroke-width="1.2"/><rect x="8.5" y="12" width="11" height="4.5" rx="2" fill="#090d16"/><rect x="10" y="13.4" width="3.2" height="1.5" fill="#7dd3fc"/><rect x="14.8" y="13.4" width="3.2" height="1.5" fill="#7dd3fc"/></svg>`;
     }
-    if (charKey === 'vector') {
-      return `<svg class="agent-mascot-svg" viewBox="0 0 28 28" fill="none"><rect x="5.5" y="5" width="17" height="18" rx="7" fill="${pal.main}"/><rect x="8" y="9" width="12" height="8" rx="4" fill="#0c1424"/><rect x="10" y="12" width="3" height="2" rx="1" fill="#38bdf8"/><rect x="15" y="12" width="3" height="2" rx="1" fill="#38bdf8"/></svg>`;
+    if (charKey === 'ironman') {
+      return `<svg class="agent-mascot-svg" viewBox="0 0 28 28" fill="none"><polygon points="9,5 19,5 23,13 20,23 8,23 5,13" fill="${pal.main}"/><rect x="8" y="10" width="12" height="6" rx="2.5" fill="#0b1120"/><rect x="9.6" y="12" width="3.2" height="2" rx="1" fill="#38bdf8"/><rect x="15.2" y="12" width="3.2" height="2" rx="1" fill="#38bdf8"/></svg>`;
     }
     return `<svg class="agent-mascot-svg" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="9.5" fill="${pal.main}" stroke="${pal.dark}" stroke-width="1.2"/><rect x="7.5" y="10" width="13" height="7" rx="3.5" fill="#0b1120"/><circle cx="11.5" cy="13.5" r="1.7" fill="#fff"/><circle cx="16.5" cy="13.5" r="1.7" fill="#fff"/></svg>`;
   }
@@ -187,6 +204,8 @@
     }
     if (data.petMode) state.petMode = data.petMode;
     if (data.petCharacter) state.petCharacter = data.petCharacter;
+    if (Array.isArray(data.customHeroes)) state.customHeroes = data.customHeroes;
+    if (data.activePersona) state.activePersona = data.activePersona;
     if (Array.isArray(data.agents)) state.agents = data.agents;
     if (Array.isArray(data.notifications)) state.notifications = data.notifications;
     if (Array.isArray(data.approvals)) state.approvals = data.approvals;
@@ -293,14 +312,25 @@
   }
 
   function render() {
-    const ch = ['vesper', 'vector', 'core', 'coral'].includes(state.petCharacter) ? state.petCharacter : 'vesper';
+    const rawChar = state.petCharacter || 'kronos';
+    const activeCustom = (state.customHeroes || []).find((h) => h.id === rawChar) || null;
+    const ch = activeCustom ? 'custom' : (['kronos', 'aegis', 'optix', 'orbit'].includes(rawChar) ? rawChar : 'kronos');
     document.body.dataset.theme = ch;
+    if (activeCustom) {
+      document.documentElement.style.setProperty('--accent', safeColor(activeCustom.primaryColor, '#6366f1'));
+      document.documentElement.style.setProperty('--accent-2', safeColor(activeCustom.secondaryColor, '#0ea5e9'));
+      document.documentElement.style.setProperty('--accent-soft', 'rgba(99, 102, 241, 0.16)');
+      document.documentElement.style.setProperty('--accent-border', 'rgba(99, 102, 241, 0.42)');
+      document.documentElement.style.setProperty('--accent-text', '#e0e7ff');
+    } else {
+      ['--accent', '--accent-2', '--accent-soft', '--accent-border', '--accent-text'].forEach((k) => document.documentElement.style.removeProperty(k));
+    }
     applyGlassTransparency(state.settings.glassTransparency);
 
     const activeAgents = state.agents.filter((a) => a.status === 'running' || a.status === 'waiting_approval');
     const unread = state.notifications.filter((n) => n.unread);
     const ramMB = state.pulse?.vitals?.appRamMB || 0;
-    const activeName = getCharName(ch);
+    const activeName = getCharName(rawChar);
 
     document.getElementById('header-pill').textContent = ramMB > 0 ? `${ramMB} MB` : 'Lean';
     document.getElementById('hud-subtitle').textContent =
@@ -310,11 +340,11 @@
 
     // Sync custom character names across Mini strip & Studio cards
     document.querySelectorAll('.char-chip').forEach((btn) => {
-      btn.classList.toggle('active', btn.dataset.char === ch);
+      btn.classList.toggle('active', btn.dataset.char === rawChar);
       btn.textContent = getCharName(btn.dataset.char);
     });
     document.querySelectorAll('.pet-card').forEach((card) => {
-      card.classList.toggle('active', card.dataset.char === ch);
+      card.classList.toggle('active', card.dataset.char === rawChar);
     });
     document.querySelectorAll('[data-char-label]').forEach((el) => {
       el.textContent = getCharName(el.dataset.charLabel);
@@ -322,6 +352,33 @@
     document.getElementById('studio-active-label').textContent = activeName;
     const renameInp = document.getElementById('rename-input');
     if (document.activeElement !== renameInp) renameInp.value = activeName;
+
+    // Update Mini Companion Bar & Active Companion Showcase
+    const meta = COMPANION_META[ch] || { slug: 'vesper', group: 'Custom', skins: 1, desc: activeCustom?.personality || 'Custom companion created in Companion Studio.', move: activeCustom?.movement || 'Custom' };
+    const artSrc = activeCustom?.artworkDataUrl || `../../docs/posters/pet-${meta.slug}.png`;
+    const miniImg = document.getElementById('mini-companion-img');
+    const miniName = document.getElementById('mini-companion-name');
+    const miniMeta = document.getElementById('mini-companion-meta');
+    if (miniImg) miniImg.src = artSrc;
+    if (miniName) miniName.textContent = activeName;
+    if (miniMeta) miniMeta.textContent = `${meta.group} Companion · ${meta.move}`;
+
+    const showImg = document.getElementById('studio-showcase-img');
+    const showBadge = document.getElementById('studio-active-badge');
+    const showDesc = document.getElementById('studio-active-desc');
+    const showMove = document.getElementById('studio-active-move');
+    if (showImg) showImg.src = artSrc;
+    if (showBadge) showBadge.textContent = activeCustom ? 'Custom' : `${meta.group} · ${meta.skins} skins`;
+    if (showDesc) showDesc.textContent = activeCustom?.personality || meta.desc;
+    if (showMove) showMove.textContent = `Movement: ${meta.move}`;
+
+    // Filter Companion Library Grid
+    document.querySelectorAll('[data-lib-filter]').forEach((b) => b.classList.toggle('active', b.dataset.libFilter === state.libFilter));
+    document.querySelectorAll('#lib-grid .pet-card').forEach((card) => {
+      const grp = card.dataset.group || 'hero';
+      const show = state.libFilter === 'all' || state.libFilter === grp;
+      card.classList.toggle('hidden', !show);
+    });
 
     renderSystemControls();
 
@@ -405,38 +462,44 @@
       document.getElementById('discovery-chips').innerHTML = discs.slice(0, 4).map((d) => `<span class="micro-chip new-app">${d.isAgent ? 'AI' : 'APP'}: ${escapeHtml(d.name)}</span>`).join('');
     } else discSec.classList.add('hidden');
 
-    // Active Agents + Auto-Collapsed Stopped Agents
     const runningAgents = state.agents.filter((a) => a.status === 'running' || a.status === 'waiting_approval');
     const stoppedAgents = state.agents.filter((a) => a.status !== 'running' && a.status !== 'waiting_approval');
-    document.getElementById('agents-meta').textContent = `${runningAgents.length} active · ${stoppedAgents.length} stopped`;
+    document.getElementById('agents-meta').textContent = `${runningAgents.length} ACTIVE · ${stoppedAgents.length} IDLE`;
 
     document.getElementById('agents-list').innerHTML = runningAgents.length === 0
-      ? `<div class="empty-state">All agents are resting. Launch any coding agent to see live telemetry here.</div>`
+      ? `<div class="empty-state">No active agents detected. Start Antigravity or Claude Code — ${escapeHtml(activeName)} will announce start time &amp; show a live head timer.</div>`
       : runningAgents.map((ag) => {
           const pal = getAgentPalette(ag);
-          const elapsedStart = ag.turnStartedAt || ag.startedAt;
+          const elapsedStart = ag.turnStartedAt || ag.startedAt || Date.now();
+          const startClock = formatClockTime(elapsedStart);
           const pct = ag.stepsProgress ? Math.round((ag.stepsProgress.done / Math.max(1, ag.stepsProgress.total)) * 100) : 0;
+          const copySummary = `${ag.name} (${ag.status.toUpperCase()}) | STARTED ${startClock} | WHAT: ${ag.what || ag.task || 'Active'} | HOW: ${ag.how || ''}`;
           return `
           <div class="card">
             <div class="card-top">
               <div class="card-title-wrap">
-                <div class="agent-stage active">${renderAgentMascotSvg(pal, ch)}<span class="synth-bars" style="color:${pal.main}"><span></span><span></span><span></span></span></div>
+                <span class="agent-dot" style="background:${pal.main}"></span>
                 <span class="card-name">${escapeHtml(ag.name)}</span>
               </div>
               <div class="card-right-meta">
-                ${elapsedStart ? `<span class="elapsed-pill" data-elapsed-start="${elapsedStart}">${formatElapsed(elapsedStart)}</span>` : ''}
-                <span class="status-tag running"><span class="status-dot"></span>Live</span>
+                ${startClock ? `<span class="section-meta">START ${escapeHtml(startClock)}</span>` : ''}
+                <span class="elapsed-pill" data-elapsed-start="${elapsedStart}">${formatElapsed(elapsedStart)}</span>
+                <span class="status-tag running"><span class="status-dot"></span>ON</span>
               </div>
             </div>
             <div class="brief-box">
-              <div class="brief-row"><span class="brief-key" style="color:${pal.main}">WHAT</span><span class="brief-val">${escapeHtml((ag.what || ag.task || 'Active').slice(0, 128))}</span></div>
-              ${ag.how ? `<div class="brief-row"><span class="brief-key how">HOW</span><span class="brief-val muted">${escapeHtml(ag.how.slice(0, 108))}</span></div>` : ''}
-              ${ag.why ? `<div class="brief-row"><span class="brief-key why">WHY</span><span class="brief-val muted">${escapeHtml(ag.why.slice(0, 92))}</span></div>` : ''}
-              ${ag.stepsProgress ? `<div class="step-bar-wrap"><div class="step-bar"><div class="step-bar-fill" style="width:${pct}%;background:${pal.main}"></div></div><span class="step-bar-txt">${ag.stepsProgress.done}/${ag.stepsProgress.total}</span></div>` : ''}
+              <div class="brief-row"><span class="brief-key">WHAT</span><span class="brief-val">${escapeHtml((ag.what || ag.task || 'Active').slice(0, 128))}</span></div>
+              ${ag.how ? `<div class="brief-row"><span class="brief-key">HOW</span><span class="brief-val muted">${escapeHtml(ag.how.slice(0, 108))}</span></div>` : ''}
+              ${ag.why ? `<div class="brief-row"><span class="brief-key">WHY</span><span class="brief-val muted">${escapeHtml(ag.why.slice(0, 92))}</span></div>` : ''}
+              ${ag.stepsProgress ? `<div class="step-bar-wrap"><div class="step-bar"><div class="step-bar-fill" style="width:${pct}%"></div></div><span class="step-bar-txt">${ag.stepsProgress.done}/${ag.stepsProgress.total}</span></div>` : ''}
             </div>
             <div class="card-foot">
-              <span style="color:${pal.main}">✦ ${escapeHtml(pal.vibe)}</span>
-              <button class="mini-btn" data-focus="${escapeHtml(ag.processHint || ag.name)}">Focus</button>
+              <span>${escapeHtml(pal.vibe.toUpperCase())}</span>
+              <div class="card-actions">
+                <button class="mini-btn" data-copy-raw="${escapeHtml(copySummary)}" type="button">COPY</button>
+                <button class="mini-btn primary" data-announce-agent="${escapeHtml(ag.id)}" type="button">REPORT</button>
+                <button class="mini-btn" data-focus="${escapeHtml(ag.processHint || ag.name)}" type="button">FOCUS</button>
+              </div>
             </div>
           </div>`;
         }).join('');
@@ -446,73 +509,113 @@
       idleSec.classList.remove('hidden');
       document.getElementById('idle-agents-meta').textContent = `${stoppedAgents.length}`;
       document.getElementById('idle-agents-list').innerHTML = stoppedAgents.map((ag) => {
-        const pal = getAgentPalette(ag);
         const exp = state.expandedIdleAgents.has(ag.id);
-        return `<div><div class="idle-agent-row" data-toggle-idle="${escapeHtml(ag.id)}"><div class="idle-agent-left"><div class="agent-stage">${renderAgentMascotSvg(pal, ch)}<span class="agent-stop-bubble">Stop.</span></div><span class="idle-agent-name">${escapeHtml(ag.name)}</span><span class="idle-agent-summary">${escapeHtml((ag.what || ag.task || 'Done').slice(0, 44))}</span></div><span class="section-meta">${exp ? '▴' : '▾'}</span></div>${exp ? `<div class="idle-agent-expand"><div>${escapeHtml(ag.what || ag.task || 'Completed')}</div><div style="margin-top:5px;display:flex;justify-content:space-between"><span class="section-meta">${formatRelativeTime(ag.updatedAt)}</span><button class="mini-btn" data-focus="${escapeHtml(ag.processHint || ag.name)}">Focus</button></div></div>` : ''}</div>`;
+        return `<div><div class="idle-agent-row" data-toggle-idle="${escapeHtml(ag.id)}"><div class="idle-agent-left"><span class="agent-dot" style="background:var(--text-3)"></span><span class="idle-agent-name">${escapeHtml(ag.name)}</span><span class="idle-agent-summary">${escapeHtml((ag.what || ag.task || 'Idle').slice(0, 48))}</span></div><span class="section-meta">${exp ? 'Hide' : 'Details'}</span></div>${exp ? `<div class="idle-agent-expand"><div>${escapeHtml(ag.what || ag.task || 'Completed')}</div><div style="margin-top:6px;display:flex;justify-content:space-between;align-items:center"><span class="section-meta">${formatRelativeTime(ag.updatedAt)}</span><button class="mini-btn" data-focus="${escapeHtml(ag.processHint || ag.name)}">Focus</button></div></div>` : ''}</div>`;
       }).join('');
     } else idleSec.classList.add('hidden');
 
     // Open Windows
     const wins = state.pulse?.windows || [];
     document.getElementById('windows-list').innerHTML = wins.length === 0
-      ? `<div class="empty-state">No browser or app tabs captured yet.</div>`
-      : wins.slice(0, 5).map((w) => `<div class="window-row" data-focus="${escapeHtml(w.processName)}"><div class="window-left"><span class="window-app-tag">${escapeHtml(w.app)}</span><span class="window-title">${escapeHtml(w.title)}</span></div><span class="section-meta">↗</span></div>`).join('');
+      ? `<div class="empty-state">No active application windows captured.</div>`
+      : wins.slice(0, 5).map((w) => `<div class="window-row" data-focus="${escapeHtml(w.processName)}"><div class="window-left"><span class="window-app-tag">${escapeHtml(w.app)}</span><span class="window-title">${escapeHtml(w.title)}</span></div><span class="section-meta">Focus</span></div>`).join('');
 
-    // Chat Tab (Saved Chat + Thinking Model + Voice Toggle)
+    // Chat Tab (Saved Chat + Thinking Model + Single Named Voice Selector + Per-Message Delete)
     const select = document.getElementById('model-select');
     const models = state.llm?.models || [];
     select.innerHTML = models.length > 0
       ? models.map((m) => `<option value="${escapeHtml(m.id)}" ${m.id === (state.llm.selectedModel || models[0].id) ? 'selected' : ''}>${escapeHtml(m.label)}</option>`).join('')
-      : `<option value="">Start Ollama (:11434)</option>`;
+      : `<option value="">Built-In Whisper &amp; Task Brain (Start Ollama for LLM)</option>`;
+
+    const setupGuide = document.getElementById('llm-setup-guide');
+    if (setupGuide) setupGuide.classList.toggle('hidden', models.length > 0);
+
+    const selVoice = state.settings.selectedVoice || 'arjun';
+    const voiceSel = document.getElementById('voice-select');
+    if (voiceSel && voiceSel.value !== selVoice) voiceSel.value = selVoice;
+    const studioVoiceSel = document.getElementById('studio-voice-select');
+    if (studioVoiceSel && studioVoiceSel.value !== selVoice) studioVoiceSel.value = selVoice;
 
     const thinkBtn = document.getElementById('btn-think-mode');
     thinkBtn.classList.toggle('active', Boolean(state.settings.thinkMode));
-    thinkBtn.textContent = state.settings.thinkMode ? '🧠 Think' : '⚡ Fast';
-    document.getElementById('btn-voice-toggle').classList.toggle('active', Boolean(state.settings.voiceEnabled));
+    thinkBtn.textContent = state.settings.thinkMode ? 'Think' : 'Fast';
+    const vToggle = document.getElementById('btn-voice-toggle');
+    vToggle.classList.toggle('active', Boolean(state.settings.voiceEnabled));
+    vToggle.textContent = state.settings.voiceEnabled ? 'Voice: On' : 'Voice: Off';
 
     const hist = state.llm?.history || [];
-    document.getElementById('chat-feed').innerHTML = hist.length === 0 && !state.llm?.isThinking
-      ? `<div class="empty-state">Your chat is saved locally.<br/>Press <strong>A+S+D</strong> together anytime to wake ${escapeHtml(activeName)}, toggle <strong>🧠 Think</strong> for step-by-step reasoning, or use <strong>Wispr Flow</strong> voice dictation!</div>`
-      : hist.map((m, idx) => `
+    const recentStart = Math.max(0, hist.length - 6);
+    const visibleHist = hist.slice(recentStart);
+    document.getElementById('chat-feed').innerHTML = visibleHist.length === 0 && !state.llm?.isThinking
+      ? `<div class="empty-state">Press <strong>A+S+W</strong> or click <strong>WHISPER MIC</strong> to speak any laptop command, or type below in English, Hinglish, or Hindi.</div>`
+      : visibleHist.map((m, relIdx) => {
+          const idx = recentStart + relIdx;
+          return `
           <div class="chat-msg ${escapeHtml(m.role)}">
-            ${m.thinking ? `<details class="think-details"><summary>Thought Process</summary><div style="margin-top:4px;white-space:pre-wrap">${escapeHtml(m.thinking)}</div></details>` : ''}
+            ${m.thinking ? `<details class="think-details"><summary>REASONING</summary><div style="margin-top:4px;white-space:pre-wrap">${escapeHtml(m.thinking)}</div></details>` : ''}
             <div>${escapeHtml(m.content)}</div>
-            ${m.role === 'assistant' ? `<div class="chat-foot"><span>${m.action ? `<span class="chat-action-pill">${escapeHtml(m.action.type)}</span>` : ''}</span><button class="icon-btn tiny" data-speak-idx="${idx}" type="button" title="Speak aloud">🔊</button></div>` : ''}
-          </div>`).join('') + (state.llm?.isThinking ? `<div class="chat-msg assistant">▍ ${escapeHtml(state.llm.activeLabel)} ${state.settings.thinkMode ? 'deep thinking...' : 'thinking...'}</div>` : '');
+            <div class="chat-foot">
+              ${m.action ? `<span class="chat-action-pill">${escapeHtml(m.action.type)}</span>` : '<span></span>'}
+              <div style="display:flex;gap:8px;align-items:center">
+                <button class="link-btn" data-copy-idx="${idx}" type="button" title="Copy message text">COPY</button>
+                ${m.role === 'assistant' ? `<button class="link-btn" data-speak-idx="${idx}" type="button" title="Speak with selected named voice">SPEAK</button>` : ''}
+                <button class="link-btn muted" data-del-chat-idx="${idx}" type="button" title="Delete this message">DEL</button>
+              </div>
+            </div>
+          </div>`;
+        }).join('') + (state.llm?.isThinking ? `<div class="chat-msg assistant">${escapeHtml(state.llm.activeLabel)} IS PROCESSING...</div>` : '');
 
-    // Music Player Card
+    // Music Player Card & Mini Popover Media Bar + Dance Mode Toggle
     const mus = state.music || {};
-    document.getElementById('mp-track').textContent = mus.title || (mus.bgmLoopActive ? `${activeName} Built-In BGM` : 'No track playing');
-    document.getElementById('mp-artist').textContent = mus.artist ? `${mus.artist} · ${mus.source}` : (mus.bgmLoopActive ? 'Offline polyphonic loop active' : 'Play Spotify, YouTube, or Character BGM');
-    document.getElementById('mp-source-meta').textContent = mus.isPlaying ? `${mus.source || 'Playing'} ♪` : (mus.bgmLoopActive ? 'Theme BGM ♪' : 'Idle');
+    const danceOn = Boolean(state.settings.danceModeEnabled);
+    const trackText = mus.title || (mus.bgmLoopActive ? `${activeName} Theme Audio` : 'Not Playing');
+    document.getElementById('mp-track').textContent = trackText;
+    const miniTrackEl = document.getElementById('mini-mp-track');
+    if (miniTrackEl) {
+      miniTrackEl.textContent = mus.isPlaying
+        ? `PLAYING // ${trackText.slice(0, 22)}`
+        : `MEDIA // ${trackText.slice(0, 20)}`;
+    }
+    document.getElementById('mp-artist').textContent = mus.artist ? `${mus.artist} · ${mus.source}` : (mus.bgmLoopActive ? 'Local ambient loop active' : 'Play audio from Spotify, YouTube, or Companion Theme');
+    document.getElementById('mp-source-meta').textContent = mus.isPlaying ? (mus.source || 'Playing') : (mus.bgmLoopActive ? 'Theme Audio' : 'Idle');
     const bgmBtn = document.getElementById('btn-bgm-loop');
     bgmBtn.classList.toggle('active', Boolean(mus.bgmLoopActive));
-    bgmBtn.textContent = mus.bgmLoopActive ? '♫ Theme BGM: On' : '♫ Theme BGM: Off';
+    bgmBtn.textContent = mus.bgmLoopActive ? 'Theme Audio: On' : 'Theme Audio: Off';
+
+    for (const dBtnId of ['btn-mini-dance', 'btn-ctrl-dance', 'btn-pet-dance']) {
+      const dBtn = document.getElementById(dBtnId);
+      if (dBtn) {
+        dBtn.classList.toggle('active', danceOn);
+        dBtn.textContent = danceOn ? 'DANCE: ON' : 'DANCE: OFF';
+      }
+    }
+    const danceSwitch = document.getElementById('toggle-dance-mode');
+    if (danceSwitch) danceSwitch.checked = danceOn;
 
     // Clipboard Vault
     const cbs = state.clipboard || [];
     document.getElementById('clipboard-list').innerHTML = cbs.length === 0
-      ? `<div class="empty-state">Copy any text or code — appears here for 1-click Copy/Paste or AI Lens explain.</div>`
+      ? `<div class="empty-state">Copied text and code will appear here in memory.</div>`
       : cbs.slice(0, 6).map((c) => `
         <div class="cb-item">
-          <span class="cb-preview" data-cb-copy="${escapeHtml(c.id)}" title="Click to copy back">${c.pinned ? '📌 ' : ''}${escapeHtml(c.preview)}</span>
+          <span class="cb-preview" data-cb-copy="${escapeHtml(c.id)}" title="Click to copy">${escapeHtml(c.preview)}</span>
           <div class="task-actions">
-            <button class="icon-btn tiny" data-cb-pin="${escapeHtml(c.id)}" type="button" title="Pin">${c.pinned ? '★' : '☆'}</button>
+            <button class="icon-btn tiny" data-cb-pin="${escapeHtml(c.id)}" type="button" title="Pin">${c.pinned ? '●' : '○'}</button>
             <button class="icon-btn tiny" data-cb-del="${escapeHtml(c.id)}" type="button" title="Remove">×</button>
           </div>
         </div>`).join('');
 
     // Focus XP + Reminders + Editable Tasks
     const fs = state.autoPilot?.focusStats || { xp: 0, level: 1, streakDays: 1 };
-    document.getElementById('focus-xp-meta').textContent = `Lv.${fs.level || 1} · ${fs.xp || 0} XP · 🔥 ${fs.streakDays || 1}d`;
+    document.getElementById('focus-xp-meta').textContent = `Level ${fs.level || 1} · ${fs.xp || 0} XP · ${fs.streakDays || 1}d streak`;
 
     const rems = state.autoPilot?.reminders || [];
     document.getElementById('reminders-count').textContent = `${rems.length} active`;
     document.getElementById('reminders-list').innerHTML = rems.length === 0
-      ? `<span class="section-meta" style="padding:2px">Say "remind me in 10m to..." or add above.</span>`
+      ? `<span class="section-meta" style="padding:2px">No active reminders.</span>`
       : rems.map((r) => {
           const leftMin = Math.max(1, Math.ceil((r.dueAt - Date.now()) / 60000));
-          return `<div class="task-item"><span class="task-text">⏰ ${escapeHtml(r.text)}</span><div class="task-actions"><span class="elapsed-pill">${leftMin}m</span><button class="icon-btn tiny" data-del-rem="${escapeHtml(r.id)}" type="button">×</button></div></div>`;
+          return `<div class="task-item"><span class="task-text">${escapeHtml(r.text)}</span><div class="task-actions"><span class="elapsed-pill">${leftMin}m</span><button class="icon-btn tiny" data-del-rem="${escapeHtml(r.id)}" type="button">×</button></div></div>`;
         }).join('');
 
     const tasks = state.autoPilot?.tasks || [];
@@ -520,8 +623,8 @@
     document.getElementById('tasks-list').innerHTML = tasks.length === 0
       ? `<div class="empty-state">No tasks yet — synced two-way with Mobile APK.</div>`
       : tasks.map((t) => state.editingTaskId === t.id
-          ? `<div class="task-item"><input class="task-edit-input" data-edit-input="${escapeHtml(t.id)}" value="${escapeHtml(t.text)}" /><div class="task-actions"><button class="mini-btn primary" data-save-task="${escapeHtml(t.id)}" type="button">Save</button><button class="icon-btn tiny" data-cancel-edit="1" type="button">×</button></div></div>`
-          : `<div class="task-item ${t.done ? 'done' : ''}"><div class="task-item-left" data-toggle-task="${escapeHtml(t.id)}"><span>${t.done ? '☑' : '☐'}</span><span class="task-text">${escapeHtml(t.text)}</span></div><div class="task-actions"><button class="icon-btn tiny" data-edit-task="${escapeHtml(t.id)}" type="button">✎</button><button class="icon-btn tiny" data-del-task="${escapeHtml(t.id)}" type="button">×</button></div></div>`).join('');
+          ? `<div class="task-item"><input class="task-edit-input" data-edit-input="${escapeHtml(t.id)}" value="${escapeHtml(t.text)}" /><div class="task-actions"><button class="mini-btn primary" data-save-task="${escapeHtml(t.id)}" type="button">SAVE</button><button class="icon-btn tiny" data-cancel-edit="1" type="button">X</button></div></div>`
+          : `<div class="task-item ${t.done ? 'done' : ''}"><div class="task-item-left" data-toggle-task="${escapeHtml(t.id)}"><span>${t.done ? '[X]' : '[ ]'}</span><span class="task-text">${escapeHtml(t.text)}</span></div><div class="task-actions"><button class="icon-btn tiny" data-edit-task="${escapeHtml(t.id)}" type="button">ED</button><button class="icon-btn tiny" data-del-task="${escapeHtml(t.id)}" type="button">X</button></div></div>`).join('');
 
     // Auto-pilot & Ports
     document.getElementById('toggle-ap-readonly').checked = Boolean(state.autoPilot?.rules?.autoAllowReadOnly);
@@ -544,16 +647,75 @@
           <div class="card notif-card clickable ${n.unread ? 'unread' : ''} ${escapeHtml(n.category)}" data-open-notif-card="${escapeHtml(n.id)}">
             <div class="card-top"><div class="card-title-wrap"><span class="agent-dot" style="background:${safeColor(n.accent, '#94a3b8')}"></span><span class="card-name">${escapeHtml(n.appName)} · ${escapeHtml(n.title)}</span></div><span class="section-meta">${formatRelativeTime(n.timestamp)}</span></div>
             ${n.body ? `<div class="card-task">${escapeHtml(n.body)}</div>` : ''}
-            <div class="card-foot"><span>Click to open app ↗</span><div class="card-actions">${n.unread ? `<button class="mini-btn" data-read-notif="${escapeHtml(n.id)}">✓</button>` : ''}<button class="mini-btn" data-dismiss-notif="${escapeHtml(n.id)}">×</button></div></div>
+            <div class="card-foot"><span>Open application</span><div class="card-actions">${n.unread ? `<button class="mini-btn" data-read-notif="${escapeHtml(n.id)}">✓</button>` : ''}<button class="mini-btn" data-dismiss-notif="${escapeHtml(n.id)}">×</button></div></div>
           </div>`).join('');
 
-    // Studio Tab: Skin Swatches, Age Group, Sliders, Toggles, Mobile Remote
-    const curSkin = state.settings.petSkins?.[ch] || SKIN_CATALOG[ch][0].id;
-    document.getElementById('skin-swatches').innerHTML = (SKIN_CATALOG[ch] || [])
-      .map((sk) => `<button class="skin-swatch ${sk.id === curSkin ? 'active' : ''}" data-skin="${escapeHtml(sk.id)}" type="button"><span class="swatch-dot" style="background:${safeColor(sk.color, '#60a5fa')}"></span>${escapeHtml(sk.label)}</button>`)
-      .join('');
+    // Studio Tab: Unresolved migration banner, Skin Swatches, Age Persona Synergy, Custom Heroes List
+    const unresBanner = document.getElementById('unresolved-char-banner');
+    if (unresBanner) {
+      const unres = state.settings.unresolvedCharacter;
+      unresBanner.classList.toggle('hidden', !unres);
+      if (unres) {
+        unresBanner.innerHTML = `<strong>Preserved previous character:</strong> "${escapeHtml(unres)}" could not be auto-mapped. Select any Hero below or recreate it in Hero Creator.`;
+      }
+    }
 
-    document.querySelectorAll('.seg-btn[data-age]').forEach((b) => b.classList.toggle('active', b.dataset.age === (state.settings.ageGroup || '15-30')));
+    const skinList = SKIN_CATALOG[ch] || [];
+    const curSkin = state.settings.petSkins?.[ch] || skinList[0]?.id || '';
+    document.getElementById('skin-swatches').innerHTML = skinList.length === 0
+      ? `<span class="section-meta">Custom Hero active — customize colors in Hero Creator below.</span>`
+      : skinList
+        .map((sk) => `<button class="skin-swatch ${sk.id === curSkin ? 'active' : ''}" data-skin="${escapeHtml(sk.id)}" type="button"><span class="swatch-dot" style="background:${safeColor(sk.color, '#60a5fa')}"></span>${escapeHtml(sk.label)}</button>`)
+        .join('');
+
+    const curAge = state.settings.ageGroup === '0-15' ? '1-15' : (state.settings.ageGroup || '15-30');
+    document.querySelectorAll('.seg-btn[data-age]').forEach((b) => b.classList.toggle('active', b.dataset.age === curAge));
+
+    const synergyEl = document.getElementById('persona-synergy-banner');
+    if (synergyEl) {
+      const p = state.activePersona || {};
+      const ageLabel = curAge === '1-15' ? '1–14 YOUNG EXPLORERS' : curAge === '30-60' ? '30–60 ARCHITECTS & MENTORS' : '15–29 ENGINEERS & BUILDERS';
+      const paceSpec = curAge === '1-15'
+        ? 'FAST STRIDE (1.25X) · CURIOUS WIDE OPTICS · STEP-BY-STEP MENTORING'
+        : curAge === '30-60'
+          ? 'STEADY STRIDE (0.78X) · CALM STEADY OPTICS · EXECUTIVE BRIEFINGS'
+          : 'PRECISION STRIDE (1.0X) · FOCUSED SCAN OPTICS · DEEP CODING CO-PILOT';
+      synergyEl.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div><strong>${escapeHtml(activeName.toUpperCase())} × ${escapeHtml(ageLabel)}</strong></div>
+          <div style="font-size:10px;color:var(--sys-green)">PACE &amp; OPTICS // ${escapeHtml(paceSpec)}</div>
+          <div>${escapeHtml(p.tagline || 'Adaptive robot telemetry & conversational persona active.')}</div>
+          <div style="font-size:10.5px;color:var(--text-3)">${escapeHtml(p.guidance || '')}</div>
+        </div>
+      `;
+    }
+
+    // Custom Heroes Management List
+    const customs = state.customHeroes || [];
+    const cCount = document.getElementById('custom-heroes-count');
+    if (cCount) cCount.textContent = `${customs.length} custom`;
+    const cList = document.getElementById('custom-heroes-list');
+    if (cList) {
+      cList.innerHTML = customs.length === 0
+        ? `<div class="empty-state">No custom companions yet — design a Hero, Animal, or Custom companion above.</div>`
+        : customs.map((h) => `
+          <div class="custom-hero-item ${h.id === rawChar ? 'active' : ''}">
+            <div class="custom-hero-info">
+              <span class="custom-hero-dot" style="background:${safeColor(h.primaryColor, '#6366f1')}"></span>
+              <div style="min-width:0">
+                <div class="custom-hero-name">${escapeHtml(h.nickname || h.name)}</div>
+                <div class="custom-hero-meta">${escapeHtml(h.movement)} · ${escapeHtml(h.voiceProfile)} voice</div>
+              </div>
+            </div>
+            <div class="custom-hero-actions">
+              <button class="mini-btn ${h.id === rawChar ? 'primary' : ''}" data-ch-use="${escapeHtml(h.id)}" type="button">${h.id === rawChar ? 'Active' : 'Use'}</button>
+              <button class="icon-btn tiny" data-ch-edit="${escapeHtml(h.id)}" type="button" title="Edit">✎</button>
+              <button class="icon-btn tiny" data-ch-dup="${escapeHtml(h.id)}" type="button" title="Duplicate">⧉</button>
+              <button class="icon-btn tiny" data-ch-exp="${escapeHtml(h.id)}" type="button" title="Export JSON">↗</button>
+              <button class="icon-btn tiny" data-ch-del="${escapeHtml(h.id)}" type="button" title="Delete">×</button>
+            </div>
+          </div>`).join('');
+    }
     document.getElementById('range-trans').value = String(state.settings.glassTransparency ?? 42);
     document.getElementById('range-size').value = String(state.settings.fishScale || 1.06);
     document.getElementById('size-label').textContent = `${Math.round((state.settings.fishScale || 1.06) * 100)}%`;
@@ -592,13 +754,46 @@
     renderTimersOnly();
   }
 
-  // Spotlight cursor glow
-  hud.addEventListener('mousemove', (e) => {
-    const t = e.target.closest('.card, .cc-tile, .dock-btn');
-    if (!t) return;
-    const r = t.getBoundingClientRect();
-    t.style.setProperty('--mx', `${Math.round(e.clientX - r.left)}px`);
-    t.style.setProperty('--my', `${Math.round(e.clientY - r.top)}px`);
+  // Tactile Retro-Tech Mechanical Key Click Synthesizer (Zero External Audio Files)
+  let uiAudioCtx = null;
+  function playHudKeySound(kind = 'tap') {
+    if (state.settings?.bgmEnabled === false) return;
+    try {
+      if (!uiAudioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) uiAudioCtx = new AC();
+      }
+      if (!uiAudioCtx) return;
+      if (uiAudioCtx.state === 'suspended') uiAudioCtx.resume().catch(() => {});
+      const t0 = uiAudioCtx.currentTime;
+      const osc = uiAudioCtx.createOscillator();
+      const gain = uiAudioCtx.createGain();
+      osc.type = kind === 'action' ? 'sine' : 'triangle';
+      const fStart = kind === 'toggle' ? 620 : kind === 'action' ? 540 : 860;
+      const fEnd = kind === 'toggle' ? 960 : kind === 'action' ? 810 : 320;
+      const dur = kind === 'action' ? 0.055 : 0.024;
+      osc.frequency.setValueAtTime(fStart, t0);
+      osc.frequency.exponentialRampToValueAtTime(fEnd, t0 + dur);
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.linearRampToValueAtTime(0.038, t0 + 0.002);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      osc.connect(gain);
+      gain.connect(uiAudioCtx.destination);
+      osc.start(t0);
+      osc.stop(t0 + dur + 0.01);
+    } catch {}
+  }
+
+  hud.addEventListener('pointerdown', (e) => {
+    const btn = e.target.closest('button, summary, .switch, .skin-swatch, .mini-pulse-card, .window-row');
+    if (!btn) return;
+    if (btn.classList.contains('primary') || btn.classList.contains('send-btn') || btn.classList.contains('pet-card')) {
+      playHudKeySound('action');
+    } else if (btn.classList.contains('switch') || btn.classList.contains('seg-btn') || btn.classList.contains('tab-btn')) {
+      playHudKeySound('toggle');
+    } else {
+      playHudKeySound('tap');
+    }
   });
 
   // Top Controls & Morph
@@ -615,7 +810,13 @@
   document.getElementById('btn-refresh').addEventListener('click', async () => applyFullState(await api.refreshAll()));
   document.querySelectorAll('.tab-btn').forEach((b) => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 
-  // Character Switching (All 4!)
+  // Companion Library Filter + Character Switching (All 7 Built-in)
+  document.querySelectorAll('[data-lib-filter]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.libFilter = btn.dataset.libFilter || 'all';
+      render();
+    });
+  });
   document.querySelectorAll('.char-chip, .pet-card').forEach((btn) => {
     btn.addEventListener('click', async () => applyFullState(await api.setPetCharacter(btn.dataset.char)));
   });
@@ -631,8 +832,14 @@
 
   // Age Profile & Sliders & Toggles
   document.querySelectorAll('.seg-btn[data-age]').forEach((b) => b.addEventListener('click', async () => {
-    applyFullState(await api.saveSettings({ ageGroup: b.dataset.age }));
-    showCommandFeedback(`Age style → ${b.dataset.age}`);
+    const nextAge = b.dataset.age;
+    applyFullState(await api.saveSettings({ ageGroup: nextAge }));
+    const labelMap = {
+      '1-15': 'AGE 1-14 EXPLORER MODE ACTIVE (FAST STRIDE + WIDE OPTICS)',
+      '15-30': 'AGE 15-29 BUILDER MODE ACTIVE (PRECISION STRIDE + SCAN OPTICS)',
+      '30-60': 'AGE 30-60 ARCHITECT MODE ACTIVE (STEADY STRIDE + CALM OPTICS)',
+    };
+    showCommandFeedback(labelMap[nextAge] || `AGE PROFILE -> ${nextAge}`);
   }));
   document.getElementById('range-trans').addEventListener('input', (e) => applyGlassTransparency(Number(e.target.value)));
   document.getElementById('range-trans').addEventListener('change', async (e) => applyFullState(await api.saveSettings({ glassTransparency: Number(e.target.value) })));
@@ -640,28 +847,52 @@
   document.getElementById('range-size').addEventListener('change', async (e) => applyFullState(await api.saveSettings({ fishScale: Number(e.target.value) })));
 
   document.getElementById('toggle-voice').addEventListener('change', async (e) => applyFullState(await api.saveSettings({ voiceEnabled: e.target.checked })));
+  document.getElementById('toggle-dance-mode')?.addEventListener('change', async (e) => {
+    const nextDance = Boolean(e.target.checked);
+    applyFullState(await api.toggleDanceMode(nextDance));
+    showCommandFeedback(nextDance ? 'DANCE MODE: ON' : 'DANCE MODE: OFF');
+  });
+  async function handleVoiceProfileSelect(voiceId) {
+    if (!voiceId) return;
+    applyFullState(await api.saveSettings({ selectedVoice: voiceId }));
+    showCommandFeedback(`VOICE LOCKED -> ${voiceId.toUpperCase()}`);
+  }
+  document.getElementById('voice-select')?.addEventListener('change', (e) => handleVoiceProfileSelect(e.target.value));
+  document.getElementById('studio-voice-select')?.addEventListener('change', (e) => handleVoiceProfileSelect(e.target.value));
   document.getElementById('toggle-bgm').addEventListener('change', async (e) => applyFullState(await api.saveSettings({ bgmEnabled: e.target.checked })));
   document.getElementById('toggle-autostart').addEventListener('change', async (e) => {
     applyFullState(await api.saveSettings({ autoStart: e.target.checked }));
-    showCommandFeedback(e.target.checked ? 'Auto-start with Windows ON' : 'Manual startup mode');
+    showCommandFeedback(e.target.checked ? 'AUTO-START WITH WINDOWS: ON' : 'MANUAL STARTUP MODE');
   });
   document.getElementById('toggle-desktop-only').addEventListener('change', async (e) => applyFullState(await api.saveSettings({ displayMode: e.target.checked ? 'desktop-only' : 'floating' })));
   document.getElementById('toggle-privacy-mask').addEventListener('change', async (e) => applyFullState(await api.saveSettings({ privacyMask: e.target.checked })));
   document.getElementById('toggle-wake-alerts').addEventListener('change', async (e) => applyFullState(await api.saveSettings({ wakeOnAlerts: e.target.checked })));
   document.getElementById('btn-test-voice').addEventListener('click', () => {
-    api.speakText(`Hello! ${getCharName()} voice check — ready to work with you.`);
-    showCommandFeedback(`Speaking as ${getCharName()}...`);
+    api.speakText(`Arre bhai, ${getCharName()} here! Main English, Hinglish aur Hindi teeno me baat kar sakta hoon, aur music sunte hue task bhi padhta hoon.`);
+    showCommandFeedback(`NEURAL VOICE CHECK // ${getCharName().toUpperCase()}`);
+  });
+
+  // Live Agent Telemetry Announce Buttons
+  async function triggerAgentAnnouncement(agentId = '') {
+    if (!api.announceAgent) return;
+    const res = await api.announceAgent(agentId);
+    if (res?.message) showCommandFeedback(res.message);
+  }
+  document.getElementById('btn-announce-agent')?.addEventListener('click', () => triggerAgentAnnouncement(''));
+  document.getElementById('btn-mini-announce')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    triggerAgentAnnouncement('');
   });
 
   // Chat Controls & Focus Lens
   document.getElementById('model-select').addEventListener('change', async (e) => { if (e.target.value) applyFullState(await api.setLLMModel(e.target.value)); });
   document.getElementById('btn-think-mode').addEventListener('click', async () => {
     applyFullState(await api.setThinkMode(!state.settings.thinkMode));
-    showCommandFeedback(state.settings.thinkMode ? 'Deep Thinking Model ON 🧠' : 'Fast Mode ON ⚡');
+    showCommandFeedback(state.settings.thinkMode ? 'DEEP THINKING MODE: ON' : 'FAST RESPONSE MODE: ON');
   });
   document.getElementById('btn-voice-toggle').addEventListener('click', async () => {
     applyFullState(await api.saveSettings({ voiceEnabled: !state.settings.voiceEnabled }));
-    showCommandFeedback(state.settings.voiceEnabled ? 'Voice replies ON 🔊' : 'Voice replies muted');
+    showCommandFeedback(state.settings.voiceEnabled ? 'NEURAL VOICE REPLIES: ON' : 'NEURAL VOICE REPLIES: OFF');
   });
   document.getElementById('btn-clear-ai').addEventListener('click', async () => { state.lastMiniAi = null; applyFullState(await api.clearLLMChat()); });
 
@@ -681,14 +912,24 @@
   // Music Player & Theme BGM Controls
   document.getElementById('btn-bgm-loop').addEventListener('click', async () => {
     applyFullState(await api.toggleBgmLoop(!state.music?.bgmLoopActive));
-    showCommandFeedback(state.music?.bgmLoopActive ? `${getCharName()} Theme BGM playing ♪` : 'Theme BGM stopped');
+    showCommandFeedback(state.music?.bgmLoopActive ? `${getCharName().toUpperCase()} THEME AUDIO: ON` : 'THEME AUDIO: OFF');
   });
   document.getElementById('btn-theme-playlist').addEventListener('click', async () => {
     const res = await api.launchApp(`bgm-${state.petCharacter}`, {});
     showCommandFeedback(res?.ok ? `Opened ${res.label} in Brave` : 'Could not open playlist');
   });
-  document.getElementById('btn-ctrl-dance').addEventListener('click', () => { api.dancePet(); showCommandFeedback('Dance mode ♪'); });
-  document.getElementById('btn-pet-dance').addEventListener('click', () => { api.dancePet(); showCommandFeedback('Dance mode ♪'); });
+  async function handleDanceToggle() {
+    const nextDance = !state.settings.danceModeEnabled;
+    if (api.toggleDanceMode) {
+      applyFullState(await api.toggleDanceMode(nextDance));
+    } else {
+      api.dancePet();
+    }
+    showCommandFeedback(nextDance ? 'DANCE MODE: ON (STUDIO HEADPHONES ACTIVE)' : 'DANCE MODE: OFF');
+  }
+  document.getElementById('btn-mini-dance')?.addEventListener('click', handleDanceToggle);
+  document.getElementById('btn-ctrl-dance').addEventListener('click', handleDanceToggle);
+  document.getElementById('btn-pet-dance').addEventListener('click', handleDanceToggle);
 
   // Connectivity Controls
   async function handleWifiToggle(en) { showCommandFeedback(en ? 'Wi-Fi ON...' : 'Wi-Fi OFF...'); const r = await api.toggleWifi(en); if (r?.fullState) applyFullState(r.fullState); showCommandFeedback(r?.message || 'Wi-Fi updated'); }
@@ -757,8 +998,34 @@
     }
     const mediaBtn = e.target.closest('button[data-media]');
     if (mediaBtn) { const r = await api.mediaControl(mediaBtn.dataset.media); if (r?.state) applyFullState(r.state); return; }
+    const announceBtn = e.target.closest('button[data-announce-agent]');
+    if (announceBtn) { await triggerAgentAnnouncement(announceBtn.dataset.announceAgent); return; }
+    const copyRawBtn = e.target.closest('button[data-copy-raw]');
+    if (copyRawBtn) {
+      if (api.copyText) await api.copyText(copyRawBtn.dataset.copyRaw);
+      showCommandFeedback('COPIED TO CLIPBOARD');
+      return;
+    }
+    const copyIdxBtn = e.target.closest('button[data-copy-idx]');
+    if (copyIdxBtn) {
+      const msg = state.llm?.history?.[Number(copyIdxBtn.dataset.copyIdx)];
+      if (msg?.content && api.copyText) {
+        await api.copyText(msg.content);
+        showCommandFeedback('MESSAGE COPIED TO CLIPBOARD');
+      }
+      return;
+    }
     const speakBtn = e.target.closest('button[data-speak-idx]');
     if (speakBtn) { const msg = state.llm?.history?.[Number(speakBtn.dataset.speakIdx)]; if (msg?.content) api.speakText(msg.content); return; }
+    const delChatBtn = e.target.closest('button[data-del-chat-idx]');
+    if (delChatBtn) {
+      const idx = Number(delChatBtn.dataset.delChatIdx);
+      if (api.deleteChatMsg) {
+        applyFullState(await api.deleteChatMsg(idx));
+        showCommandFeedback('CHAT MESSAGE DELETED');
+      }
+      return;
+    }
     const cbCopy = e.target.closest('[data-cb-copy]');
     if (cbCopy) { await api.clipboardCopy(cbCopy.dataset.cbCopy); showCommandFeedback('Copied back to clipboard!'); return; }
     const cbPin = e.target.closest('button[data-cb-pin]');
@@ -879,25 +1146,50 @@
     await executeInput(txt);
   });
 
-  // Mic Button: Focuses input cleanly for Wispr Flow dictation OR uses Web Speech if available
+  // Mic Button & Whisper Talk Button: Uses Local Open-Source Whisper (faster-whisper-base)
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
   const voiceBtn = document.getElementById('btn-voice');
-  voiceBtn.addEventListener('click', () => {
+  const whisperBtn = document.getElementById('btn-whisper-talk');
+  async function startWhisperDictation() {
     const inp = document.getElementById('cmd-input');
     inp.focus();
+    if (voiceBtn.classList.contains('listening')) return;
+    voiceBtn.classList.add('listening');
+    if (whisperBtn) whisperBtn.textContent = 'LISTENING...';
+    showCommandFeedback('LOCAL WHISPER ACTIVE — SPEAK COMMAND ("OPEN SPOTIFY", "PLAY MUSIC", "ADD TASK")...');
+
+    if (api.listenVoice) {
+      try {
+        const res = await api.listenVoice();
+        voiceBtn.classList.remove('listening');
+        if (whisperBtn) whisperBtn.textContent = 'WHISPER MIC';
+        if (res?.ok && res.transcript) {
+          inp.value = res.transcript;
+          showCommandFeedback(`WHISPER HEARD: "${res.transcript}"`);
+          await executeInput(res.transcript);
+          inp.value = '';
+          return;
+        }
+        showCommandFeedback(res?.error || 'NO SPEECH DETECTED — PRESS A+S+W OR WHISPER MIC AND SPEAK');
+        return;
+      } catch {}
+    }
+
+    if (whisperBtn) whisperBtn.textContent = 'WHISPER MIC';
     if (!SpeechRec) {
-      showCommandFeedback('Input focused — hold your Wispr Flow hotkey to dictate!');
+      voiceBtn.classList.remove('listening');
+      showCommandFeedback('PRESS A+S+W TO SPEAK WITH LOCAL WHISPER');
       return;
     }
     const rec = new SpeechRec();
     rec.lang = 'en-IN';
-    voiceBtn.classList.add('listening');
-    showCommandFeedback('Listening (or use Wispr Flow hotkey)...');
     rec.onresult = (ev) => { const t = ev.results?.[0]?.[0]?.transcript || ''; if (t) executeInput(t); };
-    rec.onerror = () => showCommandFeedback('Input focused — use Wispr Flow hotkey or type!');
+    rec.onerror = () => showCommandFeedback('PRESS A+S+W OR TYPE YOUR COMMAND');
     rec.onend = () => voiceBtn.classList.remove('listening');
     try { rec.start(); } catch { voiceBtn.classList.remove('listening'); }
-  });
+  }
+  voiceBtn.addEventListener('click', startWhisperDictation);
+  whisperBtn?.addEventListener('click', startWhisperDictation);
 
   api.onFullState((data) => applyFullState(data));
   api.onHudView((v) => { if (v) applyViewMode(v.mode, v.tab); });
@@ -909,6 +1201,290 @@
       showCommandFeedback(`${getCharName()} woke via A+S+D — saved chat ready!`);
     });
   }
+
+  // =========================================================================
+  // HERO CREATOR — LIVE CANVAS PREVIEW, ARTWORK UPLOAD, CRUD & IMPORT/EXPORT
+  // =========================================================================
+  let hcArtworkDataUrl = '';
+  let hcPreviewImg = null;
+  const hcCanvas = document.getElementById('hero-creator-preview');
+  const hcCtx = hcCanvas ? hcCanvas.getContext('2d') : null;
+
+  function drawHeroCreatorPreview() {
+    if (!hcCtx || !hcCanvas) return;
+    const p = document.getElementById('hc-primary')?.value || '#6366f1';
+    const sec = document.getElementById('hc-secondary')?.value || '#0ea5e9';
+    const acc = document.getElementById('hc-accent')?.value || '#f8fafc';
+    const tpl = document.getElementById('hc-template')?.value || 'acrobat';
+    const mov = document.getElementById('hc-movement')?.value || 'swing';
+    const nm = document.getElementById('hc-name')?.value.trim() || 'New Companion';
+    const pName = document.getElementById('hc-preview-name');
+    const pSub = document.getElementById('hc-preview-sub');
+    if (pName) pName.textContent = nm;
+    if (pSub) pSub.textContent = `${hcArtworkDataUrl ? 'Custom Artwork' : `${tpl} template`} · ${mov} physics`;
+
+    const c = hcCtx;
+    c.clearRect(0, 0, 96, 96);
+    const cx = 48;
+    const cy = 50;
+
+    if (hcArtworkDataUrl && hcPreviewImg && hcPreviewImg.complete && hcPreviewImg.naturalWidth > 0) {
+      c.save();
+      c.strokeStyle = p;
+      c.lineWidth = 3;
+      c.beginPath(); c.arc(cx, cy, 34, 0, Math.PI * 2); c.stroke();
+      c.beginPath(); c.arc(cx, cy, 32, 0, Math.PI * 2); c.clip();
+      c.drawImage(hcPreviewImg, cx - 32, cy - 32, 64, 64);
+      c.restore();
+      return;
+    }
+
+    if (tpl === 'kronos') {
+      for (const x of [24, 38, 52, 66]) {
+        c.fillStyle = p;
+        c.beginPath(); c.roundRect(x, 22, 10, 52, 2); c.fill();
+      }
+      c.fillStyle = '#090d16';
+      c.fillRect(39, 28, 22, 14);
+      c.fillStyle = sec;
+      c.fillRect(42, 32, 7, 6); c.fillRect(52, 34, 6, 4);
+    } else if (tpl === 'optix') {
+      c.fillStyle = '#18181b';
+      c.beginPath(); c.roundRect(24, 58, 48, 14, 4); c.fill();
+      c.fillStyle = p;
+      c.beginPath(); c.roundRect(28, 36, 40, 24, 4); c.fill();
+      c.fillStyle = acc;
+      c.beginPath(); c.roundRect(30, 18, 16, 14, 5); c.roundRect(50, 18, 16, 14, 5); c.fill();
+      c.fillStyle = sec;
+      c.beginPath(); c.arc(38, 25, 4, 0, Math.PI * 2); c.arc(58, 25, 4, 0, Math.PI * 2); c.fill();
+    } else if (tpl === 'orbit') {
+      c.fillStyle = p;
+      c.beginPath(); c.roundRect(28, 20, 40, 50, 18); c.fill();
+      c.fillStyle = '#090d16';
+      c.beginPath(); c.roundRect(33, 27, 30, 16, 8); c.fill();
+      c.fillStyle = sec;
+      c.beginPath(); c.arc(42, 35, 3.5, 0, Math.PI * 2); c.arc(54, 35, 3.5, 0, Math.PI * 2); c.fill();
+    } else if (tpl === 'aquatic') {
+      c.fillStyle = sec;
+      c.beginPath(); c.moveTo(26, cy); c.lineTo(14, cy - 12); c.lineTo(14, cy + 12); c.closePath(); c.fill();
+      c.fillStyle = p;
+      c.beginPath(); c.ellipse(52, cy, 24, 16, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = acc;
+      c.fillRect(46, cy - 15, 5, 30);
+      c.fillStyle = '#0f172a';
+      c.beginPath(); c.arc(65, cy - 4, 3, 0, Math.PI * 2); c.fill();
+    } else if (tpl === 'holo') {
+      c.strokeStyle = sec; c.lineWidth = 2;
+      c.beginPath(); c.ellipse(cx, cy, 34, 13, 0.35, 0, Math.PI * 2); c.stroke();
+      c.strokeStyle = p;
+      c.beginPath(); c.ellipse(cx, cy, 34, 13, -0.35, 0, Math.PI * 2); c.stroke();
+      c.fillStyle = p;
+      c.beginPath(); c.arc(cx, cy, 18, 0, Math.PI * 2); c.fill();
+      c.fillStyle = acc;
+      c.beginPath(); c.arc(cx, cy, 7, 0, Math.PI * 2); c.fill();
+    } else if (tpl === 'guardian') {
+      c.fillStyle = '#09090b';
+      c.beginPath(); c.moveTo(cx - 12, cy); c.lineTo(14, cy + 28); c.lineTo(82, cy + 28); c.lineTo(cx + 12, cy); c.closePath(); c.fill();
+      c.fillStyle = p;
+      c.beginPath(); c.moveTo(35, 28); c.lineTo(32, 12); c.lineTo(42, 24); c.lineTo(54, 24); c.lineTo(64, 12); c.lineTo(61, 28); c.closePath(); c.fill();
+      c.beginPath(); c.arc(cx, 38, 17, 0, Math.PI * 2); c.fill();
+      c.fillStyle = acc;
+      c.fillRect(38, 35, 7, 3); c.fillRect(51, 35, 7, 3);
+      c.fillStyle = sec;
+      c.fillRect(34, 60, 28, 5);
+    } else if (tpl === 'mech') {
+      c.fillStyle = p;
+      c.beginPath(); c.roundRect(30, 18, 36, 36, 12); c.fill();
+      c.fillStyle = sec;
+      c.beginPath(); c.roundRect(35, 24, 26, 24, 8); c.fill();
+      c.fillStyle = acc;
+      c.fillRect(38, 33, 8, 3.5); c.fillRect(50, 33, 8, 3.5);
+      c.fillStyle = p;
+      c.beginPath(); c.roundRect(33, 55, 30, 20, 8); c.fill();
+      c.fillStyle = acc;
+      c.beginPath(); c.arc(cx, 65, 5.5, 0, Math.PI * 2); c.fill();
+    } else {
+      c.fillStyle = p;
+      c.beginPath(); c.arc(cx, 36, 19, 0, Math.PI * 2); c.fill();
+      c.fillStyle = acc;
+      c.beginPath(); c.ellipse(41, 36, 6, 4, -0.2, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.ellipse(55, 36, 6, 4, 0.2, 0, Math.PI * 2); c.fill();
+      c.fillStyle = p;
+      c.beginPath(); c.roundRect(34, 55, 28, 22, 9); c.fill();
+      c.fillStyle = sec;
+      c.fillRect(34, 60, 6, 12); c.fillRect(56, 60, 6, 12);
+    }
+  }
+
+  function resetHeroCreatorForm() {
+    document.getElementById('hc-edit-id').value = '';
+    document.getElementById('hc-name').value = '';
+    document.getElementById('hc-nickname').value = '';
+    document.getElementById('hc-personality').value = '';
+    hcArtworkDataUrl = '';
+    hcPreviewImg = null;
+    document.getElementById('hc-art-clear')?.classList.add('hidden');
+    document.getElementById('hc-cancel-edit')?.classList.add('hidden');
+    document.getElementById('hc-submit-btn').textContent = 'Create & Activate';
+    drawHeroCreatorPreview();
+  }
+
+  ['hc-name', 'hc-template', 'hc-movement', 'hc-primary', 'hc-secondary', 'hc-accent'].forEach((id) => {
+    document.getElementById(id)?.addEventListener('input', drawHeroCreatorPreview);
+    document.getElementById(id)?.addEventListener('change', drawHeroCreatorPreview);
+  });
+
+  document.getElementById('hc-art-file')?.addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const fb = document.getElementById('hc-feedback');
+    if (!/^image\/(png|jpeg|webp)$/i.test(file.type)) {
+      if (fb) fb.textContent = 'Only PNG, JPEG, or WebP images are supported.';
+      return;
+    }
+    if (file.size > 380 * 1024) {
+      if (fb) fb.textContent = 'Image must be 380 KB or smaller.';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      hcArtworkDataUrl = String(reader.result || '');
+      hcPreviewImg = new Image();
+      hcPreviewImg.onload = drawHeroCreatorPreview;
+      hcPreviewImg.src = hcArtworkDataUrl;
+      document.getElementById('hc-art-clear')?.classList.remove('hidden');
+      if (fb) fb.textContent = 'Local artwork loaded (stored privately on your PC only).';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('hc-art-clear')?.addEventListener('click', () => {
+    hcArtworkDataUrl = '';
+    hcPreviewImg = null;
+    document.getElementById('hc-art-file').value = '';
+    document.getElementById('hc-art-clear').classList.add('hidden');
+    drawHeroCreatorPreview();
+  });
+
+  document.getElementById('hc-cancel-edit')?.addEventListener('click', resetHeroCreatorForm);
+
+  document.getElementById('hc-import-toggle')?.addEventListener('click', () => {
+    document.getElementById('hc-import-box')?.classList.toggle('hidden');
+  });
+  document.getElementById('hc-import-cancel')?.addEventListener('click', () => {
+    document.getElementById('hc-import-box')?.classList.add('hidden');
+  });
+  document.getElementById('hc-import-apply')?.addEventListener('click', async () => {
+    const raw = document.getElementById('hc-import-json')?.value.trim();
+    const fb = document.getElementById('hc-feedback');
+    if (!raw) return;
+    const res = await api.customHeroImport(raw);
+    if (res?.state) applyFullState(res.state);
+    if (res?.ok) {
+      document.getElementById('hc-import-json').value = '';
+      document.getElementById('hc-import-box').classList.add('hidden');
+      if (fb) fb.textContent = `Imported "${res.hero.name}"!`;
+    } else if (fb) {
+      fb.textContent = res?.error || 'Import failed.';
+    }
+  });
+
+  document.getElementById('hero-creator-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const editId = document.getElementById('hc-edit-id').value.trim();
+    const payload = {
+      category: document.getElementById('hc-category')?.value || 'hero',
+      name: document.getElementById('hc-name').value.trim(),
+      nickname: document.getElementById('hc-nickname').value.trim(),
+      template: document.getElementById('hc-template').value,
+      movement: document.getElementById('hc-movement').value,
+      primaryColor: document.getElementById('hc-primary').value,
+      secondaryColor: document.getElementById('hc-secondary').value,
+      accentColor: document.getElementById('hc-accent').value,
+      voiceProfile: document.getElementById('hc-voice').value,
+      reactionStyle: document.getElementById('hc-reaction').value,
+      soundPack: document.getElementById('hc-sound').value,
+      size: Number(document.getElementById('hc-size').value || 1.05),
+      speed: Number(document.getElementById('hc-speed').value || 1.0),
+      personality: document.getElementById('hc-personality').value.trim(),
+      artworkDataUrl: hcArtworkDataUrl,
+    };
+    const fb = document.getElementById('hc-feedback');
+    const res = editId
+      ? await api.customHeroUpdate(editId, payload)
+      : await api.customHeroCreate(payload);
+    if (res?.state) applyFullState(res.state);
+    if (res?.ok) {
+      if (fb) fb.textContent = editId ? `Updated "${res.hero.name}"!` : `Created & activated "${res.hero.name}"!`;
+      resetHeroCreatorForm();
+    } else if (fb) {
+      fb.textContent = res?.error || 'Could not save custom hero.';
+    }
+  });
+
+  document.getElementById('custom-heroes-list')?.addEventListener('click', async (e) => {
+    const fb = document.getElementById('hc-feedback');
+    const useBtn = e.target.closest('[data-ch-use]');
+    if (useBtn) {
+      applyFullState(await api.setPetCharacter(useBtn.dataset.chUse));
+      return;
+    }
+    const editBtn = e.target.closest('[data-ch-edit]');
+    if (editBtn) {
+      const h = (state.customHeroes || []).find((x) => x.id === editBtn.dataset.chEdit);
+      if (!h) return;
+      document.getElementById('hc-edit-id').value = h.id;
+      if (document.getElementById('hc-category')) document.getElementById('hc-category').value = h.category || 'hero';
+      document.getElementById('hc-name').value = h.name || '';
+      document.getElementById('hc-nickname').value = h.nickname || '';
+      document.getElementById('hc-template').value = h.template === 'custom-art' ? 'acrobat' : (h.template || 'acrobat');
+      document.getElementById('hc-movement').value = h.movement || 'swing';
+      document.getElementById('hc-primary').value = safeColor(h.primaryColor, '#6366f1');
+      document.getElementById('hc-secondary').value = safeColor(h.secondaryColor, '#0ea5e9');
+      document.getElementById('hc-accent').value = safeColor(h.accentColor, '#f8fafc');
+      document.getElementById('hc-voice').value = h.voiceProfile || 'energetic';
+      document.getElementById('hc-reaction').value = h.reactionStyle || 'sparks';
+      document.getElementById('hc-sound').value = h.soundPack || 'ambient';
+      document.getElementById('hc-size').value = String(h.size || 1.05);
+      document.getElementById('hc-speed').value = String(h.speed || 1.0);
+      document.getElementById('hc-personality').value = h.personality || '';
+      hcArtworkDataUrl = h.artworkDataUrl || '';
+      if (hcArtworkDataUrl) {
+        hcPreviewImg = new Image();
+        hcPreviewImg.onload = drawHeroCreatorPreview;
+        hcPreviewImg.src = hcArtworkDataUrl;
+        document.getElementById('hc-art-clear')?.classList.remove('hidden');
+      }
+      document.getElementById('hc-cancel-edit')?.classList.remove('hidden');
+      document.getElementById('hc-submit-btn').textContent = 'Save Hero Changes';
+      drawHeroCreatorPreview();
+      return;
+    }
+    const dupBtn = e.target.closest('[data-ch-dup]');
+    if (dupBtn) {
+      const res = await api.customHeroDuplicate(dupBtn.dataset.chDup);
+      if (res?.state) applyFullState(res.state);
+      if (fb) fb.textContent = res?.ok ? `Duplicated as "${res.hero.name}"` : (res?.error || 'Duplicate failed');
+      return;
+    }
+    const expBtn = e.target.closest('[data-ch-exp]');
+    if (expBtn) {
+      const res = await api.customHeroExport(expBtn.dataset.chExp);
+      if (res?.ok && res.json) {
+        try { await navigator.clipboard.writeText(res.json); } catch {}
+        if (fb) fb.textContent = 'Exported hero JSON copied to clipboard!';
+      }
+      return;
+    }
+    const delBtn = e.target.closest('[data-ch-del]');
+    if (delBtn) {
+      const res = await api.customHeroDelete(delBtn.dataset.chDel);
+      if (res?.state) applyFullState(res.state);
+      if (fb) fb.textContent = 'Custom hero deleted.';
+    }
+  });
+
+  drawHeroCreatorPreview();
 
   setInterval(renderTimersOnly, 1000);
   api.getInitialState().then((data) => applyFullState(data)).catch(() => {});

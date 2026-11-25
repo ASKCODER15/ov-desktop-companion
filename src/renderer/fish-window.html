@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none';" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none';" />
   <title>OV — Companion</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
@@ -30,14 +30,15 @@
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 3px 9px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      background: linear-gradient(135deg, rgba(14, 24, 44, 0.94), rgba(26, 36, 58, 0.94));
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      box-shadow: 0 5px 16px rgba(0, 0, 0, 0.45);
+      padding: 3px 8px;
+      border-radius: 2px;
+      border: 1.5px solid #050608;
+      background: #f2efe9;
+      color: #101114;
+      font-family: 'Cascadia Mono', Consolas, monospace;
+      font-size: 10.5px;
+      font-weight: 800;
+      box-shadow: 2px 2px 0 #050608;
       cursor: pointer;
     }
     .fish-badge.hidden { display: none; }

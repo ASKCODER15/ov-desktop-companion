@@ -13,18 +13,18 @@
     const words = lower.split(/\s+/);
     const isShort = words.length <= 6;
 
-    // 1. Companion & Theme Switching (4 Original OV Companions: Vesper, Vector, Core, Coral!)
-    if (isShort && /^(vesper|acrobat|switch to vesper|vesper theme)$/i.test(lower)) {
-      return { action: 'character', character: 'vesper', reply: 'Switched to Vesper!' };
+    // 1. Robot Agent & Theme Switching (Kronos 4-Slab Monolith, Aegis Field Mech, Optix Research Rover, Orbit Synth Pod!)
+    if (isShort && /^(kronos|monolith|tars|interstellar|heavy\s*bot|switch to kronos|kronos theme|vesper|acrobat|spidey|spider[\s-]*man|spiderman)$/i.test(lower)) {
+      return { action: 'character', character: 'kronos', reply: 'Kronos 4-Slab Interstellar Monolith online.' };
     }
-    if (isShort && /^(vector|mech|aero[\s-]*mech|switch to vector|vector theme)$/i.test(lower)) {
-      return { action: 'character', character: 'vector', reply: 'Aero-thrusters online — Vector engaged!' };
+    if (isShort && /^(aegis|mech|field\s*mech|switch to aegis|aegis theme|vector|iron[\s-]*man|ironman)$/i.test(lower)) {
+      return { action: 'character', character: 'aegis', reply: 'Aegis Bipedal Field Mech online.' };
     }
-    if (isShort && /^(core|orb|sphere|holo|switch to core|core theme)$/i.test(lower)) {
-      return { action: 'character', character: 'core', reply: 'Core holographic sphere online.' };
+    if (isShort && /^(optix|rover|research\s*bot|scout|switch to optix|optix theme|umbra|guardian|batman|bat|core)$/i.test(lower)) {
+      return { action: 'character', character: 'optix', reply: 'Optix Deep Research Rover deployed.' };
     }
-    if (isShort && /^(coral|reef|fish|machli|switch to coral|coral theme|ocean theme)$/i.test(lower)) {
-      return { action: 'character', character: 'coral', reply: 'Switched to Coral!' };
+    if (isShort && /^(orbit|synth|drone|switch to orbit|orbit theme|coral|reef|nemo|fish|machli)$/i.test(lower)) {
+      return { action: 'character', character: 'orbit', reply: 'Orbit Autonomous Synth Pod engaged.' };
     }
 
     // 1b. Smart Reminders ("bro remind me in 10 min to drink water" / "remind me to submit lab")
@@ -173,7 +173,7 @@
       if (/^(dheere|slow|walk|chill)$/.test(lower)) return { action: 'mode', mode: 'slow', reply: 'Slow cruise.' };
       if (/^(follow|chase|come\s*here|idhar\s*aao|aao)$/.test(lower)) return { action: 'mode', mode: 'follow', reply: 'Following your cursor!' };
       if (/^(swim|swing|chalo|chal|ghoomo|roam|move|free)$/.test(lower)) return { action: 'mode', mode: 'swim', reply: 'Roaming freely!' };
-      if (/^(dance|naacho|nacho|vibe|groove|party)$/.test(lower)) return { action: 'pet-dance', reply: 'Drop the beat — dancing!' };
+      if (/^(dance|naacho|nacho|vibe|groove|party|headphones)$/.test(lower)) return { action: 'pet-dance', reply: 'Headphones on & vibing to the beat!' };
       if (/^(pet|good\s*boy|cute|pyaar)$/.test(lower)) return { action: 'pet', reply: 'Happy wiggle!' };
     }
 

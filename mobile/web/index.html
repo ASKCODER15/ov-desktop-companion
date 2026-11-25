@@ -4,78 +4,52 @@
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https: http://127.0.0.1:* http://192.168.*:* http://10.*:*; object-src 'none'; base-uri 'none';" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#0a0c14" />
-  <title>OV Mobile</title>
+  <meta name="theme-color" content="#141416" />
+  <title>OV — Personal AI Companion</title>
   <style>
     :root {
-      --glass-alpha: 0.72;
-      --glass-blur: 24px;
-      --bg: #0a0c14;
-      --bg-grad: radial-gradient(circle at 12% 4%, rgba(230, 57, 70, 0.13), transparent 44%), radial-gradient(circle at 88% 94%, rgba(96, 165, 250, 0.10), transparent 46%), #0a0c14;
-      --card: rgba(20, 22, 34, var(--glass-alpha));
-      --card-elev: rgba(255, 255, 255, 0.045);
-      --border: rgba(255, 255, 255, 0.10);
-      --text: #f5f7fc;
-      --text-2: #a0aec0;
-      --text-3: #6c798e;
-      --p1: #e63946;
-      --p2: #60a5fa;
-      --p1-soft: rgba(230, 57, 70, 0.14);
-      --p1-border: rgba(230, 57, 70, 0.36);
-      --accent-solid: #e63946;
+      --glass-alpha: 0.94;
+      --glass-blur: 20px;
+      --bg: #141416;
+      --bg-grad: #141416;
+      --card: #1c1c1e;
+      --card-elev: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.085);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --text: rgba(255, 255, 255, 0.92);
+      --text-2: rgba(255, 255, 255, 0.58);
+      --text-3: rgba(255, 255, 255, 0.38);
+      --p1: #e5484d;
+      --p2: #0a84ff;
+      --p1-soft: rgba(229, 72, 77, 0.14);
+      --p1-border: rgba(229, 72, 77, 0.38);
+      --accent-solid: #e5484d;
       --accent-fg: #ffffff;
-      --green: #34d399;
-      --amber: #f59e0b;
-      --red: #f87171;
-      --radius-lg: 18px;
-      --radius-md: 12px;
-      --radius-sm: 10px;
+      --green: #30d158;
+      --amber: #ff9f0a;
+      --red: #ff453a;
+      --sys-blue: #0a84ff;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
     }
 
-    body[data-theme="vector"] {
-      --bg: #10090b;
-      --bg-grad: radial-gradient(circle at 14% 6%, rgba(217, 119, 6, 0.14), transparent 44%), radial-gradient(circle at 86% 92%, rgba(56, 189, 248, 0.11), transparent 46%), #10090b;
-      --card: rgba(26, 16, 18, var(--glass-alpha));
-      --p1: #d97706;
-      --p2: #38bdf8;
-      --p1-soft: rgba(217, 119, 6, 0.15);
-      --p1-border: rgba(245, 158, 11, 0.38);
-      --accent-solid: #d97706;
-      --accent-fg: #0d0708;
-    }
-
-    body[data-theme="core"] {
-      --bg: #080b10;
-      --bg-grad: radial-gradient(circle at 14% 6%, rgba(251, 191, 36, 0.12), transparent 45%), radial-gradient(circle at 86% 92%, rgba(56, 189, 248, 0.10), transparent 45%), #080b10;
-      --card: rgba(14, 18, 28, var(--glass-alpha));
-      --p1: #fbbf24;
-      --p2: #38bdf8;
-      --p1-soft: rgba(251, 191, 36, 0.13);
-      --p1-border: rgba(251, 191, 36, 0.36);
-      --accent-solid: #fbbf24;
-      --accent-fg: #0b0e14;
-    }
-
-    body[data-theme="coral"] {
-      --bg: #06111a;
-      --bg-grad: radial-gradient(circle at 14% 6%, rgba(34, 211, 238, 0.13), transparent 45%), radial-gradient(circle at 86% 92%, rgba(251, 146, 60, 0.10), transparent 45%), #06111a;
-      --card: rgba(10, 24, 36, var(--glass-alpha));
-      --p1: #22d3ee;
-      --p2: #fb923c;
-      --p1-soft: rgba(34, 211, 238, 0.13);
-      --p1-border: rgba(34, 211, 238, 0.36);
-      --accent-solid: #22d3ee;
-      --accent-fg: #04131c;
-    }
+    body[data-theme="ironman"] { --p1: #ff9f1a; --p1-soft: #2e200b; --p1-border: #ff9f1a; --accent-solid: #ff9f1a; --accent-fg: #111215; }
+    body[data-theme="batman"]  { --p1: #eab308; --p1-soft: #2b2309; --p1-border: #eab308; --accent-solid: #eab308; --accent-fg: #111215; }
+    body[data-theme="nemo"]    { --p1: #00d68f; --p1-soft: #092c22; --p1-border: #00d68f; --accent-solid: #00d68f; --accent-fg: #111215; }
+    body[data-theme="kronos"]  { --p1: #ff5500; --p1-soft: #2e160a; --p1-border: #ff5500; --accent-solid: #ff5500; --accent-fg: #111215; }
+    body[data-theme="optix"]   { --p1: #facc15; --p1-soft: #2b2508; --p1-border: #facc15; --accent-solid: #facc15; --accent-fg: #111215; }
+    body[data-theme="orbit"]   { --p1: #00d68f; --p1-soft: #082b20; --p1-border: #00d68f; --accent-solid: #00d68f; --accent-fg: #111215; }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
     html, body {
       height: 100%;
+      width: 100%;
       background: var(--bg);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
-      font-size: 13px;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', Roboto, sans-serif;
+      font-size: 13.5px;
       line-height: 1.45;
       overflow: hidden;
       -webkit-font-smoothing: antialiased;
@@ -84,13 +58,14 @@
     .app {
       position: relative;
       height: 100%;
+      width: 100%;
       display: flex;
       flex-direction: column;
-      background: var(--bg-grad);
-      transition: background 0.35s ease;
+      background: var(--bg);
+      overflow: hidden;
     }
 
-    /* Interactive Moving Floating Companion Overlay */
+    /* Interactive Floating Companion Overlay */
     #pet-canvas {
       position: fixed;
       inset: 0;
@@ -113,7 +88,7 @@
     #pet-hitbox:active { cursor: grabbing; }
     #pet-hitbox.hidden-pet, #pet-canvas.hidden-pet { display: none; }
 
-    /* Minimal Mathematical Topbar */
+    /* Top Navigation Bar */
     .topbar {
       position: relative;
       z-index: 10;
@@ -123,36 +98,36 @@
       gap: 12px;
       padding: max(12px, env(safe-area-inset-top)) 16px 12px;
       border-bottom: 1px solid var(--border);
-      background: rgba(10, 12, 20, 0.78);
+      background: rgba(28, 28, 30, 0.92);
       backdrop-filter: blur(var(--glass-blur));
     }
 
     .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
     .brand-mark {
-      width: 32px; height: 32px; border-radius: 10px;
-      background: var(--p1-soft); border: 1px solid var(--p1-border);
+      width: 32px; height: 32px; border-radius: 9px;
+      background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-strong);
       display: grid; place-items: center; flex-shrink: 0;
     }
-    .brand-title { font-size: 15px; font-weight: 700; letter-spacing: 0.04em; color: var(--text); }
-    .brand-sub { font-size: 11px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .brand-title { font-size: 15px; font-weight: 600; letter-spacing: -0.015em; color: var(--text); }
+    .brand-sub { font-size: 11.5px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .top-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
     .icon-pill {
-      height: 28px; padding: 0 9px; border-radius: 99px;
+      height: 32px; padding: 0 11px; border-radius: 8px;
       border: 1px solid var(--border); background: var(--card-elev);
-      color: var(--text-2); font-size: 11px; font-weight: 600; cursor: pointer;
+      color: var(--text-2); font-size: 12px; font-weight: 500; cursor: pointer;
       display: inline-flex; align-items: center; gap: 5px;
     }
-    .icon-pill.on { border-color: var(--p1-border); background: var(--p1-soft); color: var(--text); }
+    .icon-pill.on { border-color: var(--border-strong); background: rgba(255, 255, 255, 0.11); color: var(--text); }
 
     .conn-pill {
-      height: 28px; padding: 0 10px; border-radius: 99px;
+      height: 32px; padding: 0 11px; border-radius: 8px;
       border: 1px solid var(--border); background: var(--card-elev);
-      font-size: 11px; font-weight: 600; cursor: pointer;
+      font-size: 12px; font-weight: 500; cursor: pointer;
       display: inline-flex; align-items: center; gap: 6px; color: var(--text-2);
     }
-    .conn-pill.online { border-color: rgba(52, 211, 153, 0.38); background: rgba(52, 211, 153, 0.12); color: #86efac; }
-    .conn-pill.offline { border-color: rgba(245, 158, 11, 0.38); background: rgba(245, 158, 11, 0.12); color: #fde68a; }
+    .conn-pill.online { border-color: rgba(48, 209, 88, 0.35); background: rgba(48, 209, 88, 0.12); color: #6ee799; }
+    .conn-pill.offline { border-color: rgba(255, 159, 10, 0.35); background: rgba(255, 159, 10, 0.12); color: #ffd670; }
     .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 
     /* Main Scroll Body */
@@ -161,86 +136,98 @@
       z-index: 5;
       flex: 1;
       overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: none;
       padding: 16px 16px 28px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
     }
+    .main::-webkit-scrollbar { display: none; }
 
     .hidden { display: none !important; }
 
     .offline-banner {
       padding: 12px 14px;
       border-radius: var(--radius-md);
-      background: rgba(245, 158, 11, 0.10);
-      border: 1px solid rgba(245, 158, 11, 0.32);
+      background: rgba(255, 159, 10, 0.10);
+      border: 1px solid rgba(255, 159, 10, 0.3);
       font-size: 12px;
-      color: #fde68a;
+      color: #ffd670;
     }
-    .offline-banner strong { display: block; margin-bottom: 2px; font-size: 12.5px; color: #fff; }
+    .offline-banner strong { display: block; margin-bottom: 2px; font-size: 13px; color: var(--text); }
 
-    /* Clean Hero Strip */
+    /* Companion Header Surface (Archival Paper Index Card) */
     .hero {
       padding: 14px;
-      border-radius: var(--radius-lg);
-      background: var(--card);
-      border: 1px solid var(--p1-border);
-      backdrop-filter: blur(var(--glass-blur));
+      border-radius: 10px;
+      background: #f2efe9;
+      color: #121316;
+      border: 2px solid #070809;
+      box-shadow: 0 3px 0 #070809;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
     .hero-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     .hero-info { min-width: 0; flex: 1; }
-    .hero-title { font-size: 15px; font-weight: 700; color: var(--text); }
-    .hero-sub { font-size: 11.5px; color: var(--text-2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hero-title { font-family: 'Cascadia Mono', monospace; font-size: 15px; font-weight: 800; color: #121316; }
+    .hero-sub { font-size: 11.5px; color: #4a4d55; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
     .xp-pill {
-      padding: 4px 10px; border-radius: 99px;
-      border: 1px solid var(--p1-border); background: var(--p1-soft);
-      color: var(--text); font-size: 11px; font-weight: 700; white-space: nowrap;
+      padding: 4px 9px; border-radius: 5px;
+      background: #121316; color: #f2efe9;
+      font-family: 'Cascadia Mono', monospace; font-size: 11px; font-weight: 700; white-space: nowrap;
     }
 
-    /* 4-Companion Segmented Selector */
+    /* Refined Unit Selector (Solid Mechanical Keys) */
     .char-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      padding: 4px;
-      border-radius: var(--radius-md);
-      background: rgba(0, 0, 0, 0.28);
-      border: 1px solid var(--border);
-    }
-    .char-btn {
-      height: 32px;
-      border: 1px solid transparent;
+      display: flex;
+      gap: 4px;
+      padding: 3px;
+      overflow-x: auto;
+      scrollbar-width: none;
       border-radius: 8px;
+      background: #141518;
+      border: 1.5px solid #070809;
+    }
+    .char-grid::-webkit-scrollbar { display: none; }
+    .char-btn {
+      flex: 1;
+      min-width: 0;
+      height: 34px;
+      padding: 0 8px;
+      border: 1px solid transparent;
+      border-radius: 5px;
       background: transparent;
-      color: var(--text-2);
-      font-size: 11px;
-      font-weight: 600;
+      color: #a0a6b2;
+      font-family: 'Cascadia Mono', monospace;
+      font-size: 11.5px;
+      font-weight: 700;
+      text-align: center;
+      white-space: nowrap;
       cursor: pointer;
-      transition: background 0.2s, color 0.2s, border-color 0.2s;
     }
     .char-btn.active {
-      background: var(--accent-solid);
-      color: var(--accent-fg);
-      font-weight: 700;
+      background: #f2efe9;
+      color: #121316;
+      font-weight: 800;
+      box-shadow: 0 1.5px 0 #070809;
     }
 
-    /* Minimal Glass Cards */
+    /* Grouped Solid Hardware Surfaces */
     .card {
       padding: 14px;
-      border-radius: var(--radius-lg);
-      background: var(--card);
-      border: 1px solid var(--border);
-      backdrop-filter: blur(var(--glass-blur));
+      border-radius: 10px;
+      background: #1b1d22;
+      border: 1.5px solid #2e323b;
+      box-shadow: 0 2px 0 #070809;
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
     .card.urgent {
-      border-color: rgba(245, 158, 11, 0.45);
-      background: rgba(245, 158, 11, 0.09);
+      border-color: rgba(255, 159, 10, 0.38);
+      background: rgba(255, 159, 10, 0.09);
     }
 
     .sec-head {
@@ -248,13 +235,11 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-3);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-2);
     }
-    .sec-meta { font-weight: 600; color: var(--text-2); text-transform: none; letter-spacing: 0; }
+    .sec-meta { font-weight: 500; color: var(--text-3); }
 
     .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .btn-row { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -263,54 +248,54 @@
     input[type="text"], input[type="url"], input[type="number"] {
       flex: 1;
       min-width: 0;
-      height: 38px;
+      height: 40px;
       padding: 0 12px;
       border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      background: rgba(0, 0, 0, 0.30);
+      border: 1px solid var(--border-strong);
+      background: rgba(0, 0, 0, 0.28);
       color: var(--text);
-      font-size: 13px;
+      font-size: 13.5px;
       outline: none;
     }
-    input:focus { border-color: var(--p1-border); }
+    input:focus { border-color: var(--sys-blue); }
 
     .btn {
-      height: 36px;
-      padding: 0 13px;
+      height: 40px;
+      padding: 0 14px;
       border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      background: var(--card-elev);
+      border: 1px solid var(--border-strong);
+      background: rgba(255, 255, 255, 0.06);
       color: var(--text);
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 12.5px;
+      font-weight: 500;
       cursor: pointer;
       white-space: nowrap;
     }
-    .btn.primary { background: var(--accent-solid); color: var(--accent-fg); border-color: transparent; font-weight: 700; }
-    .btn.allow { background: var(--green); color: #052014; border-color: transparent; font-weight: 700; }
-    .btn.deny { background: rgba(248, 113, 113, 0.14); border-color: rgba(248, 113, 113, 0.35); color: #fca5a5; }
-    .btn.sm { height: 30px; padding: 0 10px; font-size: 11.5px; border-radius: 8px; }
+    .btn.primary { background: var(--accent-solid); color: var(--accent-fg); border-color: transparent; font-weight: 600; }
+    .btn.allow { background: var(--green); color: #0b180e; border-color: transparent; font-weight: 600; }
+    .btn.deny { background: rgba(255, 69, 58, 0.14); border-color: rgba(255, 69, 58, 0.35); color: #ff8a80; }
+    .btn.sm { height: 34px; padding: 0 11px; font-size: 12px; border-radius: 7px; }
 
     .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 
     .tile {
-      min-height: 40px;
+      min-height: 44px;
       padding: 8px 10px;
       border-radius: var(--radius-md);
       border: 1px solid var(--border);
       background: var(--card-elev);
       color: var(--text);
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 12.5px;
+      font-weight: 500;
       cursor: pointer;
       text-align: center;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    .tile.on { background: var(--p1-soft); border-color: var(--p1-border); color: var(--text); }
+    .tile.on { background: rgba(255, 255, 255, 0.11); border-color: var(--border-strong); color: var(--text); }
 
     /* Music Strip */
     .music-strip {
@@ -402,25 +387,26 @@
     .pane { display: none; flex-direction: column; gap: 12px; }
     .pane.active { display: flex; }
 
-    /* Minimal Bottom Nav */
+    /* Bottom Navigation */
     .bottom-nav {
       position: relative;
       z-index: 10;
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
+      gap: 4px;
       padding: 8px 12px max(10px, env(safe-area-inset-bottom));
       border-top: 1px solid var(--border);
-      background: rgba(10, 12, 20, 0.88);
-      backdrop-filter: blur(28px);
+      background: rgba(28, 28, 30, 0.94);
+      backdrop-filter: blur(20px);
     }
     .nav-btn {
-      display: flex; flex-direction: column; align-items: center; gap: 2px;
-      padding: 7px 4px; border-radius: 12px;
+      min-height: 42px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+      padding: 6px 4px; border-radius: 9px;
       border: 1px solid transparent; background: transparent;
-      color: var(--text-2); font-size: 11px; font-weight: 600; cursor: pointer;
+      color: var(--text-2); font-size: 11.5px; font-weight: 500; cursor: pointer;
     }
-    .nav-btn.active { background: var(--p1-soft); border-color: var(--p1-border); color: var(--text); }
+    .nav-btn.active { background: rgba(255, 255, 255, 0.10); border-color: var(--border-strong); color: var(--text); font-weight: 600; }
 
     .toast-bar {
       position: fixed;
@@ -429,17 +415,17 @@
       bottom: 74px;
       z-index: 60;
       padding: 10px 14px;
-      border-radius: 12px;
-      background: rgba(12, 16, 26, 0.96);
-      border: 1px solid var(--p1-border);
+      border-radius: 10px;
+      background: rgba(28, 28, 30, 0.96);
+      border: 1px solid var(--border-strong);
       color: var(--text);
-      font-size: 12px;
+      font-size: 12.5px;
       text-align: center;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
     }
   </style>
 </head>
-<body data-theme="vesper">
+<body data-theme="spidey">
   <!-- Living Floating Moving Canvas Companion -->
   <canvas id="pet-canvas" aria-hidden="true"></canvas>
   <div id="pet-hitbox" title="Drag me to stretch or tap to play"></div>
@@ -452,7 +438,7 @@
         </div>
         <div style="min-width:0">
           <div class="brand-title">OV</div>
-          <div id="top-sub" class="brand-sub">Living Companion · Anywhere</div>
+          <div id="top-sub" class="brand-sub">Personal AI Companion</div>
         </div>
       </div>
       <div class="top-actions">
@@ -491,20 +477,20 @@
         </div>
       </section>
 
-      <!-- Companion Header & 4-Character Switcher -->
+      <!-- Robot Unit Header & 3-Robot Switcher -->
       <section class="hero">
         <div class="hero-top">
           <div class="hero-info">
-            <div id="hero-title" class="hero-title">Vesper</div>
-            <div id="hero-sub" class="hero-sub">Drag the floating companion to stretch · tap to interact</div>
+            <div id="hero-title" class="hero-title">KRONOS</div>
+            <div id="hero-sub" class="hero-sub">Drag the floating robot · tap to interact</div>
           </div>
           <div id="xp-pill" class="xp-pill">Lv 1 · 0 XP</div>
         </div>
-        <div class="char-grid">
-          <button class="char-btn active" data-char="vesper" type="button">Vesper</button>
-          <button class="char-btn" data-char="vector" type="button">Vector</button>
-          <button class="char-btn" data-char="core" type="button">Core</button>
-          <button class="char-btn" data-char="coral" type="button">Coral</button>
+        <div class="char-grid" style="grid-template-columns:repeat(4,1fr)">
+          <button class="char-btn active" data-char="kronos" type="button">KRONOS</button>
+          <button class="char-btn" data-char="aegis" type="button">AEGIS</button>
+          <button class="char-btn" data-char="optix" type="button">OPTIX</button>
+          <button class="char-btn" data-char="orbit" type="button">ORBIT</button>
         </div>
       </section>
 
@@ -665,10 +651,22 @@
     </main>
 
     <nav class="bottom-nav">
-      <button class="nav-btn active" data-tab="tasks" type="button"><span>✓</span><span>Tasks</span></button>
-      <button class="nav-btn" data-tab="agents" type="button"><span>⚡</span><span>Agents</span></button>
-      <button class="nav-btn" data-tab="ai" type="button"><span>✦</span><span>AI Chat</span></button>
-      <button class="nav-btn" data-tab="control" type="button"><span>◈</span><span>Studio</span></button>
+      <button class="nav-btn active" data-tab="tasks" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span>Tasks</span>
+      </button>
+      <button class="nav-btn" data-tab="agents" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Live</span>
+      </button>
+      <button class="nav-btn" data-tab="ai" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Chat</span>
+      </button>
+      <button class="nav-btn" data-tab="control" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Studio</span>
+      </button>
     </nav>
   </div>
 
@@ -682,45 +680,69 @@
       const STORE_PREFS = 'aura_mobile_prefs_v6';
 
       const SKIN_PALETTES = {
-        vesper: {
-          crimson:  { label: 'Crimson Volt', a: '#e11d48', b: '#38bdf8', eye: '#e0f2fe' },
-          obsidian: { label: 'Obsidian Flux', a: '#1e293b', b: '#f43f5e', eye: '#fda4af' },
-          eclipse:  { label: 'Eclipse Mono', a: '#18181b', b: '#e2e8f0', eye: '#ffffff' },
-          gilded:   { label: 'Gilded Pulse', a: '#9f1239', b: '#facc15', eye: '#fef08a' },
-          frost:    { label: 'Frost Prism', a: '#f8fafc', b: '#ec4899', eye: '#67e8f9' },
-          emerald:  { label: 'Emerald Drift', a: '#0f172a', b: '#10b981', eye: '#6ee7b7' },
+        spidey: {
+          classic:    { label: 'Crimson Volt', a: '#e11d48', b: '#06b6d4', eye: '#e0f2fe' },
+          miles:      { label: 'Obsidian Pulse', a: '#18181b', b: '#f43f5e', eye: '#fda4af' },
+          symbiote:   { label: 'Eclipse Carbon', a: '#0f172a', b: '#cbd5e1', eye: '#ffffff' },
+          ironspider: { label: 'Gilded Apex', a: '#9f1239', b: '#f59e0b', eye: '#38bdf8' },
+          ghost:      { label: 'Frost Prism', a: '#f8fafc', b: '#ec4899', eye: '#67e8f9' },
+          stealth:    { label: 'Neon Emerald', a: '#0f172a', b: '#10b981', eye: '#6ee7b7' },
         },
-        vector: {
-          valkyrie: { label: 'Valkyrie Gold', a: '#d97706', b: '#b91c1c', core: '#38bdf8' },
-          titanium: { label: 'Titanium Aero', a: '#cbd5e1', b: '#475569', core: '#22d3ee' },
-          cobalt:   { label: 'Cobalt Heavy', a: '#2563eb', b: '#334155', core: '#f43f5e' },
-          orbital:  { label: 'Orbital Pearl', a: '#f8fafc', b: '#f59e0b', core: '#38bdf8' },
-          stealth:  { label: 'Midnight Ion', a: '#0f172a', b: '#1d4ed8', core: '#38bdf8' },
+        ironman: {
+          mark85:     { label: 'Solaris Copper', a: '#c2410c', b: '#1e3a8a', core: '#38bdf8' },
+          silver:     { label: 'Titanium Aero', a: '#94a3b8', b: '#0f172a', core: '#22d3ee' },
+          warmachine: { label: 'Graphite Heavy', a: '#334155', b: '#64748b', core: '#f43f5e' },
+          starboost:  { label: 'Orbital Pearl', a: '#e2e8f0', b: '#d97706', core: '#06b6d4' },
+          stealth:    { label: 'Cobalt Ion', a: '#0f172a', b: '#2563eb', core: '#60a5fa' },
         },
-        core: {
-          solar:  { label: 'Solar Amber', a: '#fbbf24', b: '#f59e0b', core: '#fffbeb' },
-          aether: { label: 'Aether Cyan', a: '#38bdf8', b: '#0284c7', core: '#e0f2fe' },
-          matrix: { label: 'Emerald Matrix', a: '#34d399', b: '#059669', core: '#ecfdf5' },
-          nova:   { label: 'Crimson Nova', a: '#f87171', b: '#dc2626', core: '#fef2f2' },
-          pearl:  { label: 'Pearl Glass', a: '#f8fafc', b: '#94a3b8', core: '#ffffff' },
+        batman: {
+          darkknight: { label: 'Twilight Slate', a: '#1e293b', b: '#f5b938', eye: '#7dd3fc' },
+          beyond:     { label: 'Crimson Shade', a: '#09090b', b: '#ef4444', eye: '#fda4af' },
+          tactical:   { label: 'Steel Sentinel', a: '#334155', b: '#cbd5e1', eye: '#38bdf8' },
+          gotham:     { label: 'Midnight Indigo', a: '#1e1b4b', b: '#fbbf24', eye: '#a5b4fc' },
+          arctic:     { label: 'Frost Wraith', a: '#cbd5e1', b: '#0ea5e9', eye: '#38bdf8' },
         },
-        coral: {
-          tangerine: { label: 'Tangerine', a: '#f97316', b: '#fff7ed', fin: '#2dd4bf' },
-          sapphire:  { label: 'Sapphire Tide', a: '#2563eb', b: '#e0f2fe', fin: '#facc15' },
-          koi:       { label: 'Pearl Koi', a: '#f8fafc', b: '#ef4444', fin: '#fb923c' },
-          blossom:   { label: 'Blossom', a: '#ec4899', b: '#fdf2f8', fin: '#67e8f9' },
+        nemo: {
+          classic: { label: 'Reef Apricot', a: '#fb923c', b: '#fff7ed', fin: '#2dd4bf' },
+          dory:    { label: 'Sapphire Tide', a: '#2563eb', b: '#e0f2fe', fin: '#facc15' },
+          koi:     { label: 'Pearl Koi', a: '#f8fafc', b: '#f43f5e', fin: '#fbbf24' },
+          coral:   { label: 'Blossom Glow', a: '#f472b6', b: '#fef08a', fin: '#67e8f9' },
+        },
+        kronos: {
+          titanium: { label: 'Brushed Titanium', a: '#64748b', b: '#ff5500', eye: '#ff5500' },
+          obsidian: { label: 'Obsidian Slab', a: '#1e293b', b: '#38bdf8', eye: '#38bdf8' },
+          signal:   { label: 'Field Orange', a: '#ea580c', b: '#facc15', eye: '#facc15' },
+          brass:    { label: 'Lunar Brass', a: '#a16207', b: '#34d399', eye: '#34d399' },
+        },
+        aegis: {
+          titanium: { label: 'Alloy Grey', a: '#64748b', b: '#ff5500', eye: '#ff5500' },
+          obsidian: { label: 'Carbon Mech', a: '#1e293b', b: '#00d68f', eye: '#00d68f' },
+          signal:   { label: 'Signal Orange', a: '#ea580c', b: '#facc15', eye: '#facc15' },
+          brass:    { label: 'Industrial Gold', a: '#a16207', b: '#00d68f', eye: '#00d68f' },
+        },
+        optix: {
+          archive: { label: 'Archive Yellow', a: '#eab308', b: '#06b6d4', eye: '#06b6d4' },
+          lab:     { label: 'Lab Ceramic', a: '#cbd5e1', b: '#10b981', eye: '#10b981' },
+          olive:   { label: 'Field Recon', a: '#65a30d', b: '#f59e0b', eye: '#f59e0b' },
+          cobalt:  { label: 'Telemetry Blue', a: '#2563eb', b: '#38bdf8', eye: '#38bdf8' },
+        },
+        orbit: {
+          ceramic:  { label: 'Ceramic White', a: '#f1f5f9', b: '#00d68f', collar: '#00d68f' },
+          carbon:   { label: 'Stealth Carbon', a: '#27272a', b: '#ff5500', collar: '#ff5500' },
+          phosphor: { label: 'Phosphor CRT', a: '#065f46', b: '#34d399', collar: '#34d399' },
+          crimson:  { label: 'Core Override', a: '#be123c', b: '#fde047', collar: '#fde047' },
         },
       };
 
-      const DEFAULT_NAMES = { vesper: 'Vesper', vector: 'Vector', core: 'Core', coral: 'Coral' };
-      const LEGACY_CHAR = { spidey: 'vesper', ironman: 'vector', jarvis: 'core', nemo: 'coral' };
+      const DEFAULT_NAMES = { kronos: 'Kronos', aegis: 'Aegis', optix: 'Optix', orbit: 'Orbit', spidey: 'Kronos', ironman: 'Aegis', batman: 'Optix', nemo: 'Orbit' };
+      const LEGACY_CHAR = { spidey: 'kronos', vesper: 'kronos', ironman: 'aegis', vector: 'aegis', batman: 'optix', umbra: 'optix', core: 'optix', jarvis: 'optix', nemo: 'orbit', coral: 'orbit', capybara: 'kronos', capy: 'kronos', cat: 'optix', kitty: 'optix', dog: 'orbit', puppy: 'orbit' };
 
       let cfg = { url: '', token: '' };
       let prefs = {
-        character: 'vesper',
-        skins: { vesper: 'crimson', vector: 'valkyrie', core: 'solar', coral: 'tangerine' },
+        character: 'kronos',
+        skins: { kronos: 'titanium', aegis: 'titanium', optix: 'archive', orbit: 'ceramic' },
         names: { ...DEFAULT_NAMES },
-        glass: 42,
+        glass: 0,
         petVisible: true,
         thinkMode: false,
       };
@@ -729,7 +751,7 @@
         const p = JSON.parse(localStorage.getItem(STORE_PREFS) || '{}');
         if (p.character && LEGACY_CHAR[p.character]) p.character = LEGACY_CHAR[p.character];
         prefs = { ...prefs, ...p, skins: { ...prefs.skins, ...(p.skins || {}) }, names: { ...prefs.names, ...(p.names || {}) } };
-        if (!SKIN_PALETTES[prefs.character]) prefs.character = 'vesper';
+        if (!['kronos', 'aegis', 'optix', 'orbit'].includes(prefs.character)) prefs.character = 'kronos';
       } catch {}
 
       // Auto-pair from Pairing Link hash and scrub URL bar
@@ -790,14 +812,14 @@
 
       function drawBrandMark(ch) {
         const svg = document.getElementById('brand-svg');
-        if (ch === 'vector') {
-          svg.innerHTML = `<rect x="4" y="4" width="16" height="16" rx="6" fill="#d97706"/><rect x="7" y="8" width="10" height="6" rx="3" fill="#0c1424"/><rect x="8.5" y="10" width="2.8" height="1.8" rx="0.8" fill="#38bdf8"/><rect x="12.7" y="10" width="2.8" height="1.8" rx="0.8" fill="#38bdf8"/>`;
-        } else if (ch === 'core') {
-          svg.innerHTML = `<circle cx="12" cy="12" r="8" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="6 3"/><circle cx="12" cy="12" r="4" fill="#fbbf24" opacity="0.85"/>`;
-        } else if (ch === 'coral') {
-          svg.innerHTML = `<path d="M7 12C5 9 3 9.2 3 12C3 14.8 5 15 7 12Z" fill="#2dd4bf"/><ellipse cx="14" cy="12" rx="6.5" ry="4.4" fill="#f97316"/><circle cx="13" cy="10.8" r="1.7" fill="#fff7ed" opacity="0.85"/>`;
+        if (ch === 'ironman') {
+          svg.innerHTML = `<polygon points="8,4 16,4 20,12 17,20 7,20 4,12" fill="#c2410c"/><rect x="7" y="9" width="10" height="5" rx="2" fill="#0b1120"/><rect x="8.5" y="10.5" width="2.8" height="1.8" rx="0.8" fill="#38bdf8"/><rect x="12.7" y="10.5" width="2.8" height="1.8" rx="0.8" fill="#38bdf8"/>`;
+        } else if (ch === 'batman') {
+          svg.innerHTML = `<polygon points="4,11 8,7 16,7 20,11 17,18 12,21 7,18" fill="#1e293b" stroke="#f5b938" stroke-width="1.2"/><rect x="7.5" y="11" width="9" height="4" rx="1.8" fill="#090d16"/><rect x="8.5" y="12.2" width="2.6" height="1.4" fill="#7dd3fc"/><rect x="12.9" y="12.2" width="2.6" height="1.4" fill="#7dd3fc"/>`;
+        } else if (ch === 'nemo') {
+          svg.innerHTML = `<path d="M7 12C5 9 3 9.2 3 12C3 14.8 5 15 7 12Z" fill="#2dd4bf"/><ellipse cx="14" cy="12" rx="6.5" ry="4.4" fill="#fb923c"/><circle cx="12.5" cy="10.8" r="1.6" fill="#fff7ed" opacity="0.88"/>`;
         } else {
-          svg.innerHTML = `<circle cx="12" cy="12" r="8" fill="#e11d48"/><rect x="6.5" y="8.5" width="11" height="6" rx="3" fill="#0b1120" stroke="#38bdf8" stroke-width="1"/><circle cx="9.8" cy="11.5" r="1.4" fill="#e0f2fe"/><circle cx="14.2" cy="11.5" r="1.4" fill="#e0f2fe"/>`;
+          svg.innerHTML = `<circle cx="12" cy="12" r="8" fill="#e11d48"/><rect x="6.5" y="8.5" width="11" height="6" rx="3" fill="#0b1120" stroke="#06b6d4" stroke-width="1"/><circle cx="9.8" cy="11.5" r="1.4" fill="#e0f2fe"/><circle cx="14.2" cy="11.5" r="1.4" fill="#e0f2fe"/>`;
         }
       }
 
@@ -823,7 +845,7 @@
       }
 
       // ============================================================
-      // INTERACTIVE MOVING HTML5 CANVAS PET ENGINE (Vesper/Vector/Core/Coral)
+      // INTERACTIVE MOVING HTML5 CANVAS PET ENGINE (Spider-Man/IronMan/Batman/Nemo)
       // ============================================================
       const canvas = document.getElementById('pet-canvas');
       const ctx = canvas.getContext('2d');
@@ -909,13 +931,12 @@
       hitbox.addEventListener('pointerup', endDrag);
       hitbox.addEventListener('pointercancel', endDrag);
 
-      function drawMobileVesper(c, pal, t, dancing) {
-        // Luminous kinetic tether cable when swinging
+      function drawMobileSpidey(c, pal, t, dancing) {
         if (!pet.dragging) {
           c.save();
           c.strokeStyle = pal.b;
-          c.globalAlpha = 0.65;
-          c.lineWidth = 1.3;
+          c.globalAlpha = 0.72;
+          c.lineWidth = 1.4;
           c.beginPath();
           c.moveTo(0, -14);
           c.quadraticCurveTo(pet.facing * 26, -64, pet.facing * 52, -110);
@@ -926,58 +947,41 @@
         c.translate(0, bob);
         c.scale(pet.facing, 1);
 
-        // Trailing kinetic scarf
         c.fillStyle = pal.b;
         c.beginPath();
         c.moveTo(-6, 7); c.quadraticCurveTo(-18, 4 + Math.sin(t * 7) * 4, -24, 11); c.quadraticCurveTo(-16, 15, -5, 12);
         c.fill();
 
-        // Compact athletic jacket torso + OV chevron
         c.fillStyle = pal.a;
-        c.beginPath();
-        c.roundRect(-10, 7, 20, 15, 7);
-        c.fill();
-        c.strokeStyle = pal.b;
-        c.lineWidth = 1.6;
-        c.beginPath();
-        c.moveTo(-4, 12); c.lineTo(0, 16); c.lineTo(4, 12);
-        c.stroke();
+        c.beginPath(); c.roundRect(-10, 7, 20, 15, 7); c.fill();
+        c.strokeStyle = pal.b; c.lineWidth = 1.6;
+        c.beginPath(); c.moveTo(-4, 12); c.lineTo(0, 16); c.lineTo(4, 12); c.stroke();
 
-        // Rounded futuristic hood dome
         c.fillStyle = pal.a;
-        c.beginPath();
-        c.ellipse(0, -5, 16, 15, 0, 0, Math.PI * 2);
-        c.fill();
+        c.beginPath(); c.ellipse(0, -5, 16, 15, 0, 0, Math.PI * 2); c.fill();
 
-        // Curved dark-glass visor + glowing LED oval eyes
         c.fillStyle = '#0b1120';
-        c.beginPath();
-        c.roundRect(-12, -11, 24, 11.5, 5.5);
-        c.fill();
-        c.strokeStyle = pal.b;
-        c.lineWidth = 1.1;
-        c.stroke();
+        c.beginPath(); c.roundRect(-12, -11, 24, 11, 5.5); c.fill();
+        c.strokeStyle = pal.b; c.lineWidth = 1.1; c.stroke();
 
         c.fillStyle = pal.eye;
         c.beginPath();
-        c.ellipse(-4.8, -5.2, 2.7, 3.3, 0, 0, Math.PI * 2);
-        c.ellipse(4.8, -5.2, 2.7, 3.3, 0, 0, Math.PI * 2);
+        c.ellipse(-4.8, -5.2, 2.7, 3.2, 0, 0, Math.PI * 2);
+        c.ellipse(4.8, -5.2, 2.7, 3.2, 0, 0, Math.PI * 2);
         c.fill();
       }
 
-      function drawMobileVector(c, pal, t, dancing) {
+      function drawMobileIronMan(c, pal, t, dancing) {
         const hover = dancing ? Math.sin(t * 13) * 5 : Math.sin(t * 4.2) * 3;
         c.translate(0, hover);
         c.rotate((pet.vx * 0.004) + (dancing ? Math.sin(t * 10) * 0.14 : 0));
 
-        // Swept aero-wings
         c.fillStyle = pal.b;
         c.beginPath();
-        c.moveTo(-10, 7); c.lineTo(-24, -2); c.lineTo(-20, 12); c.lineTo(-10, 13); c.closePath();
-        c.moveTo(10, 7); c.lineTo(24, -2); c.lineTo(20, 12); c.lineTo(10, 13); c.closePath();
+        c.moveTo(-10, 7); c.lineTo(-23, -2); c.lineTo(-19, 12); c.lineTo(-10, 13); c.closePath();
+        c.moveTo(10, 7); c.lineTo(23, -2); c.lineTo(19, 12); c.lineTo(10, 13); c.closePath();
         c.fill();
 
-        // Dual ion thruster plumes
         const flameH = 10 + Math.sin(t * 28) * 3.5;
         [-6, 6].forEach((bx) => {
           const g = c.createLinearGradient(bx, 20, bx, 20 + flameH);
@@ -985,137 +989,177 @@
           g.addColorStop(0.45, pal.core);
           g.addColorStop(1, 'rgba(56, 189, 248, 0)');
           c.fillStyle = g;
-          c.beginPath();
-          c.moveTo(bx - 3, 20); c.lineTo(bx + 3, 20); c.lineTo(bx, 20 + flameH); c.closePath();
-          c.fill();
+          c.beginPath(); c.moveTo(bx - 3, 20); c.lineTo(bx + 3, 20); c.lineTo(bx, 20 + flameH); c.closePath(); c.fill();
         });
 
-        // Compact chassis + hexagonal gyro core
+        c.fillStyle = pal.a;
+        c.beginPath(); c.roundRect(-11, 6, 22, 15, 6); c.fill();
+        c.fillStyle = pal.core;
+        c.beginPath(); c.moveTo(0, 8); c.lineTo(4.2, 12.5); c.lineTo(0, 17); c.lineTo(-4.2, 12.5); c.closePath(); c.fill();
+
         c.fillStyle = pal.a;
         c.beginPath();
-        c.roundRect(-11, 6, 22, 15, 6);
-        c.fill();
-        c.save();
-        c.shadowColor = pal.core;
-        c.shadowBlur = 9;
-        c.fillStyle = '#ffffff';
-        c.strokeStyle = pal.core;
-        c.lineWidth = 1.5;
+        c.moveTo(-11, -20); c.lineTo(11, -20); c.lineTo(15, -10); c.lineTo(12, 3); c.lineTo(-12, 3); c.lineTo(-15, -10);
+        c.closePath(); c.fill();
+        c.fillStyle = '#0b1120';
+        c.beginPath(); c.roundRect(-11, -14, 22, 8, 4); c.fill();
+        c.fillRect(-2.2, -7, 4.4, 6);
+
+        c.fillStyle = pal.core;
         c.beginPath();
-        c.arc(0, 12, 3.2, 0, Math.PI * 2);
+        c.roundRect(-7.5, -11.5, 5.5, 2.8, 1.3);
+        c.roundRect(2, -11.5, 5.5, 2.8, 1.3);
+        c.fill();
+      }
+
+      function drawMobileBatman(c, pal, t, dancing) {
+        const bob = dancing ? Math.sin(t * 12) * 4 : Math.sin(t * 3.0) * 2.5;
+        c.translate(0, bob);
+        c.rotate(pet.vx * 0.003);
+
+        // Twin-wing angular stealth glider cloak
+        const spread = 25 + Math.sin(t * 8) * 2.5;
+        c.fillStyle = '#0b1120';
+        c.strokeStyle = pal.eye;
+        c.lineWidth = 0.8;
+        c.beginPath();
+        c.moveTo(-8, 4); c.lineTo(-spread, 7); c.lineTo(-spread * 0.78, 22); c.lineTo(-9, 23); c.closePath();
+        c.moveTo(8, 4); c.lineTo(spread, 7); c.lineTo(spread * 0.78, 22); c.lineTo(9, 23); c.closePath();
         c.fill(); c.stroke();
-        c.restore();
 
-        // Rounded scout helmet + smooth panoramic visor
+        c.fillStyle = pal.a;
+        c.beginPath(); c.roundRect(-10, 6, 20, 15, 6); c.fill();
+        c.fillStyle = pal.b;
+        c.fillRect(-8, 16, 4, 2.5); c.fillRect(-2, 16, 4, 2.5); c.fillRect(4, 16, 4, 2.5);
+
+        // Swept-crest night-visor helm
         c.fillStyle = pal.a;
         c.beginPath();
-        c.roundRect(-14, -20, 28, 25, 11.5);
+        c.moveTo(-10, -14); c.lineTo(-19, -11); c.lineTo(-14, -3);
+        c.moveTo(10, -14); c.lineTo(19, -11); c.lineTo(14, -3);
         c.fill();
-        c.fillStyle = '#0c1424';
-        c.beginPath();
-        c.roundRect(-11, -14.5, 22, 13, 6.5);
-        c.fill();
+        c.beginPath(); c.ellipse(0, -6, 15, 14, 0, 0, Math.PI * 2); c.fill();
 
-        // Glowing digital drone eyes
-        c.save();
-        c.shadowColor = pal.core;
-        c.shadowBlur = 7;
-        c.fillStyle = pal.core;
+        c.fillStyle = '#090d16';
+        c.beginPath(); c.roundRect(-11, -11, 22, 8.5, 4); c.fill();
+        c.fillStyle = pal.eye;
         c.beginPath();
-        c.roundRect(-7.5, -9.5, 5.5, 3.2, 1.5);
-        c.roundRect(2, -9.5, 5.5, 3.2, 1.5);
-        c.fill();
-        c.restore();
-      }
-
-      function drawMobileCore(c, pal, t, dancing) {
-        const pulse = 1 + Math.sin(t * (dancing ? 10 : 3.2)) * 0.06;
-        if (Date.now() < pet.pulseUntil) {
-          const prog = 1 - (pet.pulseUntil - Date.now()) / 900;
-          c.strokeStyle = pal.a;
-          c.globalAlpha = Math.max(0, 0.7 * (1 - prog));
-          c.lineWidth = 1.6;
-          c.beginPath();
-          c.arc(0, 0, 20 + prog * 28, 0, Math.PI * 2);
-          c.stroke();
-          c.globalAlpha = 1;
-        }
-        const halo = c.createRadialGradient(0, 0, 3, 0, 0, 26 * pulse);
-        halo.addColorStop(0, pal.core);
-        halo.addColorStop(0.45, pal.a + '88');
-        halo.addColorStop(1, 'rgba(0,0,0,0)');
-        c.fillStyle = halo;
-        c.beginPath();
-        c.arc(0, 0, 26 * pulse, 0, Math.PI * 2);
-        c.fill();
-
-        c.save();
-        c.rotate(t * 1.1);
-        c.strokeStyle = pal.a;
-        c.lineWidth = 1.5;
-        c.setLineDash([12, 6, 4, 6]);
-        c.beginPath();
-        c.arc(0, 0, 20, 0, Math.PI * 2);
-        c.stroke();
-        c.restore();
-
-        c.save();
-        c.rotate(-t * 1.7);
-        c.strokeStyle = pal.b;
-        c.lineWidth = 1.2;
-        c.beginPath();
-        c.ellipse(0, 0, 15, 7, 0.4, 0, Math.PI * 2);
-        c.stroke();
-        c.beginPath();
-        c.ellipse(0, 0, 15, 7, -0.7, 0, Math.PI * 2);
-        c.stroke();
-        c.restore();
-
-        c.fillStyle = pal.core;
-        c.beginPath();
-        c.arc(0, 0, 5.5 * pulse, 0, Math.PI * 2);
+        c.moveTo(-8.5, -8.2); c.lineTo(-2.5, -6.8); c.lineTo(-3, -5.2); c.lineTo(-8, -6); c.closePath();
+        c.moveTo(8.5, -8.2); c.lineTo(2.5, -6.8); c.lineTo(3, -5.2); c.lineTo(8, -6); c.closePath();
         c.fill();
       }
 
-      function drawMobileCoral(c, pal, t, dancing) {
+      function drawMobileNemo(c, pal, t, dancing) {
         c.scale(pet.facing, 1);
-        const wag = Math.sin(t * (dancing ? 16 : 7.5)) * 4;
-
-        // Flowing translucent ribbon tail fin
+        const wag = Math.sin(t * (dancing ? 16 : 8)) * 4;
         c.fillStyle = pal.fin;
         c.beginPath();
         c.moveTo(-14, 0);
-        c.quadraticCurveTo(-25, -12 + wag, -26, wag * 0.4);
-        c.quadraticCurveTo(-25, 12 + wag, -14, 0);
+        c.quadraticCurveTo(-25, -13 + wag, -28, -7 + wag);
+        c.quadraticCurveTo(-23, wag * 0.4, -28, 7 + wag);
+        c.quadraticCurveTo(-25, 13 + wag, -14, 0);
         c.fill();
 
-        // Smooth reef body + organic koi droplet spots
         c.fillStyle = pal.a;
-        c.beginPath();
-        c.ellipse(0, 0, 17, 11.5, 0, 0, Math.PI * 2);
-        c.fill();
+        c.beginPath(); c.ellipse(0, 0, 17, 11.5, 0, 0, Math.PI * 2); c.fill();
 
         c.fillStyle = pal.b;
         c.globalAlpha = 0.85;
         c.beginPath();
-        c.ellipse(-4, -3, 5, 3.2, -0.3, 0, Math.PI * 2);
-        c.ellipse(3, -5, 3, 2, 0.2, 0, Math.PI * 2);
+        c.ellipse(-4, -3.2, 4.8, 2.8, -0.25, 0, Math.PI * 2);
+        c.ellipse(3, -5, 2.6, 1.7, 0.2, 0, Math.PI * 2);
         c.fill();
         c.globalAlpha = 1;
 
-        // Cute glossy eye
         c.fillStyle = '#ffffff';
-        c.beginPath();
-        c.arc(9, -2.5, 4.2, 0, Math.PI * 2);
-        c.fill();
+        c.beginPath(); c.arc(9, -2.5, 4.2, 0, Math.PI * 2); c.fill();
         c.fillStyle = '#0f172a';
-        c.beginPath();
-        c.arc(10.2, -2.5, 2.3, 0, Math.PI * 2);
-        c.fill();
-        c.fillStyle = '#ffffff';
-        c.beginPath();
-        c.arc(11, -3.5, 0.9, 0, Math.PI * 2);
-        c.fill();
+        c.beginPath(); c.arc(10.2, -2.5, 2.3, 0, Math.PI * 2); c.fill();
+      }
+
+      function drawMobileKronos(c, pal, t) {
+        c.scale(pet.facing, 1);
+        const offsets = [-11, -3.5, 3.5, 11];
+        for (let i = 0; i < 4; i++) {
+          const lift = Math.cos(t * 7 + i * 1.5) * 3;
+          c.fillStyle = pal.a;
+          c.beginPath(); c.roundRect(offsets[i] - 3, -18 + lift, 6, 34, 1.5); c.fill();
+        }
+        c.fillStyle = '#090d16';
+        c.fillRect(-6, -13, 12, 9);
+        c.fillStyle = pal.b;
+        c.fillRect(-4, -10, 3, 4); c.fillRect(1, -11, 3, 5);
+      }
+
+      function drawMobileOptix(c, pal, t) {
+        c.scale(pet.facing, 1);
+        c.fillStyle = '#18181b';
+        c.beginPath(); c.roundRect(-14, 9, 28, 8, 3); c.fill();
+        c.fillStyle = pal.a;
+        c.beginPath(); c.roundRect(-11, -5, 22, 15, 3); c.fill();
+        c.fillStyle = '#e2e8f0';
+        c.beginPath(); c.roundRect(-9, -17, 9, 9, 4); c.roundRect(1, -17, 9, 9, 4); c.fill();
+        c.fillStyle = pal.eye;
+        c.beginPath(); c.arc(-4.5, -12.5, 2.2, 0, Math.PI * 2); c.arc(5.5, -12.5, 2.2, 0, Math.PI * 2); c.fill();
+      }
+
+      function drawMobileOrbit(c, pal, t) {
+        c.scale(pet.facing, 1);
+        const bob = Math.sin(t * 4) * 3.5;
+        c.translate(0, bob);
+        c.fillStyle = pal.a;
+        c.beginPath(); c.roundRect(-12, -16, 24, 30, 11); c.fill();
+        c.fillStyle = '#090d16';
+        c.beginPath(); c.roundRect(-9, -11, 18, 10, 5); c.fill();
+        c.fillStyle = pal.b;
+        c.beginPath(); c.arc(-3.5, -6, 2.2, 0, Math.PI * 2); c.arc(4.5, -6, 2.2, 0, Math.PI * 2); c.fill();
+      }
+
+      function drawMobileAccessories(c, t, dancing, working) {
+        if (!dancing && !working) return;
+        if (dancing) {
+          c.save();
+          c.strokeStyle = '#131417';
+          c.lineWidth = 3.2;
+          c.beginPath();
+          c.arc(0, -10, 16, Math.PI * 1.08, Math.PI * 1.92);
+          c.stroke();
+          c.strokeStyle = '#ff5500';
+          c.lineWidth = 1.4;
+          c.beginPath();
+          c.arc(0, -10, 16, Math.PI * 1.18, Math.PI * 1.82);
+          c.stroke();
+          for (const side of [-1, 1]) {
+            c.fillStyle = '#18191d';
+            c.strokeStyle = '#f2efe9';
+            c.lineWidth = 1;
+            c.beginPath();
+            c.roundRect(side * 16 - 3, -12, 6, 11, 2.5);
+            c.fill();
+            c.stroke();
+            c.fillStyle = working ? '#00d68f' : '#ff5500';
+            c.fillRect(side * 16 - 1, -8, 2, 5);
+          }
+          c.restore();
+        }
+        if (working) {
+          c.save();
+          c.translate(pet.facing * 20, 4 + Math.sin(t * 5) * 1.5);
+          c.scale(pet.facing, 1);
+          c.fillStyle = '#131417';
+          c.strokeStyle = '#00d68f';
+          c.lineWidth = 1.2;
+          c.beginPath();
+          c.roundRect(-2, -9, 16, 18, 2.5);
+          c.fill();
+          c.stroke();
+          const phase = Math.floor(t * 4);
+          for (let i = 0; i < 4; i++) {
+            c.fillStyle = i === (phase % 4) ? '#ff5500' : '#00d68f';
+            c.fillRect(1, -6 + i * 3.2, 10 - (i % 2) * 3, 1.4);
+          }
+          c.restore();
+        }
       }
 
       let lastFrame = performance.now();
@@ -1125,13 +1169,13 @@
         pet.t += dt;
 
         if (prefs.petVisible) {
-          const ch = SKIN_PALETTES[prefs.character] ? prefs.character : 'vesper';
+          const ch = SKIN_PALETTES[prefs.character] ? prefs.character : 'spidey';
           const skinKey = prefs.skins[ch] || Object.keys(SKIN_PALETTES[ch])[0];
           const pal = SKIN_PALETTES[ch][skinKey] || Object.values(SKIN_PALETTES[ch])[0];
           const dancing = Date.now() < pet.danceUntil || Boolean(live?.music?.isPlaying);
+          const working = Date.now() < pet.pulseUntil || Boolean((live?.agents || []).some((a) => a.status === 'running')) || Boolean(live?.timer && live.timer.endAt > Date.now());
 
           if (!pet.dragging) {
-            // Spring recoil for elastic squish
             const k = 150;
             const d = 14;
             pet.svx += (-k * pet.stretchX - d * pet.svx) * dt;
@@ -1139,14 +1183,13 @@
             pet.stretchX += pet.svx * dt;
             pet.stretchY += pet.svy * dt;
 
-            // Gentle roaming navigation
             const dx = pet.targetX - pet.x;
             const dy = pet.targetY - pet.y;
             const dist = Math.hypot(dx, dy);
             if (dist < 22) {
               pickNewTarget();
             } else {
-              const spd = ch === 'vector' ? 68 : ch === 'core' ? 42 : 52;
+              const spd = ch === 'ironman' ? 68 : ch === 'batman' ? 56 : 52;
               pet.vx += ((dx / dist) * spd - pet.vx) * Math.min(1, dt * 2.4);
               pet.vy += ((dy / dist) * spd - pet.vy) * Math.min(1, dt * 2.4);
               pet.x += pet.vx * dt;
@@ -1155,14 +1198,11 @@
             }
           }
 
-          // Keep hitbox pinned onto pet
           hitbox.style.left = `${Math.round(pet.x - 42)}px`;
           hitbox.style.top = `${Math.round(pet.y - 42)}px`;
-
           ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-          // Occasional Coral bubbles
-          if (ch === 'coral' && Math.random() < 0.05) {
+          if (ch === 'nemo' && Math.random() < 0.05) {
             pet.bubbles.push({ x: pet.x + pet.facing * 14, y: pet.y - 8, r: 2 + Math.random() * 2.4, a: 0.7 });
           }
           for (let i = pet.bubbles.length - 1; i >= 0; i--) {
@@ -1172,29 +1212,28 @@
             if (b.a <= 0) { pet.bubbles.splice(i, 1); continue; }
             ctx.strokeStyle = `rgba(186, 230, 253, ${b.a.toFixed(2)})`;
             ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-            ctx.stroke();
+            ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.stroke();
           }
 
           ctx.save();
           ctx.translate(pet.x, pet.y);
-
-          // Elastic squish & stretch deformation matrix
           const mag = Math.min(24, Math.hypot(pet.stretchX, pet.stretchY));
           if (mag > 0.6) {
             const ang = Math.atan2(pet.stretchY, pet.stretchX);
             const sx = 1 + mag * 0.015;
             const sy = 1 / Math.sqrt(sx);
-            ctx.rotate(ang);
-            ctx.scale(sx, sy);
-            ctx.rotate(-ang);
+            ctx.rotate(ang); ctx.scale(sx, sy); ctx.rotate(-ang);
           }
 
-          if (ch === 'vector') drawMobileVector(ctx, pal, pet.t, dancing);
-          else if (ch === 'core') drawMobileCore(ctx, pal, pet.t, dancing);
-          else if (ch === 'coral') drawMobileCoral(ctx, pal, pet.t, dancing);
-          else drawMobileVesper(ctx, pal, pet.t, dancing);
+          if (ch === 'ironman') drawMobileIronMan(ctx, pal, pet.t, dancing);
+          else if (ch === 'batman') drawMobileBatman(ctx, pal, pet.t, dancing);
+          else if (ch === 'nemo') drawMobileNemo(ctx, pal, pet.t, dancing);
+          else if (ch === 'kronos') drawMobileKronos(ctx, pal, pet.t, dancing);
+          else if (ch === 'optix') drawMobileOptix(ctx, pal, pet.t, dancing);
+          else if (ch === 'orbit') drawMobileOrbit(ctx, pal, pet.t, dancing);
+          else drawMobileSpidey(ctx, pal, pet.t, dancing);
+
+          drawMobileAccessories(ctx, pet.t, dancing, working);
 
           ctx.restore();
         }
@@ -1206,7 +1245,7 @@
       // UI RENDERING
       // ============================================================
       function render() {
-        const ch = SKIN_PALETTES[prefs.character] ? prefs.character : 'vesper';
+        const ch = SKIN_PALETTES[prefs.character] ? prefs.character : 'spidey';
         document.body.dataset.theme = ch;
         drawBrandMark(ch);
         applyGlassTransparency(prefs.glass);

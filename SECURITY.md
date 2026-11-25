@@ -4,7 +4,8 @@
 
 | Version | Security fixes |
 |---|---|
-| `6.x` | Best effort for the current active development line |
+| `8.x` | Active current release line (OV v8.0 Robot OS & Local Whisper Voice Agent) |
+| `6.x` / `7.x` | Legacy lines — upgrade to `8.0.0` |
 | Older versions | Not guaranteed |
 
 **OV** is a local-first Windows desktop companion that observes sensitive local desktop context (notifications, clipboard snippets, active windows, local coding-agent activity, wireless radio state) and, when explicitly enabled by the user, exposes an authenticated paired mobile remote. Security reports are treated seriously.

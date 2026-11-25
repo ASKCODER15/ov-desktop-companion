@@ -1,1183 +1,1013 @@
 /**
- * OV Original 4-Companion HTML5 Canvas Renderer:
- *  1) Vesper — Futuristic Hooded Acrobat Bot (kinetic tether swing, 360° flips, inverted hang, elastic squish)
- *  2) Vector — Orbital Aero-Mech Scout (curved domevisor, swept wings, hexagonal gyro core, twin ion thrusters)
- *  3) Core   — Holographic AI Sphere (translucent orb, concentric telemetry rings, neural lattice, sonar ripples)
- *  4) Coral  — Bioluminescent Reef Companion (translucent ribbon fins, organic reef markings, rising bubbles)
+ * OV 60 FPS Industrial Robot Companion Canvas Engine
+ * Inspired by Living.ai EMO, Anki Vector, Energize Lab Eilik & Teenage Engineering Hardware.
  *
- * 100% original procedural artwork & 20 original skins — zero third-party character assets.
+ * Units:
+ * 1. KRONOS — Heavy Task Monolith Mech (Bipedal servo legs, rotary chest dial, OLED face & waveform mouth)
+ * 2. OPTIX  — Deep Research Rover (Caterpillar treads, articulated neck mast, dual capsule optics & synth mouth)
+ * 3. ORBIT  — Autonomous Synth Pod (Zero-G levitating capsule, magnetic side pods, curved OLED shield & speaking mouth)
+ *
+ * Features:
+ * - Zero muddy gradients & zero system emojis (100% flat cel-shaded vector hardware plates)
+ * - Live Top-of-Head Agent Timer Badge ([ANTIGRAVITY // MM:SS] + START HH:MM)
+ * - Animated Moving Mouth synchronized with Neural TTS & Chat replies
+ * - Hardware Studio Headphones (Music/Video), Task Data Slate (Agent Working), and Simultaneous Multitask Mode
  */
 (function () {
   const api = window.petFishAPI;
   const canvas = document.getElementById('fish-canvas');
   const ctx = canvas.getContext('2d');
-  const badge = document.getElementById('fish-badge');
-  const badgeText = document.getElementById('fish-badge-text');
 
-  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
-  function lerp(a, b, t) { return a + (b - a) * t; }
+  const W = 204;
+  const H = 196;
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = W * DPR;
+  canvas.height = H * DPR;
+  canvas.style.width = `${W}px`;
+  canvas.style.height = `${H}px`;
+  ctx.scale(DPR, DPR);
 
-  let dpr = Math.min(window.devicePixelRatio || 1, 2);
-  let W = window.innerWidth;
-  let H = window.innerHeight;
+  const KRONOS_SKINS = {
+    titanium: { body: '#8b95a5', bodyHi: '#cbd5e1', bodyShade: '#475569', dark: '#131519', screen: '#07080a', led: '#ff5500', accent: '#f2efe9' },
+    obsidian: { body: '#22262e', bodyHi: '#3f4654', bodyShade: '#111318', dark: '#090a0d', screen: '#050608', led: '#00d68f', accent: '#e2e8f0' },
+    signal:   { body: '#ff5500', bodyHi: '#ff7833', bodyShade: '#b83b00', dark: '#141518', screen: '#07080a', led: '#facc15', accent: '#f2efe9' },
+    brass:    { body: '#c28e26', bodyHi: '#e6b84d', bodyShade: '#7d5911', dark: '#141518', screen: '#07080a', led: '#00d68f', accent: '#f2efe9' },
+  };
 
-  function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    W = window.innerWidth;
-    H = window.innerHeight;
-    canvas.width = Math.round(W * dpr);
-    canvas.height = Math.round(H * dpr);
-  }
-  resize();
-  window.addEventListener('resize', resize);
+  const OPTIX_SKINS = {
+    archive: { body: '#eab308', bodyHi: '#fde047', bodyShade: '#a16207', head: '#f2efe9', screen: '#07080a', led: '#00d68f', tread: '#181a20' },
+    lab:     { body: '#d8dee9', bodyHi: '#f8fafc', bodyShade: '#94a3b8', head: '#ffffff', screen: '#07080a', led: '#ff5500', tread: '#181a20' },
+    olive:   { body: '#65a30d', bodyHi: '#a3e635', bodyShade: '#3f6212', head: '#e2e8f0', screen: '#07080a', led: '#facc15', tread: '#14161b' },
+    cobalt:  { body: '#2563eb', bodyHi: '#60a5fa', bodyShade: '#1e3a8a', head: '#e2e8f0', screen: '#07080a', led: '#38bdf8', tread: '#14161b' },
+  };
+
+  const ORBIT_SKINS = {
+    ceramic:  { body: '#e6e4de', bodyHi: '#ffffff', bodyShade: '#b8b4aa', dark: '#15171c', screen: '#07080a', led: '#00d68f', ring: '#ff5500' },
+    carbon:   { body: '#23262e', bodyHi: '#3b404d', bodyShade: '#13151a', dark: '#090a0d', screen: '#050608', led: '#ff5500', ring: '#00d68f' },
+    phosphor: { body: '#0d4a3a', bodyHi: '#157359', bodyShade: '#062920', dark: '#090b0e', screen: '#050806', led: '#34d399', ring: '#a7f3d0' },
+    crimson:  { body: '#be123c', bodyHi: '#f43f5e', bodyShade: '#881337', dark: '#111216', screen: '#07080a', led: '#facc15', ring: '#fda4af' },
+  };
 
   const st = {
-    character: 'vesper', // 'vesper' | 'vector' | 'core' | 'coral'
-    skin: 'crimson',
+    character: 'kronos',
+    movementArchetype: 'stride',
+    customHero: null,
+    skin: 'titanium',
     ageGroup: '15-30',
-    vx: -65,
+    vx: 0,
     vy: 0,
-    speed: 65,
-    facing: -1,
-    facingScale: -1,
+    speed: 0,
+    facing: 1,
     pitch: 0,
     mode: 'swim',
-    scale: 1.08,
-    acrobatState: 'swinging',
-    swingCycle: 0,
+    animalState: 'walking',
     stretchX: 0,
     stretchY: 0,
     squishMag: 0,
+    scale: 1.06,
     hudOpen: false,
     isDragging: false,
     isThinking: false,
-    cursorLocalX: 40,
-    cursorLocalY: 80,
     approvals: 0,
     unread: 0,
     unreadWA: 0,
     musicPlaying: false,
-    musicTitle: '',
-    hovered: false,
+    danceModeEnabled: false,
+    isListening: false,
+    agentWorking: false,
+    activeTaskLabel: '',
+    activeAgentName: '',
+    activeAgentWhat: '',
+    activeAgentStartStr: '',
+    agentElapsedSec: 0,
+    isSpeaking: false,
+    speechSnippet: '',
   };
 
-  // 20 Original OV Skin Palettes across 4 Original Companions
-  const VESPER_SKINS = {
-    crimson:  { hoodHi: '#F43F5E', hoodMid: '#E11D48', hoodDeep: '#881337', trim: '#38BDF8', visor: '#0B1120', eye: '#E0F2FE', tether: '#7DD3FC', scarf: '#FB7185' },
-    obsidian: { hoodHi: '#334155', hoodMid: '#1E293B', hoodDeep: '#090D16', trim: '#F43F5E', visor: '#050811', eye: '#FDA4AF', tether: '#FB7185', scarf: '#E11D48' },
-    eclipse:  { hoodHi: '#475569', hoodMid: '#18181B', hoodDeep: '#09090B', trim: '#E2E8F0', visor: '#020617', eye: '#FFFFFF', tether: '#E2E8F0', scarf: '#94A3B8' },
-    gilded:   { hoodHi: '#E11D48', hoodMid: '#9F1239', hoodDeep: '#4C0519', trim: '#FACC15', visor: '#0F172A', eye: '#FEF08A', tether: '#FDE047', scarf: '#F59E0B' },
-    frost:    { hoodHi: '#F8FAFC', hoodMid: '#E2E8F0', hoodDeep: '#94A3B8', trim: '#EC4899', visor: '#0F172A', eye: '#67E8F9', tether: '#F472B6', scarf: '#38BDF8' },
-    emerald:  { hoodHi: '#1E293B', hoodMid: '#0F172A', hoodDeep: '#020617', trim: '#10B981', visor: '#022C22', eye: '#6EE7B7', tether: '#34D399', scarf: '#10B981' },
-  };
+  let cachedArtUrl = '';
+  let cachedArtImg = null;
+  function getCustomArtImage(url) {
+    if (!url) { cachedArtUrl = ''; cachedArtImg = null; return null; }
+    if (url === cachedArtUrl && cachedArtImg) return cachedArtImg;
+    cachedArtUrl = url;
+    const img = new Image();
+    img.src = url;
+    cachedArtImg = img;
+    return img;
+  }
 
-  const VECTOR_SKINS = {
-    valkyrie: { hullHi: '#F59E0B', hullMid: '#D97706', hullDeep: '#78350F', wing: '#B91C1C', visor: '#0C1424', eye: '#38BDF8', core: '#38BDF8', flame: '#67E8F9' },
-    titanium: { hullHi: '#F1F5F9', hullMid: '#CBD5E1', hullDeep: '#64748B', wing: '#475569', visor: '#0F172A', eye: '#22D3EE', core: '#22D3EE', flame: '#A5F3FC' },
-    cobalt:   { hullHi: '#60A5FA', hullMid: '#2563EB', hullDeep: '#1E3A8A', wing: '#334155', visor: '#090D16', eye: '#93C5FD', core: '#F43F5E', flame: '#FB7185' },
-    orbital:  { hullHi: '#FFFFFF', hullMid: '#E2E8F0', hullDeep: '#94A3B8', wing: '#F59E0B', visor: '#0B1324', eye: '#FDE047', core: '#38BDF8', flame: '#7DD3FC' },
-    stealth:  { hullHi: '#334155', hullMid: '#0F172A', hullDeep: '#020617', wing: '#1D4ED8', visor: '#030712', eye: '#38BDF8', core: '#38BDF8', flame: '#60A5FA' },
-  };
-
-  const CORE_SKINS = {
-    solar:  { core: '#FDE68A', mid: '#F59E0B', ring: '#FBBF24', glow: 'rgba(245,158,11,0.45)', accent: '#FFFBEB' },
-    aether: { core: '#CFFAFE', mid: '#06B6D4', ring: '#38BDF8', glow: 'rgba(56,189,248,0.45)', accent: '#ECFEFF' },
-    matrix: { core: '#A7F3D0', mid: '#10B981', ring: '#34D399', glow: 'rgba(16,185,129,0.45)', accent: '#ECFDF5' },
-    nova:   { core: '#FECDD3', mid: '#E11D48', ring: '#FB7185', glow: 'rgba(244,63,94,0.48)', accent: '#FFF1F2' },
-    pearl:  { core: '#FFFFFF', mid: '#CBD5E1', ring: '#E2E8F0', glow: 'rgba(226,232,240,0.42)', accent: '#FFFFFF' },
-  };
-
-  const CORAL_SKINS = {
-    tangerine: { top: '#FB923C', mid: '#F97316', deep: '#C2410C', fin: '#2DD4BF', spot: '#FFF7ED', belly: '#FFEDD5' },
-    sapphire:  { top: '#38BDF8', mid: '#2563EB', deep: '#1E3A8A', fin: '#FACC15', spot: '#E0F2FE', belly: '#BAE6FD' },
-    koi:       { top: '#FFFFFF', mid: '#F8FAFC', deep: '#CBD5E1', fin: '#FB923C', spot: '#EF4444', belly: '#FFFFFF' },
-    blossom:   { top: '#F472B6', mid: '#EC4899', deep: '#9D174D', fin: '#67E8F9', spot: '#FDF2F8', belly: '#FCE7F3' },
-  };
-
-  let coreClickPulse = 0;
-  let time = 0;
-  let swimPhase = 0;
-  let blinkTimer = 3.0;
+  let t = 0;
+  let lastTs = performance.now();
+  let blinkTimer = 2.4;
   let blinkAmount = 0;
-  let bubbleTimer = 0.7;
-  let noteTimer = 0.45;
-  let excitedTimer = 0;
   let happyTimer = 0;
+  let alertPulse = 0;
   let forceDanceTimer = 0;
-  let wiggleBoost = 0;
-  let prevSwingCycle = 0;
-  let tetherBurstTimer = 0;
-  let waveCycleTimer = 4.5;
+  let forceTaskTimer = 0;
+  let speakTimer = 0;
+
   const particles = [];
 
-  function spawnBubble(tint = 'rgba(220, 246, 255, 0.88)') {
-    const cx = W * 0.5;
-    const cy = H * 0.55;
-    particles.push({
-      kind: 'bubble',
-      x: cx + st.facingScale * 32 * st.scale,
-      y: cy - 6 * st.scale,
-      vx: (Math.random() - 0.5) * 16,
-      vy: -22 - Math.random() * 22,
-      r: (2.0 + Math.random() * 3.4) * st.scale,
-      life: 0,
-      maxLife: 1.15 + Math.random() * 0.75,
-      wobble: Math.random() * Math.PI * 2,
-      tint,
-    });
+  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+  function formatDurationMMSS(totalSec) {
+    const sec = Math.max(0, Math.floor(Number(totalSec) || 0));
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
-  function spawnSparks(x, y, count = 6, tint = '#F8FAFF') {
+  function spawnParticles(x, y, count = 4, kind = 'spark', color = '#ff5500') {
     for (let i = 0; i < count; i++) {
-      const a = (Math.PI * 2 * i) / count + Math.random() * 0.45;
-      const spd = 28 + Math.random() * 36;
+      const ang = Math.random() * Math.PI * 2;
+      const spd = 16 + Math.random() * 34;
       particles.push({
-        kind: 'spark',
         x,
         y,
-        vx: Math.cos(a) * spd,
-        vy: Math.sin(a) * spd - 10,
-        r: 1.9 + Math.random() * 2.5,
-        life: 0,
-        maxLife: 0.65 + Math.random() * 0.35,
-        wobble: Math.random() * Math.PI * 2,
-        tint,
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd - 14,
+        size: 2.2 + Math.random() * 2,
+        life: 1,
+        decay: 1.1 + Math.random() * 0.7,
+        kind,
+        color,
       });
     }
   }
 
-  function spawnHearts(count = 5) {
-    const cx = W * 0.5;
-    const cy = H * 0.48;
-    for (let i = 0; i < count; i++) {
-      particles.push({
-        kind: 'heart',
-        x: cx + (Math.random() - 0.5) * 40,
-        y: cy - 12,
-        vx: (Math.random() - 0.5) * 26,
-        vy: -32 - Math.random() * 22,
-        r: 5.2 + Math.random() * 3.0,
-        life: 0,
-        maxLife: 1.2 + Math.random() * 0.5,
-        wobble: Math.random() * Math.PI * 2,
-        tint: i % 2 === 0 ? '#FF5E8E' : '#FF85A1',
-      });
+  function updateParticles(dt) {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= p.decay * dt;
+      if (p.life <= 0) particles.splice(i, 1);
     }
-  }
-
-  function spawnMusicNote(isCoral) {
-    const cx = W * 0.5;
-    const cy = H * 0.44;
-    const glyphs = ['♪', '♫', '♩'];
-    const tints = isCoral ? ['#2DD4BF', '#FB923C', '#E0F2FE'] : ['#F43F5E', '#38BDF8', '#FBBF24'];
-    particles.push({
-      kind: 'note',
-      x: cx + (Math.random() - 0.5) * 44,
-      y: cy - 16,
-      vx: (Math.random() - 0.5) * 18,
-      vy: -24 - Math.random() * 18,
-      r: 12 + Math.random() * 4,
-      life: 0,
-      maxLife: 1.35 + Math.random() * 0.5,
-      wobble: Math.random() * Math.PI * 2,
-      glyph: glyphs[Math.floor(Math.random() * glyphs.length)],
-      tint: tints[Math.floor(Math.random() * tints.length)],
-    });
-  }
-
-  function triggerReaction(type) {
-    if (type === 'dance') {
-      forceDanceTimer = 7.5;
-      happyTimer = 4.0;
-      wiggleBoost = 1.6;
-      spawnMusicNote(st.character === 'coral');
-      spawnMusicNote(st.character === 'coral');
-    } else if (type === 'approval') {
-      excitedTimer = 4.2;
-      wiggleBoost = 1.6;
-      spawnSparks(W * 0.5, H * 0.45, 10, '#FACC15');
-    } else if (type === 'whatsapp' || type === 'discovered') {
-      excitedTimer = 3.5;
-      wiggleBoost = 1.4;
-      spawnSparks(W * 0.5, H * 0.45, 9, type === 'whatsapp' ? '#34D399' : '#38BDF8');
-    } else if (type === 'pet' || type === 'allow') {
-      happyTimer = 2.8;
-      wiggleBoost = 1.1;
-      spawnHearts(6);
-      spawnSparks(W * 0.5, H * 0.45, 6, '#FDBA74');
-    } else {
-      wiggleBoost = 1.0;
-      spawnSparks(W * 0.5, H * 0.45, 6, '#93C5FD');
-    }
-  }
-
-  api.onFishState((data) => {
-    if (!data) return;
-    if (data.character) st.character = data.character;
-    if (data.skin) st.skin = data.skin;
-    if (data.ageGroup) st.ageGroup = data.ageGroup;
-    st.vx = data.vx;
-    st.vy = data.vy;
-    st.speed = data.speed;
-    st.facing = data.facing;
-    st.pitch = data.pitch;
-    st.mode = data.mode;
-    st.scale = clamp(data.scale || 1.08, 0.72, 1.32);
-    st.acrobatState = data.acrobatState || 'swinging';
-    st.stretchX = Number(data.stretchX) || 0;
-    st.stretchY = Number(data.stretchY) || 0;
-    st.squishMag = Number(data.squishMag) || 0;
-
-    // Fresh kinetic tether grapple burst when swing cycle resets
-    const nextCycle = data.swingCycle || 0;
-    if (st.character === 'vesper' && st.acrobatState === 'swinging' && prevSwingCycle > 0.65 && nextCycle < 0.25) {
-      tetherBurstTimer = 0.35;
-      spawnSparks(W * 0.5 + st.facing * 20, H * 0.42, 6, '#7DD3FC');
-    }
-    prevSwingCycle = nextCycle;
-    st.swingCycle = nextCycle;
-
-    st.hudOpen = Boolean(data.hudOpen);
-    st.isDragging = Boolean(data.isDragging);
-    st.isThinking = Boolean(data.isThinking);
-    st.cursorLocalX = data.cursorLocalX;
-    st.cursorLocalY = data.cursorLocalY;
-    st.approvals = data.approvals || 0;
-    st.unread = data.unread || 0;
-    st.unreadWA = data.unreadWA || 0;
-    st.musicPlaying = Boolean(data.musicPlaying);
-    st.musicTitle = String(data.musicTitle || '');
-
-    if (!st.hudOpen && (st.approvals > 0 || st.unread > 0 || st.isThinking)) {
-      badge.classList.remove('hidden');
-      badge.classList.toggle('urgent', st.approvals > 0);
-      badge.classList.toggle('whatsapp', st.approvals === 0 && st.unreadWA > 0);
-      badgeText.textContent = st.isThinking
-        ? 'AI...'
-        : st.approvals > 0
-          ? `${st.approvals} Allow`
-          : st.unreadWA > 0
-            ? `${st.unreadWA} WA`
-            : `${st.unread}`;
-    } else {
-      badge.classList.add('hidden');
-    }
-  });
-
-  api.onFishReaction((ev) => {
-    if (ev?.type === 'boing') {
-      coreClickPulse = 1.0;
-      if (window.auraSound) window.auraSound.playStretchBoing();
-      spawnSparks(W * 0.5, H * 0.5, 6, '#FFFFFF');
-    } else if (ev?.type) {
-      if (ev.type === 'pet') coreClickPulse = 1.0;
-      triggerReaction(ev.type);
-    }
-  });
-
-  if (api.onAudioCmd) {
-    api.onAudioCmd((cmd) => {
-      if (!cmd || !window.auraSound) return;
-      if (cmd.type === 'speak') window.auraSound.speak(cmd.text, cmd.character || st.character, cmd.enabled !== false);
-      else if (cmd.type === 'stop-speak') window.auraSound.stopSpeaking();
-      else if (cmd.type === 'motif') window.auraSound.playCharacterMotif(cmd.character || st.character, cmd.vol || 0.9);
-      else if (cmd.type === 'bgm-start') window.auraSound.startBgmLoop(cmd.character || st.character);
-      else if (cmd.type === 'bgm-stop') window.auraSound.stopBgmLoop();
-    });
-  }
-
-  let down = false;
-  let moved = false;
-  let startX = 0;
-  let startY = 0;
-  let lastClick = 0;
-
-  window.addEventListener('mouseenter', () => { st.hovered = true; });
-  window.addEventListener('mouseleave', () => { st.hovered = false; });
-
-  window.addEventListener('mousedown', (e) => {
-    if (e.target.closest('#fish-badge')) return;
-    if (e.button === 2) { e.preventDefault(); api.fishContextMenu(); return; }
-    if (e.button === 0) { down = true; moved = false; startX = e.screenX; startY = e.screenY; }
-  });
-
-  window.addEventListener('mousemove', (e) => {
-    if (!down) return;
-    if (!moved && Math.hypot(e.screenX - startX, e.screenY - startY) > 5) {
-      moved = true;
-      document.body.classList.add('dragging');
-      api.fishDragStart();
-    }
-  });
-
-  window.addEventListener('mouseup', (e) => {
-    if (!down) return;
-    down = false;
-    document.body.classList.remove('dragging');
-    if (moved) { api.fishDragEnd(); return; }
-    if (e.button === 0) {
-      const now = Date.now();
-      if (now - lastClick < 290) { triggerReaction('pet'); api.fishDoubleClicked(); }
-      else api.fishClicked();
-      lastClick = now;
-    }
-  });
-
-  window.addEventListener('contextmenu', (e) => { e.preventDefault(); api.fishContextMenu(); });
-  badge.addEventListener('click', (e) => { e.stopPropagation(); api.fishClicked(); });
-
-  function getAgeHeadFactor() {
-    if (st.ageGroup === '0-15') return 1.12;
-    if (st.ageGroup === '30-60') return 0.92;
-    return 1.0;
-  }
-
-  function applyElasticSquish() {
-    const mag = clamp(st.squishMag || 0, 0, 1.15);
-    if (mag < 0.01) return;
-    const ang = Math.atan2(st.stretchY || 0, st.stretchX || 0.001);
-    const sx = 1 + mag * 0.24;
-    const sy = 1 / Math.sqrt(sx);
-    ctx.rotate(ang);
-    ctx.scale(sx, sy);
-    ctx.rotate(-ang);
-  }
-
-  function drawBeatRings(cx, cy, s, isCoral) {
-    const beat = Math.abs(Math.sin(time * 6.4));
-    ctx.save();
-    ctx.translate(cx, cy);
-    for (let i = 0; i < 2; i++) {
-      const phase = (time * 1.45 + i * 0.5) % 1;
-      const rx = (22 + phase * 26) * s;
-      const ry = (8 + phase * 10) * s;
-      ctx.globalAlpha = (1 - phase) * (0.34 + beat * 0.25);
-      ctx.strokeStyle = isCoral ? (i === 0 ? '#2DD4BF' : '#FB923C') : (i === 0 ? '#F43F5E' : '#38BDF8');
-      ctx.lineWidth = 2.0;
-      ctx.beginPath();
-      ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-
-  function drawThinkingHalo(cx, cy, s) {
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(time * 2.2);
-    for (let i = 0; i < 3; i++) {
-      const a = (Math.PI * 2 * i) / 3;
-      ctx.fillStyle = i === 0 ? '#38BDF8' : i === 1 ? '#F472B6' : '#FBBF24';
-      ctx.beginPath();
-      ctx.arc(Math.cos(a) * 38 * s, Math.sin(a) * 38 * s, 3.2 * s, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-  }
-
-  // =========================================================================
-  // 1. VESPER — ORIGINAL FUTURISTIC HOODED ACROBAT COMPANION
-  // =========================================================================
-  function drawVesper(cx, cy) {
-    const pal = VESPER_SKINS[st.skin] || VESPER_SKINS.crimson;
-    const s = st.scale;
-    const headFac = getAgeHeadFactor();
-    const isDancing = st.musicPlaying || forceDanceTimer > 0;
-    const isHanging = st.acrobatState === 'hanging' && !isDancing;
-    const isFlipping = st.acrobatState === 'flipping' && !isDancing;
-    const isSwinging = st.acrobatState === 'swinging' && !isDancing;
-
-    if (isDancing) drawBeatRings(cx, cy + 28 * s, s, false);
-    if (st.isThinking) drawThinkingHalo(cx, cy, s);
-
-    // Kinetic Plasma Tether Line (when hanging inverted or swinging!)
-    if (!st.isDragging && (isHanging || isSwinging)) {
-      ctx.save();
-      const anchorX = isHanging ? cx : cx + st.facing * 52 * s;
-      const anchorY = 6;
-      const handX = isHanging ? cx : cx + st.facing * 12 * s;
-      const handY = isHanging ? cy - 22 * s : cy - 16 * s;
-
-      ctx.strokeStyle = pal.tether;
-      ctx.lineWidth = tetherBurstTimer > 0 ? 2.6 : 1.7;
-      ctx.shadowColor = pal.tether;
-      ctx.shadowBlur = 8;
-      ctx.beginPath();
-      ctx.moveTo(anchorX, anchorY);
-      ctx.quadraticCurveTo((anchorX + handX) * 0.5 + Math.sin(time * 4) * 4, (anchorY + handY) * 0.5, handX, handY);
-      ctx.stroke();
-
-      // Anchor pulse node
-      ctx.fillStyle = '#FFFFFF';
-      ctx.beginPath();
-      ctx.arc(anchorX, anchorY + 2, 3.2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-
-    ctx.save();
-    const danceBounce = isDancing ? Math.abs(Math.sin(time * 7.2)) * -9 * s : 0;
-    const idleBob = Math.sin(time * 2.8) * 3.2 * s;
-    ctx.translate(cx, cy + danceBounce + idleBob);
-    applyElasticSquish();
-
-    // Soft ground/air shadow
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
-    ctx.beginPath();
-    ctx.ellipse(0, 38 * s, 22 * s, 6.5 * s, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Flip or hanging orientation
-    if (isHanging) {
-      ctx.rotate(Math.PI + Math.sin(time * 2.2) * 0.08);
-    } else if (isFlipping) {
-      const flipProg = clamp((st.swingCycle - 0.72) / 0.28, 0, 1);
-      ctx.rotate(st.facing * flipProg * Math.PI * 2);
-    } else if (isDancing) {
-      ctx.rotate(Math.sin(time * 7.2) * 0.16);
-    } else {
-      ctx.rotate(clamp(st.vx * 0.0014, -0.26, 0.26));
-    }
-
-    ctx.scale(st.facingScale * s, s);
-
-    // Flowing kinetic ribbon scarf trailing behind!
-    ctx.save();
-    const scarfWave = Math.sin(time * (isDancing ? 12 : 5.5)) * 6;
-    ctx.fillStyle = pal.scarf;
-    ctx.beginPath();
-    ctx.moveTo(-8, 6);
-    ctx.quadraticCurveTo(-24, 2 + scarfWave * 0.6, -34, 10 + scarfWave);
-    ctx.quadraticCurveTo(-24, 16 + scarfWave * 0.5, -6, 13);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-
-    // Compact agile legs / boots
-    const legKick = isDancing ? Math.sin(time * 14) * 5 : Math.sin(swimPhase * 0.9) * 3;
-    ctx.fillStyle = pal.hoodDeep;
-    ctx.strokeStyle = '#0B1020';
-    ctx.lineWidth = 2.0;
-    // Back leg
-    ctx.beginPath();
-    ctx.roundRect(-9, 20, 8, 13 + legKick * 0.3, 4);
-    ctx.fill(); ctx.stroke();
-    // Front leg
-    ctx.beginPath();
-    ctx.roundRect(1, 20, 8, 13 - legKick * 0.3, 4);
-    ctx.fill(); ctx.stroke();
-    // Boot trim accents
-    ctx.fillStyle = pal.trim;
-    ctx.fillRect(-8, 28, 6, 2.5);
-    ctx.fillRect(2, 28, 6, 2.5);
-
-    // Sleek athletic hooded jacket torso
-    const bodyGrad = ctx.createLinearGradient(-12, 4, 12, 24);
-    bodyGrad.addColorStop(0, pal.hoodHi);
-    bodyGrad.addColorStop(0.6, pal.hoodMid);
-    bodyGrad.addColorStop(1, pal.hoodDeep);
-    ctx.fillStyle = bodyGrad;
-    ctx.beginPath();
-    ctx.roundRect(-12, 4, 24, 19, 8);
-    ctx.fill();
-    ctx.stroke();
-
-    // Original OV geometric chevron emblem on chest
-    ctx.strokeStyle = pal.trim;
-    ctx.lineWidth = 2.0;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.beginPath();
-    ctx.moveTo(-5, 11);
-    ctx.lineTo(0, 16);
-    ctx.lineTo(5, 11);
-    ctx.stroke();
-
-    // Articulated arms with luminous grapple wristbands
-    const armAng = isDancing ? Math.sin(time * 14) * 0.55 : isHanging ? -0.5 + Math.sin(time * 3) * 0.2 : -0.35 + Math.sin(swimPhase) * 0.22;
-    [-1, 1].forEach((side) => {
-      ctx.save();
-      ctx.translate(side * 11, 9);
-      ctx.rotate(side * armAng);
-      ctx.fillStyle = pal.hoodMid;
-      ctx.strokeStyle = '#0B1020';
-      ctx.lineWidth = 1.9;
-      ctx.beginPath();
-      ctx.roundRect(-3.5, -2, 7, 13, 3.5);
-      ctx.fill(); ctx.stroke();
-      // Glowing grapple emitter band
-      ctx.fillStyle = pal.trim;
-      ctx.fillRect(-3, 7, 6, 2.5);
-      ctx.restore();
-    });
-
-    // Big cute rounded futuristic hooded head
-    ctx.save();
-    ctx.scale(headFac, headFac);
-
-    // Cute side cyber-ear / antenna tabs on hood
-    ctx.fillStyle = pal.trim;
-    ctx.strokeStyle = '#0B1020';
-    ctx.lineWidth = 1.8;
-    ctx.beginPath();
-    ctx.moveTo(-17, -14); ctx.lineTo(-23, -24); ctx.lineTo(-10, -22); ctx.closePath();
-    ctx.fill(); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(17, -14); ctx.lineTo(23, -24); ctx.lineTo(10, -22); ctx.closePath();
-    ctx.fill(); ctx.stroke();
-
-    // Smooth hood dome
-    const headGrad = ctx.createRadialGradient(-6, -20, 4, 0, -11, 24);
-    headGrad.addColorStop(0, pal.hoodHi);
-    headGrad.addColorStop(0.65, pal.hoodMid);
-    headGrad.addColorStop(1, pal.hoodDeep);
-    ctx.fillStyle = headGrad;
-    ctx.beginPath();
-    ctx.ellipse(0, -11, 21, 19, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // Glossy dark panoramic curved visor (distinct original futuristic design!)
-    ctx.fillStyle = pal.visor;
-    ctx.beginPath();
-    ctx.roundRect(-15.5, -18, 31, 15, 7.5);
-    ctx.fill();
-    ctx.strokeStyle = pal.trim;
-    ctx.lineWidth = 1.4;
-    ctx.stroke();
-
-    // Expressive glowing LED eyes inside visor
-    const isHappy = happyTimer > 0 || isDancing || st.hovered;
-    ctx.save();
-    ctx.shadowColor = pal.eye;
-    ctx.shadowBlur = 7;
-    if (isHappy) {
-      // Cute happy curved ^ ^ LED arcs
-      ctx.strokeStyle = pal.eye;
-      ctx.lineWidth = 2.6;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.arc(-6.5, -9.5, 4.2, Math.PI * 1.15, Math.PI * 1.85);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(6.5, -9.5, 4.2, Math.PI * 1.15, Math.PI * 1.85);
-      ctx.stroke();
-    } else {
-      // Cute glowing oval LED eyes with blink!
-      const eyeH = Math.max(0.8, 4.6 * (1 - blinkAmount * 0.92));
-      ctx.fillStyle = pal.eye;
-      ctx.beginPath();
-      ctx.ellipse(-6.5, -10.5, 3.6, eyeH, 0, 0, Math.PI * 2);
-      ctx.ellipse(6.5, -10.5, 3.6, eyeH, 0, 0, Math.PI * 2);
-      ctx.fill();
-      if (blinkAmount < 0.4) {
-        ctx.fillStyle = '#FFFFFF';
-        ctx.beginPath();
-        ctx.arc(-5.3, -12, 1.2, 0, Math.PI * 2);
-        ctx.arc(7.7, -12, 1.2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    ctx.restore();
-
-    // Subtle visor glass specular glint
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
-    ctx.beginPath();
-    ctx.ellipse(-6, -15.5, 7, 2.0, -0.18, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.restore();
-    ctx.restore();
-  }
-
-  // =========================================================================
-  // 2. VECTOR — ORIGINAL ORBITAL AERO-MECH SCOUT COMPANION
-  // =========================================================================
-  function drawVector(cx, cy) {
-    const pal = VECTOR_SKINS[st.skin] || VECTOR_SKINS.valkyrie;
-    const s = st.scale;
-    const headFac = getAgeHeadFactor();
-    const isDancing = st.musicPlaying || forceDanceTimer > 0;
-    const hoverY = Math.sin(time * (isDancing ? 9 : 3.6)) * (isDancing ? 7 : 4.2) * s;
-
-    if (isDancing) drawBeatRings(cx, cy + 30 * s, s, false);
-    if (st.isThinking) drawThinkingHalo(cx, cy, s);
-
-    ctx.save();
-    ctx.translate(cx, cy + hoverY);
-    applyElasticSquish();
-
-    // Glowing ion air-cushion shadow
-    ctx.fillStyle = 'rgba(56, 189, 248, 0.16)';
-    ctx.beginPath();
-    ctx.ellipse(0, 40 * s, 24 * s, 7 * s, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    const bank = isDancing ? Math.sin(time * 8.5) * 0.16 : clamp(st.vx * 0.0014, -0.26, 0.26);
-    ctx.rotate(bank);
-    ctx.scale(s, s);
-
-    // Swept Aero-Mech Twin Back Wings (distinctive original silhouette!)
-    const wingBeat = isDancing ? Math.sin(time * 12) * 0.14 : Math.sin(time * 3.5) * 0.04;
-    [-1, 1].forEach((side) => {
-      ctx.save();
-      ctx.translate(side * 12, 6);
-      ctx.rotate(side * (-0.28 + wingBeat));
-      ctx.fillStyle = pal.wing;
-      ctx.strokeStyle = '#0B1020';
-      ctx.lineWidth = 1.9;
-      ctx.beginPath();
-      ctx.moveTo(0, -4);
-      ctx.lineTo(side * 22, -13);
-      ctx.lineTo(side * 18, 4);
-      ctx.lineTo(0, 7);
-      ctx.closePath();
-      ctx.fill(); ctx.stroke();
-      // Wingtip LED strip
-      ctx.strokeStyle = pal.core;
-      ctx.lineWidth = 1.6;
-      ctx.beginPath();
-      ctx.moveTo(side * 5, -5);
-      ctx.lineTo(side * 19, -10.5);
-      ctx.stroke();
-      ctx.restore();
-    });
-
-    // Twin Ion Plasma Thruster Plumes
-    const flameLen = (12 + Math.sin(time * 32) * 4 + (st.speed > 90 ? 6 : 0));
-    [-7.5, 7.5].forEach((fx) => {
-      const fg = ctx.createLinearGradient(fx, 24, fx, 24 + flameLen);
-      fg.addColorStop(0, '#FFFFFF');
-      fg.addColorStop(0.4, pal.flame);
-      fg.addColorStop(1, 'rgba(56, 189, 248, 0)');
-      ctx.fillStyle = fg;
-      ctx.beginPath();
-      ctx.moveTo(fx - 3.8, 24);
-      ctx.lineTo(fx + 3.8, 24);
-      ctx.lineTo(fx, 24 + flameLen);
-      ctx.closePath();
-      ctx.fill();
-    });
-
-    // Thruster pods / legs
-    ctx.fillStyle = pal.hullDeep;
-    ctx.strokeStyle = '#0B1020';
-    ctx.lineWidth = 2.0;
-    ctx.beginPath();
-    ctx.roundRect(-11.5, 16, 8, 11, 3.5);
-    ctx.roundRect(3.5, 16, 8, 11, 3.5);
-    ctx.fill(); ctx.stroke();
-
-    // Compact rounded mech chassis
-    const bodyGrad = ctx.createLinearGradient(-14, 2, 14, 20);
-    bodyGrad.addColorStop(0, pal.hullHi);
-    bodyGrad.addColorStop(0.6, pal.hullMid);
-    bodyGrad.addColorStop(1, pal.hullDeep);
-    ctx.fillStyle = bodyGrad;
-    ctx.beginPath();
-    ctx.roundRect(-13.5, 3, 27, 17, 7);
-    ctx.fill(); ctx.stroke();
-
-    // Glowing Hexagonal Gyro-Core on chest
-    ctx.save();
-    ctx.shadowColor = pal.core;
-    ctx.shadowBlur = 11;
-    ctx.fillStyle = '#FFFFFF';
-    ctx.strokeStyle = pal.core;
-    ctx.lineWidth = 2.0;
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const a = (Math.PI / 3) * i - Math.PI / 6;
-      const px = Math.cos(a) * 4.4;
-      const py = 11.5 + Math.sin(a) * 4.4;
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-    }
-    ctx.closePath();
-    ctx.fill(); ctx.stroke();
-    ctx.restore();
-
-    // Articulated stabilizer arms
-    const armTilt = isDancing ? Math.sin(time * 13) * 0.45 : 0.25;
-    [-1, 1].forEach((side) => {
-      ctx.save();
-      ctx.translate(side * 14, 8);
-      ctx.rotate(side * armTilt);
-      ctx.fillStyle = pal.hullMid;
-      ctx.strokeStyle = '#0B1020';
-      ctx.lineWidth = 1.8;
-      ctx.beginPath();
-      ctx.roundRect(-3.2, -1, 6.4, 12, 3.2);
-      ctx.fill(); ctx.stroke();
-      ctx.fillStyle = pal.core;
-      ctx.beginPath();
-      ctx.arc(0, 10, 2.4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    });
-
-    // Sleek Rounded Orbital Scout Helmet + Panoramic Curved Glass Domevisor
-    ctx.save();
-    ctx.scale(headFac, headFac);
-    const helmGrad = ctx.createRadialGradient(-5, -22, 4, 0, -12, 24);
-    helmGrad.addColorStop(0, pal.hullHi);
-    helmGrad.addColorStop(0.65, pal.hullMid);
-    helmGrad.addColorStop(1, pal.hullDeep);
-    ctx.fillStyle = helmGrad;
-    ctx.strokeStyle = '#0B1020';
-    ctx.lineWidth = 2.1;
-    ctx.beginPath();
-    ctx.roundRect(-19, -29, 38, 32, 15);
-    ctx.fill(); ctx.stroke();
-
-    // Cute twin crest antenna fins on top
-    ctx.fillStyle = pal.wing;
-    ctx.beginPath();
-    ctx.roundRect(-3.5, -34, 7, 6, 3);
-    ctx.fill(); ctx.stroke();
-
-    // Smooth curved panoramic dark-glass visor (astronaut / scout drone aesthetic!)
-    ctx.fillStyle = pal.visor;
-    ctx.beginPath();
-    ctx.roundRect(-14.5, -22, 29, 17, 8.5);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.22)';
-    ctx.lineWidth = 1.2;
-    ctx.stroke();
-
-    // Glowing friendly digital drone eyes inside visor
-    ctx.save();
-    ctx.shadowColor = pal.eye;
-    ctx.shadowBlur = 9;
-    const isHappy = happyTimer > 0 || isDancing;
-    if (isHappy) {
-      ctx.strokeStyle = pal.eye;
-      ctx.lineWidth = 2.6;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.arc(-6, -12.5, 3.8, Math.PI * 1.15, Math.PI * 1.85);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(6, -12.5, 3.8, Math.PI * 1.15, Math.PI * 1.85);
-      ctx.stroke();
-    } else {
-      const hEye = Math.max(1.0, 3.4 * (1 - blinkAmount * 0.9));
-      ctx.fillStyle = pal.eye;
-      ctx.beginPath();
-      ctx.roundRect(-10, -15, 7.5, hEye * 2, 3);
-      ctx.roundRect(2.5, -15, 7.5, hEye * 2, 3);
-      ctx.fill();
-    }
-    ctx.restore();
-
-    // Visor top specular arc
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-    ctx.beginPath();
-    ctx.ellipse(-4, -19.5, 8.5, 2.2, -0.12, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.restore();
-    ctx.restore();
-  }
-
-  // =========================================================================
-  // 3. CORE — ORIGINAL OV HOLOGRAPHIC AI SPHERE
-  // =========================================================================
-  function drawCore(cx, cy) {
-    const pal = CORE_SKINS[st.skin] || CORE_SKINS.solar;
-    const s = st.scale;
-    const isDancing = st.musicPlaying || forceDanceTimer > 0;
-    const breathe = 1 + Math.sin(time * (isDancing ? 8 : 2.8)) * 0.05;
-
-    ctx.save();
-    ctx.translate(cx, cy + Math.sin(time * 2.2) * 4 * s);
-    applyElasticSquish();
-    ctx.scale(s, s);
-
-    // Interactive click sonar ripple
-    if (coreClickPulse > 0.01) {
-      const prog = 1 - coreClickPulse;
-      ctx.save();
-      ctx.globalAlpha = coreClickPulse * 0.72;
-      ctx.strokeStyle = pal.ring;
-      ctx.lineWidth = 2.2;
-      ctx.beginPath();
-      ctx.arc(0, 0, 26 + prog * 36, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    // Soft radial holographic halo
-    const halo = ctx.createRadialGradient(0, 0, 4, 0, 0, 44 * breathe);
-    halo.addColorStop(0, pal.core);
-    halo.addColorStop(0.42, pal.glow);
-    halo.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = halo;
-    ctx.beginPath();
-    ctx.arc(0, 0, 44 * breathe, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Outer rotating precision telemetry ring
-    ctx.save();
-    ctx.rotate(time * (st.isThinking ? 2.4 : 0.75));
-    ctx.strokeStyle = pal.ring;
-    ctx.globalAlpha = 0.78;
-    ctx.lineWidth = 2.0;
-    ctx.setLineDash([18, 8, 5, 8]);
-    ctx.beginPath();
-    ctx.arc(0, 0, 34, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    // Micro tick marks
-    for (let i = 0; i < 12; i++) {
-      const a = (Math.PI * 2 * i) / 12;
-      ctx.beginPath();
-      ctx.moveTo(Math.cos(a) * 30, Math.sin(a) * 30);
-      ctx.lineTo(Math.cos(a) * 33, Math.sin(a) * 33);
-      ctx.stroke();
-    }
-    ctx.restore();
-
-    // Counter-rotating inclined orbital ellipses
-    ctx.save();
-    ctx.rotate(-time * 1.25);
-    ctx.strokeStyle = pal.mid;
-    ctx.globalAlpha = 0.72;
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 28, 12, 0.45, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 28, 12, -0.68, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-
-    // Music reactive equalizer arc
-    if (isDancing) {
-      ctx.save();
-      ctx.strokeStyle = pal.accent;
-      ctx.lineWidth = 2.2;
-      for (let i = 0; i < 16; i++) {
-        const a = (Math.PI * 2 * i) / 16 + time;
-        const amp = 4 + Math.abs(Math.sin(time * 10 + i * 0.9)) * 7;
-        ctx.beginPath();
-        ctx.moveTo(Math.cos(a) * 23, Math.sin(a) * 23);
-        ctx.lineTo(Math.cos(a) * (23 + amp), Math.sin(a) * (23 + amp));
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    // Translucent glass core sphere
-    const sphereR = 17.5 * breathe;
-    const sg = ctx.createRadialGradient(-5, -6, 2, 0, 0, sphereR);
-    sg.addColorStop(0, '#FFFFFF');
-    sg.addColorStop(0.35, pal.core);
-    sg.addColorStop(0.8, pal.mid);
-    sg.addColorStop(1, 'rgba(12, 16, 28, 0.85)');
-    ctx.fillStyle = sg;
-    ctx.beginPath();
-    ctx.arc(0, 0, sphereR, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Inner rotating neural crystal filaments
-    ctx.save();
-    ctx.rotate(time * 0.9);
-    ctx.strokeStyle = 'rgba(255,255,255,0.72)';
-    ctx.lineWidth = 1.1;
-    for (let i = 0; i < 6; i++) {
-      const a = (Math.PI * 2 * i) / 6;
-      const nx = Math.cos(a) * 10.5;
-      const ny = Math.sin(a) * 10.5;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(nx, ny);
-      ctx.stroke();
-      ctx.fillStyle = '#FFFFFF';
-      ctx.beginPath();
-      ctx.arc(nx, ny, 2.0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-
-    // Specular glass highlight
-    ctx.fillStyle = 'rgba(255,255,255,0.48)';
-    ctx.beginPath();
-    ctx.ellipse(-5.5, -8.5, 7.5, 3.6, -0.45, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.restore();
-  }
-
-  // =========================================================================
-  // 4. CORAL — ORIGINAL BIOLUMINESCENT STYLIZED REEF / KOI COMPANION
-  // =========================================================================
-  function drawCoral(cx, cy) {
-    const pal = CORAL_SKINS[st.skin] || CORAL_SKINS.tangerine;
-    const s = st.scale;
-    const isDancing = st.musicPlaying || forceDanceTimer > 0;
-    const tailWag = Math.sin(swimPhase * (isDancing ? 1.8 : 1.0)) * (isDancing ? 10 : 6.5);
-
-    if (isDancing) drawBeatRings(cx, cy + 26 * s, s, true);
-    if (st.isThinking) drawThinkingHalo(cx, cy, s);
-
-    ctx.save();
-    ctx.translate(cx, cy);
-    applyElasticSquish();
-
-    // Soft underwater shadow
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.14)';
-    ctx.beginPath();
-    ctx.ellipse(0, 26 * s, 28 * s, 7 * s, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.rotate(clamp(st.pitch * 0.7, -0.3, 0.3) + (isDancing ? Math.sin(time * 9) * 0.12 : 0));
-    ctx.scale(st.facingScale * s, s);
-
-    // Translucent flowing double-ribbon tail fin (original koi/reef silhouette!)
-    ctx.save();
-    const tailGrad = ctx.createLinearGradient(-16, 0, -44, 0);
-    tailGrad.addColorStop(0, pal.mid);
-    tailGrad.addColorStop(0.55, pal.fin);
-    tailGrad.addColorStop(1, 'rgba(255, 255, 255, 0.45)');
-    ctx.fillStyle = tailGrad;
-    ctx.strokeStyle = '#0F172A';
-    ctx.lineWidth = 1.9;
-    ctx.beginPath();
-    ctx.moveTo(-18, -2);
-    ctx.bezierCurveTo(-28, -20 + tailWag * 0.7, -42, -16 + tailWag, -38, -2 + tailWag * 0.5);
-    ctx.bezierCurveTo(-42, 14 + tailWag, -28, 20 + tailWag * 0.7, -18, 4);
-    ctx.closePath();
-    ctx.fill(); ctx.stroke();
-    ctx.restore();
-
-    // Flowing luminous dorsal ribbon crest
-    ctx.fillStyle = pal.fin;
-    ctx.strokeStyle = '#0F172A';
-    ctx.lineWidth = 1.9;
-    ctx.beginPath();
-    ctx.moveTo(-10, -14);
-    ctx.quadraticCurveTo(0, -28 + Math.sin(swimPhase) * 2.5, 12, -14);
-    ctx.closePath();
-    ctx.fill(); ctx.stroke();
-
-    // Smooth plump iridescent fish body
-    const bg = ctx.createLinearGradient(0, -18, 0, 18);
-    bg.addColorStop(0, pal.top);
-    bg.addColorStop(0.6, pal.mid);
-    bg.addColorStop(1, pal.belly);
-    ctx.fillStyle = bg;
-    ctx.beginPath();
-    ctx.ellipse(2, 0, 26, 17, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#0F172A';
-    ctx.lineWidth = 2.2;
-    ctx.stroke();
-
-    // Original organic koi / bioluminescent reef spots (NOT clownfish stripes!)
-    ctx.save();
-    ctx.globalAlpha = 0.86;
-    ctx.fillStyle = pal.spot;
-    ctx.beginPath();
-    ctx.ellipse(-6, -5, 7.5, 5.0, -0.3, 0, Math.PI * 2);
-    ctx.ellipse(6, -8, 4.5, 3.2, 0.2, 0, Math.PI * 2);
-    ctx.ellipse(-14, 3, 4.0, 2.8, 0.1, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // Specular glossy highlight
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.34)';
-    ctx.beginPath();
-    ctx.ellipse(3, -9.5, 13, 3.5, -0.1, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Fluttering pectoral side fin
-    ctx.save();
-    ctx.translate(2, 6);
-    ctx.rotate(0.25 + Math.sin(swimPhase * 1.4) * 0.35);
-    ctx.fillStyle = pal.fin;
-    ctx.strokeStyle = '#0F172A';
-    ctx.lineWidth = 1.8;
-    ctx.beginPath();
-    ctx.ellipse(-4, 5, 8.5, 4.8, 0.3, 0, Math.PI * 2);
-    ctx.fill(); ctx.stroke();
-    ctx.restore();
-
-    // Cute expressive eye + rosy cheek + gentle smile
-    const isHappy = happyTimer > 0 || isDancing;
-    ctx.fillStyle = 'rgba(255, 120, 150, 0.45)';
-    ctx.beginPath();
-    ctx.ellipse(16, 4.5, 4.2, 2.5, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    if (isHappy) {
-      ctx.strokeStyle = '#0F172A';
-      ctx.lineWidth = 2.5;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.arc(16, -2, 4.4, Math.PI * 1.15, Math.PI * 1.85);
-      ctx.stroke();
-    } else {
-      const eh = Math.max(0.8, 5.2 * (1 - blinkAmount * 0.92));
-      ctx.fillStyle = '#FFFFFF';
-      ctx.strokeStyle = '#0F172A';
-      ctx.lineWidth = 1.7;
-      ctx.beginPath();
-      ctx.ellipse(16, -2.5, 5.2, eh, 0, 0, Math.PI * 2);
-      ctx.fill(); ctx.stroke();
-      if (blinkAmount < 0.5) {
-        ctx.fillStyle = '#0F172A';
-        ctx.beginPath();
-        ctx.arc(17.5, -2.5, 2.9, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#FFFFFF';
-        ctx.beginPath();
-        ctx.arc(18.6, -3.8, 1.1, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    // Sweet smile
-    ctx.strokeStyle = '#0F172A';
-    ctx.lineWidth = 1.9;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.arc(22.5, 2.8, 3.6, 0.25 * Math.PI, 0.85 * Math.PI);
-    ctx.stroke();
-
-    ctx.restore();
   }
 
   function drawParticles() {
     for (const p of particles) {
-      const prog = p.life / p.maxLife;
-      const alpha = prog < 0.15 ? prog / 0.15 : 1 - (prog - 0.15) / 0.85;
       ctx.save();
-      ctx.globalAlpha = clamp(alpha, 0, 1);
-      if (p.kind === 'bubble') {
-        const r = p.r * (0.85 + prog * 0.35);
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(210, 245, 255, 0.24)';
-        ctx.fill();
-        ctx.strokeStyle = p.tint;
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-        ctx.beginPath();
-        ctx.arc(p.x - r * 0.32, p.y - r * 0.32, Math.max(0.8, r * 0.26), 0, Math.PI * 2);
-        ctx.fill();
-      } else if (p.kind === 'spark') {
-        const r = p.r * (1 - prog * 0.45);
-        ctx.fillStyle = p.tint || '#FFFFFF';
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (p.kind === 'note') {
-        ctx.translate(p.x, p.y);
-        ctx.rotate(Math.sin(time * 5 + p.wobble) * 0.25);
-        ctx.font = `700 ${Math.round(p.r)}px "Segoe UI Symbol", sans-serif`;
-        ctx.fillStyle = p.tint || '#38BDF8';
-        ctx.shadowColor = p.tint || '#38BDF8';
-        ctx.shadowBlur = 7;
-        ctx.fillText(p.glyph || '♪', 0, 0);
-      } else if (p.kind === 'heart') {
-        const s = p.r * (0.9 + prog * 0.25);
-        ctx.translate(p.x, p.y);
-        ctx.fillStyle = p.tint;
-        ctx.beginPath();
-        ctx.moveTo(0, s * 0.35);
-        ctx.bezierCurveTo(s * 0.7, -s * 0.35, s * 1.15, s * 0.45, 0, s * 1.1);
-        ctx.bezierCurveTo(-s * 1.15, s * 0.45, -s * 0.7, -s * 0.35, 0, s * 0.35);
-        ctx.fill();
-      }
+      ctx.globalAlpha = clamp(p.life, 0, 1);
+      ctx.fillStyle = p.color;
+      ctx.strokeStyle = '#090a0d';
+      ctx.lineWidth = 1;
+      // Crisp geometric pixel square particles (zero blurry circles)
+      ctx.fillRect(p.x - p.size * 0.5, p.y - p.size * 0.5, p.size, p.size);
+      ctx.strokeRect(p.x - p.size * 0.5, p.y - p.size * 0.5, p.size, p.size);
       ctx.restore();
     }
   }
 
-  let last = performance.now();
-  let accum = 0;
+  // =========================================================================
+  // EXPRESSIVE OLED ROBOT FACE SCREEN (EYES + MOVING SPEAKING MOUTH)
+  // Inspired by EMO, Anki Vector & Eilik OLED facial animation
+  // =========================================================================
+  function drawOledFaceContents(cx, cy, w, h, ledColor, s) {
+    const isSpeakingNow = Boolean(st.isSpeaking || speakTimer > 0 || (window.auraSound && window.auraSound.isSpeaking && window.auraSound.isSpeaking()));
+    const isMusic = Boolean(st.danceModeEnabled || forceDanceTimer > 0);
+    const isWorking = Boolean(st.agentWorking || st.isThinking || forceTaskTimer > 0);
+    const isYoung = st.ageGroup === '1-15';
+    const isMentor = st.ageGroup === '30-60';
 
-  function loop(now) {
-    const rawDt = Math.min(0.08, (now - last) / 1000);
-    last = now;
-    accum += rawDt;
-
-    const isDancingNow = st.musicPlaying || forceDanceTimer > 0;
-    const targetStep = st.speed < 12 && st.mode === 'stay' && excitedTimer <= 0 && happyTimer <= 0 && !st.isThinking && !isDancingNow ? 1 / 20 : 1 / 36;
-    if (accum < targetStep) {
-      requestAnimationFrame(loop);
-      return;
-    }
-
-    const dt = Math.min(0.06, accum);
-    accum = 0;
-    time += dt;
-
-    if (excitedTimer > 0) excitedTimer = Math.max(0, excitedTimer - dt);
-    if (happyTimer > 0) happyTimer = Math.max(0, happyTimer - dt);
-    if (forceDanceTimer > 0) forceDanceTimer = Math.max(0, forceDanceTimer - dt);
-    if (coreClickPulse > 0) coreClickPulse = Math.max(0, coreClickPulse - dt * 1.9);
-    if (wiggleBoost > 0) wiggleBoost = Math.max(0, wiggleBoost - dt * 1.4);
-    if (tetherBurstTimer > 0) tetherBurstTimer = Math.max(0, tetherBurstTimer - dt);
-
-    if (isDancingNow) {
-      noteTimer -= dt;
-      if (noteTimer <= 0) {
-        spawnMusicNote(st.character === 'coral');
-        noteTimer = 0.65 + Math.random() * 0.55;
-      }
-    }
-
-    waveCycleTimer -= dt;
-    if (waveCycleTimer <= 0) waveCycleTimer = 6.5 + Math.random() * 4.5;
-
-    st.facingScale = lerp(st.facingScale, st.facing, Math.min(1, dt * 8.5));
-    const freq = 4.6 + st.speed * 0.048 + wiggleBoost * 7.5 + (excitedTimer > 0 ? 3.2 : 0);
-    swimPhase += freq * dt;
-
-    blinkTimer -= dt;
-    if (blinkTimer <= 0) {
-      if (blinkTimer > -0.14) blinkAmount = Math.sin(((0 - blinkTimer) / 0.14) * Math.PI);
-      else { blinkAmount = 0; blinkTimer = 3.0 + Math.random() * 3.8; }
-    }
-
-    if (st.character === 'coral') {
-      bubbleTimer -= dt * (st.mode === 'fast' ? 2.6 : excitedTimer > 0 ? 1.8 : 0.9);
-      if (bubbleTimer <= 0) {
-        spawnBubble();
-        bubbleTimer = 0.85 + Math.random() * 1.3;
-      }
-    }
-
-    for (let i = particles.length - 1; i >= 0; i--) {
-      const p = particles[i];
-      p.life += dt;
-      if (p.life >= p.maxLife) { particles.splice(i, 1); continue; }
-      p.x += (p.vx + Math.sin(time * 5 + p.wobble) * 10) * dt;
-      p.y += p.vy * dt;
-      p.vx *= Math.pow(0.4, dt);
-    }
+    const eyeY = cy - h * 0.14;
+    const eyeSpread = w * 0.25;
+    const scanShift = isWorking ? Math.sin(t * 5.5) * 2.2 * s : 0;
+    const baseEyeW = (isYoung ? 5.6 : 4.8) * s;
+    const baseEyeH = (isYoung ? 6.2 : isMentor ? 4.2 : 5.2) * s * (1 - blinkAmount * 0.88);
 
     ctx.save();
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, W, H);
-    drawParticles();
+    ctx.fillStyle = ledColor;
+    ctx.strokeStyle = ledColor;
 
-    if (st.character === 'vesper') {
-      drawVesper(W * 0.5, H * 0.56);
-    } else if (st.character === 'vector') {
-      drawVector(W * 0.5, H * 0.54);
-    } else if (st.character === 'core') {
-      drawCore(W * 0.5, H * 0.52);
+    // 1. EYES
+    if (isMusic && !isWorking) {
+      // Happy rhythmic curved eyes (^ ^)
+      ctx.lineWidth = 2.2 * s;
+      ctx.lineCap = 'square';
+      for (const side of [-1, 1]) {
+        const ex = cx + side * eyeSpread;
+        ctx.beginPath();
+        ctx.moveTo(ex - 4 * s, eyeY + 1.5 * s);
+        ctx.lineTo(ex, eyeY - 2.8 * s);
+        ctx.lineTo(ex + 4 * s, eyeY + 1.5 * s);
+        ctx.stroke();
+      }
     } else {
-      const hoverAmp = st.speed < 25 ? 4.2 : 1.8;
-      const hoverY = Math.sin(time * 2.5) * hoverAmp + (excitedTimer > 0 ? Math.sin(time * 11) * 2.4 : 0);
-      drawCoral(W * 0.5, H * 0.55 + hoverY);
+      for (const side of [-1, 1]) {
+        const ex = cx + side * eyeSpread + scanShift;
+        ctx.beginPath();
+        ctx.roundRect(ex - baseEyeW * 0.5, eyeY - baseEyeH * 0.5, baseEyeW, Math.max(1.2 * s, baseEyeH), 1.4 * s);
+        ctx.fill();
+
+        // Focused brow cut when working or young sparkle pixel
+        if (isYoung && blinkAmount < 0.3) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(ex + 0.8 * s, eyeY - baseEyeH * 0.35, 1.5 * s, 1.5 * s);
+          ctx.fillStyle = ledColor;
+        }
+      }
+    }
+
+    // 2. MOVING MOUTH (animates dynamically when talking with the user!)
+    const mouthY = cy + h * 0.27;
+    if (isSpeakingNow) {
+      // Multi-segment animated speaking mouth + vowel aperture
+      const talkOpen = (2.0 + Math.abs(Math.sin(t * 24)) * 4.5 + Math.abs(Math.cos(t * 37)) * 1.8) * s;
+      const mouthW = (7.5 + Math.sin(t * 19) * 2.2) * s;
+      ctx.fillStyle = ledColor;
+      ctx.beginPath();
+      ctx.roundRect(cx - mouthW * 0.5, mouthY - talkOpen * 0.5, mouthW, talkOpen, 1.4 * s);
+      ctx.fill();
+
+      // Inner dark mouth cavity when wide open
+      if (talkOpen > 3.8 * s) {
+        ctx.fillStyle = '#07080a';
+        ctx.fillRect(cx - mouthW * 0.3, mouthY - talkOpen * 0.22, mouthW * 0.6, talkOpen * 0.44);
+      }
+
+      // Flanking micro voice waveform bars
+      ctx.fillStyle = '#ff5500';
+      for (const side of [-1, 1]) {
+        const bh = (1.6 + Math.abs(Math.sin(t * 28 + side * 1.7)) * 3.4) * s;
+        ctx.fillRect(cx + side * (mouthW * 0.5 + 2.4 * s) - 0.8 * s, mouthY - bh * 0.5, 1.6 * s, bh);
+      }
+    } else if (isMusic) {
+      // Subtle rhythmic beat smile bar
+      const smileW = (6 + Math.abs(Math.sin(t * 12)) * 2.5) * s;
+      ctx.fillStyle = ledColor;
+      ctx.fillRect(cx - smileW * 0.5, mouthY - 0.9 * s, smileW, 1.8 * s);
+    } else if (isWorking) {
+      // Concentration telemetry micro-dots
+      const activeDot = Math.floor(t * 6) % 3;
+      for (let i = 0; i < 3; i++) {
+        ctx.fillStyle = i === activeDot ? '#ff5500' : ledColor;
+        ctx.fillRect(cx + (i - 1) * 3.6 * s - 1 * s, mouthY - 1 * s, 2 * s, 2 * s);
+      }
+    } else {
+      // Idle friendly hardware mouth line
+      ctx.fillStyle = ledColor;
+      ctx.fillRect(cx - 3.5 * s, mouthY - 0.8 * s, 7 * s, 1.6 * s);
     }
 
     ctx.restore();
-    requestAnimationFrame(loop);
   }
 
-  requestAnimationFrame(loop);
+  // =========================================================================
+  // 1. KRONOS — Interstellar 4-Slab Articulated Monolith Robot (TARS / CASE Inspired)
+  // Four independent articulated titanium monolith slabs with recessed OLED visor & moving mouth!
+  // =========================================================================
+  function drawKronos(cx, cy, customPal = null) {
+    const pal = customPal || KRONOS_SKINS[st.skin] || KRONOS_SKINS.titanium;
+    const s = st.scale;
+    const isMusic = Boolean(st.danceModeEnabled || forceDanceTimer > 0);
+    const isWorking = Boolean(st.agentWorking || st.isThinking || forceTaskTimer > 0);
+    const isSpeakingNow = Boolean(st.isSpeaking || speakTimer > 0 || (window.auraSound && window.auraSound.isSpeaking && window.auraSound.isSpeaking()));
+    const speedMult = st.ageGroup === '1-15' ? 1.25 : st.ageGroup === '30-60' ? 0.78 : 1.0;
+    const strideFreq = (isMusic ? 12 : 7.5) * speedMult;
+    const isMoving = st.speed > 8 || isMusic;
+
+    ctx.save();
+    ctx.translate(cx, cy + 4 * s);
+    const sx = 1 + Math.abs(st.stretchX) * 0.2 - Math.abs(st.stretchY) * 0.1;
+    const sy = 1 + Math.abs(st.stretchY) * 0.2 - Math.abs(st.stretchX) * 0.1;
+    ctx.scale(st.facing * sx, sy);
+
+    // Crisp flat shadow plate
+    ctx.fillStyle = 'rgba(7, 8, 10, 0.38)';
+    ctx.fillRect(-26 * s, 26 * s, 52 * s, 4 * s);
+
+    // 4 Articulated Monolith Slabs: Outer Legs (0, 3) + Inner Core Slabs (1, 2)
+    const slabOffsets = [-19.5 * s, -6.5 * s, 6.5 * s, 19.5 * s];
+    const slabW = 11.5 * s;
+    const slabH = 52 * s;
+    ctx.lineWidth = 2 * s;
+    ctx.strokeStyle = '#090a0d';
+
+    for (let i = 0; i < 4; i++) {
+      const phase = (i === 0 || i === 3) ? 0 : Math.PI;
+      const lift = isMoving ? Math.sin(t * strideFreq + phase) * 3.8 * s : 0;
+      const tilt = isMoving ? Math.cos(t * strideFreq + phase) * 0.055 : 0;
+
+      ctx.save();
+      ctx.translate(slabOffsets[i], lift);
+      ctx.rotate(tilt);
+
+      // Main Monolith Slab Body (Flat Cel-Shaded Titanium / Carbon)
+      ctx.fillStyle = (i === 1 || i === 2) ? pal.body : pal.bodyShade;
+      ctx.fillRect(-slabW * 0.5, -slabH * 0.5, slabW, slabH);
+      ctx.strokeRect(-slabW * 0.5, -slabH * 0.5, slabW, slabH);
+
+      // Top Chamfer Specular Edge (1px crisp flat bevel)
+      ctx.fillStyle = pal.bodyHi;
+      ctx.fillRect(-slabW * 0.5 + 1.2 * s, -slabH * 0.5 + 1.2 * s, slabW - 2.4 * s, 2.2 * s);
+
+      // Mechanical Servo Joint Seam lines
+      ctx.strokeStyle = '#111318';
+      ctx.lineWidth = 1.2 * s;
+      ctx.beginPath();
+      ctx.moveTo(-slabW * 0.45, 5 * s);
+      ctx.lineTo(slabW * 0.45, 5 * s);
+      ctx.moveTo(-slabW * 0.45, 18 * s);
+      ctx.lineTo(slabW * 0.45, 18 * s);
+      ctx.stroke();
+      ctx.strokeStyle = '#090a0d';
+      ctx.lineWidth = 2 * s;
+
+      // Recessed OLED Telemetry Screen & Matrix Optics on Center Slabs (1 & 2)
+      if (i === 1 || i === 2) {
+        ctx.fillStyle = pal.screen;
+        ctx.fillRect(-slabW * 0.38, -21 * s, slabW * 0.76, 20 * s);
+        ctx.strokeRect(-slabW * 0.38, -21 * s, slabW * 0.76, 20 * s);
+
+        // Glowing Optic Eye Square inside each center slab
+        const eyeH = Math.max(1.2 * s, 4.2 * s * (1 - blinkAmount * 0.86));
+        const scanX = isWorking ? Math.sin(t * 6) * 1.1 * s : 0;
+        ctx.fillStyle = pal.led;
+        ctx.fillRect(-2.2 * s + scanX, -17.5 * s, 4.4 * s, eyeH);
+
+        // Animated Moving Voice Waveform / Mouth inside the Monolith Visor!
+        if (isSpeakingNow) {
+          const talkH = (1.8 + Math.abs(Math.sin(t * 25 + i * 1.4)) * 5.2) * s;
+          ctx.fillStyle = '#facc15';
+          ctx.fillRect(-2.6 * s, -8 * s - talkH * 0.5, 5.2 * s, talkH);
+        } else {
+          // Idle/Working telemetry bars inside monolith screen
+          const barW = (i === 1 ? 5.2 : 4.0) * s;
+          ctx.fillStyle = isWorking ? '#00d68f' : pal.led;
+          ctx.fillRect(-2.6 * s, -9.5 * s, barW, 1.6 * s);
+          ctx.fillStyle = pal.accent;
+          ctx.fillRect(-2.6 * s, -6.5 * s, 3.6 * s, 1.4 * s);
+        }
+      }
+
+      // Outer Slab Hazard / Status Indicator Strip
+      if (i === 0 || i === 3) {
+        ctx.fillStyle = pal.led;
+        ctx.fillRect(-slabW * 0.3, 19.5 * s, slabW * 0.6, 2.5 * s);
+      }
+
+      ctx.restore();
+    }
+
+    // Horizontal Hydraulic Hinge Bar locking the 4 slabs together
+    ctx.fillStyle = pal.bodyHi;
+    ctx.fillRect(-25 * s, -1.5 * s, 50 * s, 3 * s);
+    ctx.strokeRect(-25 * s, -1.5 * s, 50 * s, 3 * s);
+
+    ctx.restore();
+  }
+
+  // =========================================================================
+  // 1B. AEGIS — Bipedal Industrial Field Mech (Inspired by EMO + Teenage Engineering)
+  // =========================================================================
+  function drawAegis(cx, cy, customPal = null) {
+    const pal = customPal || KRONOS_SKINS[st.skin] || KRONOS_SKINS.titanium;
+    const s = st.scale;
+    const isMusic = Boolean(st.danceModeEnabled || forceDanceTimer > 0);
+    const isWorking = Boolean(st.agentWorking || st.isThinking || forceTaskTimer > 0);
+    const speedMult = st.ageGroup === '1-15' ? 1.25 : st.ageGroup === '30-60' ? 0.78 : 1.0;
+    const strideFreq = (isMusic ? 12 : 8) * speedMult;
+    const isMoving = st.speed > 10 || isMusic;
+    const bob = isMoving ? Math.abs(Math.sin(t * strideFreq)) * -3.5 * s : Math.sin(t * 2.8) * 1.2 * s;
+
+    ctx.save();
+    ctx.translate(cx, cy + 4 * s + bob);
+    const sx = 1 + Math.abs(st.stretchX) * 0.2 - Math.abs(st.stretchY) * 0.1;
+    const sy = 1 + Math.abs(st.stretchY) * 0.2 - Math.abs(st.stretchX) * 0.1;
+    ctx.scale(st.facing * sx, sy);
+
+    ctx.fillStyle = 'rgba(7, 8, 10, 0.35)';
+    ctx.fillRect(-20 * s, 25 * s, 40 * s, 4 * s);
+
+    const legL = isMoving ? Math.sin(t * strideFreq) * 3.5 * s : 0;
+    const legR = isMoving ? -Math.sin(t * strideFreq) * 3.5 * s : 0;
+    ctx.lineWidth = 2 * s;
+    ctx.strokeStyle = '#090a0d';
+
+    for (const [lx, lift] of [[-11 * s, legL], [4 * s, legR]]) {
+      ctx.fillStyle = pal.dark;
+      ctx.fillRect(lx + 1.5 * s, 14 * s + lift * 0.4, 4.5 * s, 7 * s);
+      ctx.strokeRect(lx + 1.5 * s, 14 * s + lift * 0.4, 4.5 * s, 7 * s);
+      ctx.fillStyle = pal.bodyShade;
+      ctx.fillRect(lx, 20 * s + lift * 0.5, 8.5 * s, 5.5 * s);
+      ctx.strokeRect(lx, 20 * s + lift * 0.5, 8.5 * s, 5.5 * s);
+    }
+
+    const armSwing = isMoving ? Math.cos(t * strideFreq) * 3 * s : 0;
+    ctx.fillStyle = pal.bodyShade;
+    ctx.fillRect(-23 * s, -4 * s + armSwing, 5.5 * s, 16 * s);
+    ctx.strokeRect(-23 * s, -4 * s + armSwing, 5.5 * s, 16 * s);
+
+    ctx.fillStyle = pal.body;
+    ctx.fillRect(-17 * s, -6 * s, 34 * s, 21 * s);
+    ctx.strokeRect(-17 * s, -6 * s, 34 * s, 21 * s);
+
+    ctx.fillStyle = pal.bodyHi;
+    ctx.fillRect(-15.5 * s, -4.5 * s, 31 * s, 2.5 * s);
+
+    ctx.fillStyle = pal.dark;
+    ctx.fillRect(-13 * s, -0.5 * s, 17 * s, 11 * s);
+    ctx.strokeRect(-13 * s, -0.5 * s, 17 * s, 11 * s);
+
+    for (let i = 0; i < 3; i++) {
+      const bw = ((i === 0 ? 11 : i === 1 ? 8 : 12) + (isWorking ? (Math.floor(t * 8 + i) % 3) : 0)) * s;
+      ctx.fillStyle = i === 0 ? pal.led : pal.accent;
+      ctx.fillRect(-11 * s, (1.5 + i * 3) * s, Math.min(13 * s, bw), 1.6 * s);
+    }
+
+    ctx.fillStyle = '#ff5500';
+    ctx.beginPath();
+    ctx.arc(10 * s, 5 * s, 4.5 * s, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#090a0d';
+    ctx.fillRect(9.3 * s, 1.5 * s, 1.4 * s, 3.5 * s);
+
+    ctx.fillStyle = pal.body;
+    ctx.beginPath();
+    ctx.roundRect(-19 * s, -30 * s, 38 * s, 24 * s, 3 * s);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = pal.bodyHi;
+    ctx.fillRect(-17 * s, -28.5 * s, 34 * s, 2.2 * s);
+
+    ctx.fillStyle = pal.screen;
+    ctx.beginPath();
+    ctx.roundRect(-14.5 * s, -25.5 * s, 29 * s, 16.5 * s, 2 * s);
+    ctx.fill();
+    ctx.stroke();
+
+    drawOledFaceContents(0, -17.2 * s, 29 * s, 16.5 * s, pal.led, s);
+
+    ctx.fillStyle = pal.body;
+    ctx.fillRect(17.5 * s, -4 * s - armSwing, 5.5 * s, 16 * s);
+    ctx.strokeRect(17.5 * s, -4 * s - armSwing, 5.5 * s, 16 * s);
+
+    ctx.restore();
+  }
+
+  // =========================================================================
+  // 2. OPTIX — Deep Research Rover (Inspired by Anki Vector + NASA Rover)
+  // =========================================================================
+  function drawOptix(cx, cy, customPal = null) {
+    const pal = customPal || OPTIX_SKINS[st.skin] || OPTIX_SKINS.archive;
+    const s = st.scale;
+    const isMusic = Boolean(st.musicPlaying || forceDanceTimer > 0);
+    const speedMult = st.ageGroup === '1-15' ? 1.25 : st.ageGroup === '30-60' ? 0.78 : 1.0;
+    const rollBounce = Math.sin(t * 11 * speedMult) * (st.speed > 10 || isMusic ? 2.4 : 0.8) * s;
+
+    ctx.save();
+    ctx.translate(cx, cy + 5 * s + rollBounce);
+    const sx = 1 + Math.abs(st.stretchX) * 0.2 - Math.abs(st.stretchY) * 0.1;
+    const sy = 1 + Math.abs(st.stretchY) * 0.2 - Math.abs(st.stretchX) * 0.1;
+    ctx.scale(st.facing * sx, sy);
+
+    ctx.lineWidth = 2 * s;
+    ctx.strokeStyle = '#090a0d';
+
+    // Ground shadow plate
+    ctx.fillStyle = 'rgba(7, 8, 10, 0.35)';
+    ctx.fillRect(-23 * s, 23 * s, 46 * s, 4 * s);
+
+    // Triangular Caterpillar Treads (Anki Vector style)
+    ctx.fillStyle = pal.tread;
+    ctx.beginPath();
+    ctx.roundRect(-21 * s, 11 * s, 42 * s, 13 * s, 4 * s);
+    ctx.fill();
+    ctx.stroke();
+
+    // Mechanical Bogie Drive Wheels inside tread
+    const wheelAngle = t * (st.speed > 10 || isMusic ? 12 : 2) * speedMult;
+    for (const wx of [-14 * s, 0, 14 * s]) {
+      ctx.fillStyle = '#334155';
+      ctx.beginPath();
+      ctx.arc(wx, 17.5 * s, 4 * s, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = pal.led;
+      ctx.fillRect(wx + Math.cos(wheelAngle) * 1.8 * s - 1 * s, 17.5 * s + Math.sin(wheelAngle) * 1.8 * s - 1 * s, 2 * s, 2 * s);
+    }
+
+    // Rover Main Body Deck
+    ctx.fillStyle = pal.body;
+    ctx.fillRect(-17 * s, -3 * s, 34 * s, 15 * s);
+    ctx.strokeRect(-17 * s, -3 * s, 34 * s, 15 * s);
+
+    ctx.fillStyle = pal.bodyHi;
+    ctx.fillRect(-15.5 * s, -1.5 * s, 31 * s, 2.2 * s);
+
+    // Side utility serial plate
+    ctx.fillStyle = '#131519';
+    ctx.fillRect(-13 * s, 2.5 * s, 18 * s, 6.5 * s);
+    ctx.fillStyle = pal.led;
+    ctx.fillRect(-11 * s, 4.5 * s, 8 * s, 2.5 * s);
+    ctx.fillStyle = '#ff5500';
+    ctx.fillRect(-1 * s, 4.5 * s, 4 * s, 2.5 * s);
+
+    // Articulated Neck Strut
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(-3.5 * s, -10 * s, 7 * s, 8 * s);
+    ctx.strokeRect(-3.5 * s, -10 * s, 7 * s, 8 * s);
+
+    // Vector-style Expressive OLED Optical Head Pod
+    const headTilt = Math.sin(t * 3.4) * 0.05;
+    ctx.save();
+    ctx.translate(1 * s, -19 * s);
+    ctx.rotate(headTilt);
+
+    ctx.fillStyle = pal.head;
+    ctx.beginPath();
+    ctx.roundRect(-18 * s, -10 * s, 36 * s, 20 * s, 4 * s);
+    ctx.fill();
+    ctx.stroke();
+
+    // Recessed OLED Visor
+    ctx.fillStyle = pal.screen;
+    ctx.beginPath();
+    ctx.roundRect(-14 * s, -7 * s, 28 * s, 14 * s, 2.5 * s);
+    ctx.fill();
+    ctx.stroke();
+
+    // Expressive OLED Eyes + Moving Mouth
+    drawOledFaceContents(0, 0, 28 * s, 14 * s, pal.led, s);
+
+    ctx.restore();
+    ctx.restore();
+  }
+
+  // =========================================================================
+  // 3. ORBIT — Autonomous Synth Pod (Inspired by Eilik + Panic Playdate)
+  // =========================================================================
+  function drawOrbit(cx, cy, customPal = null) {
+    const pal = customPal || ORBIT_SKINS[st.skin] || ORBIT_SKINS.ceramic;
+    const s = st.scale;
+    const isMusic = Boolean(st.musicPlaying || forceDanceTimer > 0);
+    const speedMult = st.ageGroup === '1-15' ? 1.25 : st.ageGroup === '30-60' ? 0.78 : 1.0;
+    const hover = Math.sin(t * (isMusic ? 9 : 4.2) * speedMult) * (isMusic ? 5 : 3.2) * s;
+
+    ctx.save();
+    ctx.translate(cx, cy + hover);
+    const sx = 1 + Math.abs(st.stretchX) * 0.2 - Math.abs(st.stretchY) * 0.1;
+    const sy = 1 + Math.abs(st.stretchY) * 0.2 - Math.abs(st.stretchX) * 0.1;
+    ctx.scale(st.facing * sx, sy);
+
+    ctx.lineWidth = 2 * s;
+    ctx.strokeStyle = '#090a0d';
+
+    // Magnetic Ground Telemetry Ring (crisp flat geometry)
+    ctx.fillStyle = pal.led;
+    ctx.fillRect(-14 * s, 25 * s - hover * 0.5, 28 * s, 2.5 * s);
+    ctx.strokeRect(-14 * s, 25 * s - hover * 0.5, 28 * s, 2.5 * s);
+
+    // Back Floating Magnetic Wing Fin
+    const wingBob = Math.sin(t * 6.5) * 2.5 * s;
+    ctx.fillStyle = pal.bodyShade;
+    ctx.beginPath();
+    ctx.roundRect(-24 * s, -4 * s - wingBob, 6 * s, 17 * s, 2 * s);
+    ctx.fill();
+    ctx.stroke();
+
+    // Main Capsule Pod Chassis
+    ctx.fillStyle = pal.body;
+    ctx.beginPath();
+    ctx.roundRect(-17 * s, -25 * s, 34 * s, 43 * s, 9 * s);
+    ctx.fill();
+    ctx.stroke();
+
+    // Top Specular Bevel Bar
+    ctx.fillStyle = pal.bodyHi;
+    ctx.fillRect(-11 * s, -22.5 * s, 22 * s, 2.2 * s);
+
+    // Mid-body Industrial Divider & Core Indicator
+    ctx.fillStyle = pal.dark;
+    ctx.fillRect(-17 * s, 3 * s, 34 * s, 3.5 * s);
+
+    ctx.fillStyle = pal.ring;
+    ctx.fillRect(-7 * s, 10 * s, 14 * s, 3.5 * s);
+    ctx.strokeRect(-7 * s, 10 * s, 14 * s, 3.5 * s);
+
+    // Curved Edge-to-Edge OLED Face Shield
+    ctx.fillStyle = pal.screen;
+    ctx.beginPath();
+    ctx.roundRect(-13.5 * s, -18.5 * s, 27 * s, 17.5 * s, 3.5 * s);
+    ctx.fill();
+    ctx.stroke();
+
+    // Expressive OLED Eyes + Moving Mouth
+    drawOledFaceContents(0, -9.8 * s, 27 * s, 17.5 * s, pal.led, s);
+
+    // Front Floating Magnetic Wing Fin
+    ctx.fillStyle = pal.body;
+    ctx.beginPath();
+    ctx.roundRect(18 * s, -4 * s + wingBob, 6 * s, 17 * s, 2 * s);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  // =========================================================================
+  // 4. CUSTOM ROBOT RENDERER
+  // =========================================================================
+  function drawCustomHero(cx, cy, h) {
+    const p = h.primaryColor || '#64748b';
+    const sec = h.secondaryColor || '#ff5500';
+    const acc = h.accentColor || '#f2efe9';
+
+    if (h.artworkDataUrl) {
+      const img = getCustomArtImage(h.artworkDataUrl);
+      const s = st.scale;
+      ctx.save();
+      ctx.translate(cx, cy + Math.sin(t * 3.8) * 3 * s);
+      const r = 28 * s;
+      ctx.fillStyle = '#131417';
+      ctx.strokeStyle = p;
+      ctx.lineWidth = 2.5 * s;
+      ctx.fillRect(-r, -r, r * 2, r * 2);
+      ctx.strokeRect(-r, -r, r * 2, r * 2);
+      if (img && img.complete && img.naturalWidth > 0) {
+        ctx.drawImage(img, -r + 2 * s, -r + 2 * s, (r - 2 * s) * 2, (r - 2 * s) * 2);
+      }
+      ctx.restore();
+      return;
+    }
+
+    const tpl = h.template || 'kronos';
+    if (tpl === 'aegis' || tpl === 'mech') {
+      drawAegis(cx, cy, { body: p, bodyHi: acc, bodyShade: '#1e293b', dark: '#090a0d', screen: '#07080a', led: sec, accent: acc });
+    } else if (tpl === 'optix' || tpl === 'cat') {
+      drawOptix(cx, cy, { body: p, bodyHi: acc, bodyShade: '#1e293b', head: acc, screen: '#07080a', led: sec, tread: '#181a20' });
+    } else if (tpl === 'orbit' || tpl === 'dog' || tpl === 'holo') {
+      drawOrbit(cx, cy, { body: p, bodyHi: acc, bodyShade: '#1e293b', dark: '#090a0d', screen: '#07080a', led: sec, ring: sec });
+    } else {
+      drawKronos(cx, cy, { body: p, bodyHi: acc, bodyShade: '#1e293b', dark: '#090a0d', screen: '#07080a', led: sec, accent: acc });
+    }
+  }
+
+  // =========================================================================
+  // 5. TOP-OF-HEAD LIVE AGENT TIMER + STUDIO HEADPHONES + TASK DATA SLATE
+  // Zero Emojis · Pure Hardware Vector Geometry
+  // =========================================================================
+  function getRobotAnchors(ch) {
+    if (ch === 'kronos') return { hx: 0, hy: -18, hr: 22, tx: 30, ty: 2 };
+    if (ch === 'optix') return { hx: 1, hy: -18, hr: 19, tx: 27, ty: 2 };
+    if (ch === 'orbit') return { hx: 0, hy: -15, hr: 18, tx: 27, ty: 2 };
+    return { hx: 0, hy: -21, hr: 20, tx: 27, ty: 3 };
+  }
+
+  function drawTopOfHeadTimerAndAccessories(cx, cy) {
+    const isMusic = Boolean(st.danceModeEnabled || forceDanceTimer > 0);
+    const isWorking = Boolean(st.agentWorking || st.isThinking || forceTaskTimer > 0);
+    const isSpeakingNow = Boolean(st.isSpeaking || speakTimer > 0 || (window.auraSound && window.auraSound.isSpeaking && window.auraSound.isSpeaking()));
+    const isListeningNow = Boolean(st.isListening);
+    const s = st.scale;
+    const ch = st.customHero ? (st.customHero.template || 'kronos') : st.character;
+    const anc = getRobotAnchors(ch);
+    const bob = isMusic ? Math.sin(t * 12) * 3 * s : Math.sin(t * 3.5) * 1.2 * s;
+
+    ctx.save();
+    ctx.translate(cx, cy + bob);
+
+    // A. HARDWARE STUDIO HEADPHONES (when music/video is playing)
+    if (isMusic) {
+      const hx = anc.hx * s * st.facing;
+      const hy = anc.hy * s;
+      const hr = anc.hr * s;
+
+      ctx.save();
+      ctx.translate(hx, hy);
+
+      // Stainless wireframe headband + orange signal band
+      ctx.strokeStyle = '#090a0d';
+      ctx.lineWidth = 4.5 * s;
+      ctx.beginPath();
+      ctx.arc(0, 3 * s, hr + 2.5 * s, Math.PI * 1.06, Math.PI * 1.94);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#ff5500';
+      ctx.lineWidth = 2 * s;
+      ctx.beginPath();
+      ctx.arc(0, 3 * s, hr + 2.5 * s, Math.PI * 1.15, Math.PI * 1.85);
+      ctx.stroke();
+
+      // Rectangular Teenage-Engineering-style Over-Ear Cups + 3-Bar EQ LEDs
+      const earX = hr + 2 * s;
+      for (const side of [-1, 1]) {
+        const ex = side * earX;
+        const ey = 4 * s;
+        ctx.fillStyle = '#131519';
+        ctx.strokeStyle = '#f2efe9';
+        ctx.lineWidth = 1.4 * s;
+        ctx.fillRect(ex - 4.2 * s, ey - 7 * s, 8.4 * s, 14 * s);
+        ctx.strokeRect(ex - 4.2 * s, ey - 7 * s, 8.4 * s, 14 * s);
+
+        const eqH = (3.5 + Math.abs(Math.sin(t * 16 + side)) * 6.5) * s;
+        ctx.fillStyle = isWorking ? '#00d68f' : '#ff5500';
+        ctx.fillRect(ex - 1.6 * s, ey + 5 * s - eqH, 3.2 * s, eqH);
+      }
+      ctx.restore();
+    }
+
+    // B. INDUSTRIAL TASK DATA SLATE / FIELD MANUAL (when agent or task is working)
+    if (isWorking) {
+      const tx = anc.tx * s * st.facing;
+      const ty = anc.ty * s + Math.sin(t * 5) * 1.4 * s;
+
+      ctx.save();
+      ctx.translate(tx, ty);
+      ctx.scale(st.facing, 1);
+
+      // Matte Carbon Data Slate Frame
+      ctx.fillStyle = '#111317';
+      ctx.strokeStyle = '#00d68f';
+      ctx.lineWidth = 1.6 * s;
+      ctx.fillRect(-2 * s, -12 * s, 22 * s, 24 * s);
+      ctx.strokeRect(-2 * s, -12 * s, 22 * s, 24 * s);
+
+      // Top Header Bar on Slate
+      ctx.fillStyle = '#00d68f';
+      ctx.fillRect(-2 * s, -12 * s, 22 * s, 3.5 * s);
+
+      // Animated scrolling code/task bars inside Slate
+      const phase = Math.floor(t * 5);
+      const barLens = [14, 10, 15, 8, 12];
+      for (let i = 0; i < 5; i++) {
+        const bw = barLens[(i + phase) % barLens.length] * s;
+        const by = (-5.5 + i * 3.2) * s;
+        ctx.fillStyle = i === (phase % 5) ? '#ff5500' : '#00d68f';
+        ctx.fillRect(1.5 * s, by, bw, 1.7 * s);
+      }
+
+      // Active white optical reading scanline
+      const scanY = (-6 + ((Math.sin(t * 4.8) + 1) * 0.5) * 14) * s;
+      ctx.fillStyle = '#f2efe9';
+      ctx.fillRect(0.5 * s, scanY, 17 * s, 1 * s);
+
+      ctx.restore();
+    }
+
+    // C. TOP-OF-HEAD LIVE AGENT TIMER & TELEMETRY TAG
+    // Shows live agent name, ticking MM:SS timer, and start time right above the robot's head!
+    if (isWorking || st.agentElapsedSec > 0 || st.activeAgentName) {
+      const agName = (st.activeAgentName || st.activeTaskLabel || 'AGENT').toUpperCase().slice(0, 12);
+      const timerStr = formatDurationMMSS(st.agentElapsedSec || Math.floor(t));
+      const topText = `${agName} // ${timerStr}`;
+      const subText = st.activeAgentStartStr
+        ? `ON ${st.activeAgentStartStr} · ${(st.activeAgentWhat || 'WORKING').toUpperCase().slice(0, 14)}`
+        : (st.activeAgentWhat || 'TASK ACTIVE').toUpperCase().slice(0, 22);
+
+      ctx.save();
+      ctx.font = `700 ${Math.max(8, Math.round(8.5 * s))}px "Cascadia Mono", Consolas, monospace`;
+      const w1 = ctx.measureText(topText).width;
+      ctx.font = `600 ${Math.max(7, Math.round(7.2 * s))}px "Cascadia Mono", Consolas, monospace`;
+      const w2 = ctx.measureText(subText).width;
+
+      const boxW = Math.min(188, Math.max(w1, w2) + 18 * s);
+      const boxH = 22 * s;
+      const boxX = -boxW * 0.5;
+      const boxY = -56 * s;
+
+      // Solid Hardware Telemetry Tag Box (0px gradient, sharp 2px corners)
+      ctx.fillStyle = '#0d0e11';
+      ctx.strokeStyle = '#00d68f';
+      ctx.lineWidth = 1.5 * s;
+      ctx.fillRect(boxX, boxY, boxW, boxH);
+      ctx.strokeRect(boxX, boxY, boxW, boxH);
+
+      // Pulsing green live square indicator
+      ctx.fillStyle = Math.floor(t * 4) % 2 === 0 ? '#00d68f' : '#ff5500';
+      ctx.fillRect(boxX + 4 * s, boxY + 4 * s, 4 * s, 4 * s);
+
+      ctx.fillStyle = '#f2efe9';
+      ctx.font = `700 ${Math.max(8, Math.round(8.5 * s))}px "Cascadia Mono", Consolas, monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(topText, 2 * s, boxY + 7 * s);
+
+      ctx.fillStyle = '#a0a6b2';
+      ctx.font = `600 ${Math.max(7, Math.round(7.2 * s))}px "Cascadia Mono", Consolas, monospace`;
+      ctx.fillText(subText, 0, boxY + 16 * s);
+      ctx.restore();
+    }
+
+    // D. BOTTOM HARDWARE STATUS STRIP (Zero Emojis!)
+    if (isListeningNow || isMusic || isWorking || isSpeakingNow) {
+      ctx.save();
+      const statusText = isListeningNow
+        ? 'WHISPER MIC // LISTENING...'
+        : isSpeakingNow && st.speechSnippet
+          ? `VOICE // ${st.speechSnippet.toUpperCase().slice(0, 18)}`
+          : isMusic && isWorking
+            ? 'DANCE + TASK // MULTITASK'
+            : isMusic
+              ? 'DANCE MODE // ON'
+              : 'AGENT TASK // READING';
+
+      ctx.font = `700 ${Math.max(8, Math.round(8 * s))}px "Cascadia Mono", Consolas, monospace`;
+      const tw = ctx.measureText(statusText).width;
+      const pw = Math.min(190, tw + 12 * s);
+      const ph = 13 * s;
+      const px = -pw * 0.5;
+      const py = 32 * s;
+
+      ctx.fillStyle = '#0d0e11';
+      ctx.strokeStyle = isListeningNow ? '#ff4d4d' : isSpeakingNow ? '#facc15' : (isMusic && isWorking ? '#ff5500' : isWorking ? '#00d68f' : '#ff5500');
+      ctx.lineWidth = 1.4 * s;
+      ctx.fillRect(px, py, pw, ph);
+      ctx.strokeRect(px, py, pw, ph);
+
+      ctx.fillStyle = '#f2efe9';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(statusText, 0, py + ph * 0.52);
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
+  // =========================================================================
+  // MAIN RENDER LOOP
+  // =========================================================================
+  function draw(now) {
+    const dt = Math.min((now - lastTs) / 1000, 0.05);
+    lastTs = now;
+    t += dt;
+
+    if (happyTimer > 0) happyTimer = Math.max(0, happyTimer - dt);
+    if (alertPulse > 0) alertPulse = Math.max(0, alertPulse - dt);
+    if (forceDanceTimer > 0) forceDanceTimer = Math.max(0, forceDanceTimer - dt);
+    if (forceTaskTimer > 0) forceTaskTimer = Math.max(0, forceTaskTimer - dt);
+    if (speakTimer > 0) speakTimer = Math.max(0, speakTimer - dt);
+
+    blinkTimer -= dt;
+    if (blinkTimer <= 0) {
+      blinkAmount = Math.min(1, blinkAmount + dt * 14);
+      if (blinkAmount >= 1) blinkTimer = 2.4 + Math.random() * 2.8;
+    } else if (blinkAmount > 0) {
+      blinkAmount = Math.max(0, blinkAmount - dt * 10);
+    }
+
+    updateParticles(dt);
+
+    ctx.clearRect(0, 0, W, H);
+    const cx = W * 0.5;
+    const cy = H * 0.56;
+
+    if (st.customHero) {
+      drawCustomHero(cx, cy, st.customHero);
+    } else if (st.character === 'aegis') {
+      drawAegis(cx, cy);
+    } else if (st.character === 'optix') {
+      drawOptix(cx, cy);
+    } else if (st.character === 'orbit') {
+      drawOrbit(cx, cy);
+    } else {
+      drawKronos(cx, cy);
+    }
+
+    drawTopOfHeadTimerAndAccessories(cx, cy);
+    drawParticles();
+
+    if (st.approvals > 0 || st.unread > 0) {
+      const badgeColor = st.approvals > 0 ? '#ff5500' : '#00d68f';
+      const count = st.approvals > 0 ? st.approvals : st.unread;
+      ctx.save();
+      ctx.fillStyle = badgeColor;
+      ctx.strokeStyle = '#090a0d';
+      ctx.lineWidth = 1.5;
+      ctx.fillRect(W - 44, 24, 18, 16);
+      ctx.strokeRect(W - 44, 24, 18, 16);
+      ctx.fillStyle = '#090a0d';
+      ctx.font = 'bold 10px "Cascadia Mono", Consolas, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(Math.min(count, 9)), W - 35, 32.5);
+      ctx.restore();
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  api.onFishState((data) => {
+    if (!data) return;
+    st.character = data.character || 'kronos';
+    st.movementArchetype = data.movementArchetype || 'stride';
+    st.customHero = data.customHero || null;
+    st.skin = data.skin || 'titanium';
+    st.ageGroup = data.ageGroup || '15-30';
+    st.vx = data.vx || 0;
+    st.vy = data.vy || 0;
+    st.speed = data.speed || 0;
+    st.facing = data.facing || 1;
+    st.pitch = data.pitch || 0;
+    st.mode = data.mode || 'swim';
+    st.scale = clamp(data.scale || 1.06, 0.72, 1.4);
+    st.animalState = data.animalState || 'walking';
+    st.stretchX = Number(data.stretchX) || 0;
+    st.stretchY = Number(data.stretchY) || 0;
+    st.squishMag = Number(data.squishMag) || 0;
+    st.hudOpen = Boolean(data.hudOpen);
+    st.isDragging = Boolean(data.isDragging);
+    st.isThinking = Boolean(data.isThinking);
+    st.approvals = data.approvals || 0;
+    st.unread = data.unread || 0;
+    st.unreadWA = data.unreadWA || 0;
+    st.musicPlaying = Boolean(data.musicPlaying);
+    st.danceModeEnabled = Boolean(data.danceModeEnabled);
+    st.isListening = Boolean(data.isListening);
+    st.agentWorking = Boolean(data.agentWorking);
+    st.activeTaskLabel = data.activeTaskLabel || '';
+    st.activeAgentName = data.activeAgentName || '';
+    st.activeAgentWhat = data.activeAgentWhat || '';
+    st.activeAgentStartStr = data.activeAgentStartStr || '';
+    st.agentElapsedSec = Number(data.agentElapsedSec) || 0;
+    if (typeof data.isSpeaking === 'boolean') st.isSpeaking = data.isSpeaking;
+    if (data.speechSnippet !== undefined) st.speechSnippet = data.speechSnippet || '';
+  });
+
+  api.onFishReaction((data) => {
+    const kind = data?.kind || data?.type || 'pet';
+    if (kind === 'dance') {
+      forceDanceTimer = 7.0;
+      happyTimer = 3.0;
+      spawnParticles(W * 0.5, H * 0.42, 6, 'spark', '#ff5500');
+    } else if (kind === 'dance-off') {
+      forceDanceTimer = 0;
+    } else if (kind === 'task') {
+      forceTaskTimer = 9.0;
+      happyTimer = 2.0;
+      spawnParticles(W * 0.5, H * 0.46, 6, 'spark', '#00d68f');
+    } else if (kind === 'multitask') {
+      forceDanceTimer = 9.0;
+      forceTaskTimer = 9.0;
+      happyTimer = 3.5;
+      spawnParticles(W * 0.5, H * 0.42, 6, 'spark', '#ff5500');
+      spawnParticles(W * 0.5, H * 0.5, 6, 'spark', '#00d68f');
+    } else if (kind === 'speak') {
+      speakTimer = Math.max(3.5, Number(data?.duration) || 4.5);
+      st.speechSnippet = data?.text || st.speechSnippet || '';
+      spawnParticles(W * 0.5, H * 0.44, 4, 'spark', '#facc15');
+    } else if (kind === 'boing') {
+      happyTimer = 1.4;
+      window.auraSound?.playStretchBoing();
+      spawnParticles(W * 0.5, H * 0.5, 6, 'spark', '#00d68f');
+    } else if (kind === 'approval' || kind === 'whatsapp' || kind === 'discovered') {
+      alertPulse = 2.0;
+      spawnParticles(W * 0.5, H * 0.42, 7, 'spark', '#ff5500');
+    } else {
+      happyTimer = 1.8;
+      spawnParticles(W * 0.5, H * 0.44, 6, 'spark', '#00d68f');
+    }
+  });
+
+  api.onAudioCmd((cmd) => {
+    if (!cmd || !window.auraSound) return;
+    if (cmd.type === 'speak') {
+      const words = String(cmd.text || '').trim().split(/\s+/).length;
+      speakTimer = Math.max(2.6, Math.min(14, words * 0.38));
+      st.speechSnippet = String(cmd.text || '').slice(0, 36);
+      window.auraSound.speak(cmd.text, cmd.character, cmd.enabled !== false, cmd.audioDataUrl || null);
+    } else if (cmd.type === 'stop-speak') {
+      speakTimer = 0;
+      window.auraSound.stopSpeaking();
+    } else if (cmd.type === 'motif') {
+      window.auraSound.playCharacterMotif(cmd.character, cmd.vol ?? 0.85);
+    } else if (cmd.type === 'bgm-start') {
+      window.auraSound.startBgmLoop(cmd.character);
+    } else if (cmd.type === 'bgm-stop') {
+      window.auraSound.stopBgmLoop();
+    }
+  });
+
+  let dragStart = null;
+  let dragged = false;
+  canvas.addEventListener('pointerdown', (e) => {
+    if (e.button === 2) { api.fishContextMenu(); return; }
+    if (e.button !== 0) return;
+    dragStart = { x: e.screenX, y: e.screenY };
+    dragged = false;
+  });
+  window.addEventListener('pointermove', (e) => {
+    if (!dragStart) return;
+    if (!dragged && Math.hypot(e.screenX - dragStart.x, e.screenY - dragStart.y) > 5) {
+      dragged = true;
+      api.fishDragStart();
+    }
+  });
+  window.addEventListener('pointerup', () => {
+    if (!dragStart) return;
+    if (dragged) api.fishDragEnd();
+    else api.fishClicked();
+    dragStart = null;
+    dragged = false;
+  });
+  canvas.addEventListener('dblclick', () => api.fishDoubleClicked());
+  canvas.addEventListener('contextmenu', (e) => { e.preventDefault(); api.fishContextMenu(); });
+
+  requestAnimationFrame(draw);
 })();

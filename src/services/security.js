@@ -109,73 +109,57 @@ class SlidingRateLimiter {
   }
 }
 
-// Strict IPC validators + seamless backward-compatibility migration from legacy character/skin IDs
+// Strict IPC validators + seamless backward-compatibility migration via heroRegistry
+const {
+  BUILTIN_HERO_IDS,
+  DEFAULT_CHAR_NAMES,
+  DEFAULT_CHAR_SKINS,
+  LEGACY_DEFAULT_NAMES,
+  resolveHeroId,
+  normalizeSkinForHero,
+  resolveAgeProfileId,
+  isCustomHeroId,
+} = require('./heroRegistry');
+
 const VALID_PET_MODES = new Set(['swim', 'fast', 'slow', 'stay', 'follow']);
-const VALID_PET_CHARS = new Set(['vesper', 'vector', 'core', 'coral']);
-const VALID_AGE_GROUPS = new Set(['0-15', '15-30', '30-60']);
+const VALID_PET_CHARS = new Set(BUILTIN_HERO_IDS);
+const VALID_AGE_GROUPS = new Set(['0-15', '1-15', '15-30', '30-60']);
 const VALID_DISPLAY_MODES = new Set(['floating', 'desktop-only']);
 const VALID_DECISIONS = new Set(['allow', 'deny', 'passthrough']);
 
-const LEGACY_CHAR_MAP = {
-  spidey: 'vesper',
-  ironman: 'vector',
-  jarvis: 'core',
-  nemo: 'coral',
-};
-
-const DEFAULT_CHAR_NAMES = {
-  vesper: 'Vesper',
-  vector: 'Vector',
-  core: 'Core',
-  coral: 'Coral',
-};
-
-const DEFAULT_CHAR_SKINS = {
-  vesper: 'crimson',
-  vector: 'valkyrie',
-  core: 'solar',
-  coral: 'tangerine',
-};
-
-const LEGACY_SKIN_MAP = {
-  vesper: { classic: 'crimson', miles: 'obsidian', symbiote: 'eclipse', ironspider: 'gilded', gwen: 'frost', stealth: 'emerald' },
-  vector: { mark85: 'valkyrie', silver: 'titanium', warmachine: 'cobalt', starboost: 'orbital', midnight: 'stealth' },
-  core: { stark: 'solar', arc: 'aether', vision: 'matrix', ultron: 'nova', pearl: 'pearl' },
-  coral: { classic: 'tangerine', dory: 'sapphire', koi: 'koi', coral: 'blossom' },
-};
-
-const LEGACY_DEFAULT_NAMES = new Set(['spidey', 'spider-man', 'iron man', 'ironman', 'j.a.r.v.i.s.', 'jarvis', 'nemo']);
-
-function normalizeCharacterId(raw) {
-  const k = String(raw || '').toLowerCase().trim();
-  if (VALID_PET_CHARS.has(k)) return k;
-  if (LEGACY_CHAR_MAP[k]) return LEGACY_CHAR_MAP[k];
-  return null;
+function normalizeCharacterId(raw, customHeroes = []) {
+  return resolveHeroId(raw, customHeroes);
 }
 
 function normalizeSkinId(charKey, rawSkin) {
-  const c = normalizeCharacterId(charKey);
-  if (!c || typeof rawSkin !== 'string') return null;
-  const s = rawSkin.toLowerCase().trim();
-  if (!/^[a-z0-9_-]{2,24}$/.test(s)) return null;
-  return LEGACY_SKIN_MAP[c]?.[s] || s;
+  return normalizeSkinForHero(charKey, rawSkin);
 }
 
-function sanitizeSettingsPatch(patch) {
+function sanitizeSettingsPatch(patch, customHeroes = []) {
   if (!patch || typeof patch !== 'object') return {};
   const clean = {};
   if (VALID_DISPLAY_MODES.has(patch.displayMode)) clean.displayMode = patch.displayMode;
   if (VALID_PET_MODES.has(patch.petMode)) clean.petMode = patch.petMode;
   if (patch.petCharacter !== undefined) {
-    const mappedChar = normalizeCharacterId(patch.petCharacter);
-    if (mappedChar) clean.petCharacter = mappedChar;
+    const mappedChar = normalizeCharacterId(patch.petCharacter, customHeroes);
+    if (mappedChar) {
+      clean.petCharacter = mappedChar;
+      clean.unresolvedCharacter = null;
+    } else if (typeof patch.petCharacter === 'string' && patch.petCharacter.trim()) {
+      // Preserve unknown character ID without blindly overwriting so the user can choose a replacement
+      clean.unresolvedCharacter = patch.petCharacter.replace(/[<>"]/g, '').trim().slice(0, 32);
+    }
   }
-  if (VALID_AGE_GROUPS.has(patch.ageGroup)) clean.ageGroup = patch.ageGroup;
+  if (VALID_AGE_GROUPS.has(patch.ageGroup)) clean.ageGroup = resolveAgeProfileId(patch.ageGroup);
   if (typeof patch.wakeOnAlerts === 'boolean') clean.wakeOnAlerts = patch.wakeOnAlerts;
   if (typeof patch.showAlertBubbles === 'boolean') clean.showAlertBubbles = patch.showAlertBubbles;
   if (typeof patch.privacyMask === 'boolean') clean.privacyMask = patch.privacyMask;
   if (typeof patch.voiceEnabled === 'boolean') clean.voiceEnabled = patch.voiceEnabled;
   if (typeof patch.bgmEnabled === 'boolean') clean.bgmEnabled = patch.bgmEnabled;
+  if (typeof patch.danceModeEnabled === 'boolean') clean.danceModeEnabled = patch.danceModeEnabled;
+  if (typeof patch.selectedVoice === 'string' && /^[a-z0-9_-]{2,24}$/i.test(patch.selectedVoice.trim())) {
+    clean.selectedVoice = patch.selectedVoice.trim().toLowerCase();
+  }
   if (typeof patch.autoStart === 'boolean') clean.autoStart = patch.autoStart;
   if (typeof patch.thinkMode === 'boolean') clean.thinkMode = patch.thinkMode;
   if (typeof patch.glassTransparency === 'number' && Number.isFinite(patch.glassTransparency)) {
@@ -187,7 +171,7 @@ function sanitizeSettingsPatch(patch) {
   if (patch.petSkins && typeof patch.petSkins === 'object') {
     const skins = {};
     for (const [rawKey, rawVal] of Object.entries(patch.petSkins)) {
-      const c = normalizeCharacterId(rawKey);
+      const c = normalizeCharacterId(rawKey, customHeroes);
       const s = normalizeSkinId(c, rawVal);
       if (c && s) skins[c] = s;
     }
@@ -196,12 +180,12 @@ function sanitizeSettingsPatch(patch) {
   if (patch.petNames && typeof patch.petNames === 'object') {
     const names = {};
     for (const [rawKey, rawVal] of Object.entries(patch.petNames)) {
-      const c = normalizeCharacterId(rawKey);
+      const c = normalizeCharacterId(rawKey, customHeroes);
       if (c && typeof rawVal === 'string') {
-        const trimmed = rawVal.replace(/[<>"]/g, '').trim().slice(0, 22);
+        const trimmed = rawVal.replace(/[<>"]/g, '').trim().slice(0, 24);
         if (trimmed) {
           // Upgrade untouched legacy default names cleanly while keeping any custom user nickname!
-          names[c] = LEGACY_DEFAULT_NAMES.has(trimmed.toLowerCase()) ? DEFAULT_CHAR_NAMES[c] : trimmed;
+          names[c] = LEGACY_DEFAULT_NAMES.has(trimmed.toLowerCase()) ? (DEFAULT_CHAR_NAMES[c] || trimmed) : trimmed;
         }
       }
     }
