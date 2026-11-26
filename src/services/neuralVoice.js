@@ -128,22 +128,25 @@ try:
     chunk = 1024
     stream = pa.open(format=pyaudio.paInt16, channels=1, rate=rate, input=True, frames_per_buffer=chunk)
     frames = []
-    max_seconds = 4.6
+    max_seconds = 10.0
     total_chunks = int(rate / chunk * max_seconds)
     speech_started = False
     silent_chunks = 0
+    wait_start_chunks = int(rate / chunk * 3.2)
     for i in range(total_chunks):
         data = stream.read(chunk, exception_on_overflow=False)
         arr = np.frombuffer(data, dtype=np.int16).astype(np.float32) / 32768.0
         frames.append(arr)
         rms = float(np.sqrt(np.mean(arr * arr)))
-        if rms > 0.014:
+        if rms > 0.012:
             speech_started = True
             silent_chunks = 0
         elif speech_started:
             silent_chunks += 1
-            if silent_chunks > int(rate / chunk * 0.95) and i > int(rate / chunk * 1.4):
+            if silent_chunks > int(rate / chunk * 1.35) and i > int(rate / chunk * 1.5):
                 break
+        elif i > wait_start_chunks:
+            break
     stream.stop_stream()
     stream.close()
     pa.terminate()
@@ -266,7 +269,7 @@ class NeuralVoiceService {
       execFile(
         this.pythonBin,
         ['-c', LOCAL_WHISPER_PY],
-        { timeout: 13000, windowsHide: true },
+        { timeout: 22000, windowsHide: true },
         (err, stdout) => {
           const out = String(stdout || '').trim();
           if (out.startsWith('OK::WHISPER-BASE::')) {
@@ -280,7 +283,7 @@ class NeuralVoiceService {
               ok: false,
               empty: true,
               engine: 'faster-whisper-base',
-              error: 'Local Whisper heard silence — speak right after pressing A+S+W or Mic!',
+              error: 'JARVIS Whisper heard silence — speak right after pressing A+S+D or Mic!',
             });
           } else {
             resolve({ ok: false, fallbackNeeded: true, error: err ? err.message : out });
@@ -300,7 +303,7 @@ class NeuralVoiceService {
         $rec.SetInputToDefaultAudioDevice()
         $g = New-Object System.Speech.Recognition.DictationGrammar
         $rec.LoadGrammar($g)
-        $res = $rec.Recognize([TimeSpan]::FromSeconds(5))
+        $res = $rec.Recognize([TimeSpan]::FromSeconds(8))
         $rec.Dispose()
         if ($res -and $res.Text) {
           Write-Output ("OK::" + $res.Text)
@@ -315,7 +318,7 @@ class NeuralVoiceService {
       execFile(
         'powershell.exe',
         ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', psScript],
-        { timeout: 9000, windowsHide: true },
+        { timeout: 12000, windowsHide: true },
         (err, stdout) => {
           const out = String(stdout || '').trim();
           if (out.startsWith('OK::')) {
@@ -324,7 +327,7 @@ class NeuralVoiceService {
             resolve({
               ok: false,
               empty: true,
-              error: 'No speech detected — speak into your mic after pressing A+S+W or Mic!',
+              error: 'No speech detected — speak into your mic after pressing A+S+D or Mic!',
             });
           }
         }

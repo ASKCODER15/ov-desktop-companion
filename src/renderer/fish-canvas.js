@@ -798,7 +798,7 @@
     if (isListeningNow || isMusic || isWorking || isSpeakingNow) {
       ctx.save();
       const statusText = isListeningNow
-        ? 'WHISPER MIC // LISTENING...'
+        ? 'JARVIS (A+S+D) // LISTENING...'
         : isSpeakingNow && st.speechSnippet
           ? `VOICE // ${st.speechSnippet.toUpperCase().slice(0, 18)}`
           : isMusic && isWorking

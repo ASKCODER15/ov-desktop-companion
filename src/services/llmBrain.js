@@ -266,9 +266,9 @@ class LocalLLMBrain {
         return { reply: `अरे भाई, सब बढ़िया! मैं ${name} हूँ — बोलो आज क्या काम करना है?`, action: null };
       }
       if (isHinglish) {
-        return { reply: `Arre bhai ekdum mast! ${name} ready hai — A+S+W daba ke voice me bol ya seedha bata kya karna hai.`, action: null };
+        return { reply: `Arre bhai ekdum mast! ${name} ready hai — A+S+D daba ke voice me bol ya seedha bata kya karna hai.`, action: null };
       }
-      return { reply: `Hey bro! ${name} online (${agents.length} agent active, ${openTasks.length} open tasks). Press A+S+W anytime to talk via Local Whisper!`, action: null };
+      return { reply: `Hey bro! ${name} online (${agents.length} agent active, ${openTasks.length} open tasks). Press A+S+D anytime to talk to JARVIS!`, action: null };
     }
 
     // 5. Language capability questions
@@ -276,7 +276,7 @@ class LocalLLMBrain {
       return {
         reply: isHinglish || isDevanagari
           ? `Haan bhai, English, Hinglish aur Hindi teeno me ek hi fixed natural voice me baat karenge!`
-          : `I speak English, Hinglish, and Hindi using your selected voice + local Whisper STT (A+S+W).`,
+          : `I speak English, Hinglish, and Hindi using your selected voice + local Whisper STT (A+S+D).`,
         action: null,
       };
     }
@@ -294,28 +294,38 @@ class LocalLLMBrain {
 
     // 7. Concise general intelligent response
     if (isDevanagari) {
-      return { reply: `समझ गया भाई! "${text.slice(0, 48)}" पर काम चालू है — कोई ऐप या टाइमर चलाना हो तो बस बोलो।`, action: { type: 'pet_task' } };
+      return { reply: `समझ गया भाई! "${text.slice(0, 48)}" पर काम चालू है — A+S+D दबा के कोई भी काम बोलो।`, action: { type: 'pet_task' } };
     }
     if (isHinglish) {
-      return { reply: `Samajh gaya bhai! "${text.slice(0, 48)}" note kar liya hai. A+S+W daba ke koi bhi laptop command bol sakta hai!`, action: { type: 'pet_task' } };
+      return { reply: `Samajh gaya bhai! "${text.slice(0, 48)}" note kar liya hai. A+S+D daba ke koi bhi laptop command bol sakta hai!`, action: { type: 'pet_task' } };
     }
-    return { reply: `Got it bro — scanning "${text.slice(0, 48)}" on my task slate. Press A+S+W or ask me to open any app, control music, or add a task!`, action: { type: 'pet_task' } };
+    return { reply: `Got it bro — scanning "${text.slice(0, 48)}" on my task slate. Press A+S+D to give JARVIS any multi-step voice command!`, action: { type: 'pet_task' } };
   }
 
   /**
-   * Parses an optional structured action tag emitted by the local LLM:
-   * Supports both [[ACTION:{"type":"open_app","target":"spotify"}]] and single-bracket [ACTION:{...}]!
+   * Parses an optional structured action tag OR multi-step JARVIS plan emitted by the local LLM:
+   * Supports [[ACTION:{...}]] and [[PLAN:[{...},{...}]]].
    */
   extractAction(text) {
     const raw = String(text || '');
+    const planMatch = raw.match(/\[{1,2}\s*PLAN\s*:\s*(\[[\s\S]*?\])\s*\]{1,2}/i);
+    if (planMatch) {
+      let plan = null;
+      try {
+        const parsed = JSON.parse(planMatch[1]);
+        if (Array.isArray(parsed)) plan = parsed.slice(0, 5);
+      } catch {}
+      const cleanText = raw.replace(planMatch[0], '').replace(/[\s,:-]+$/, '').trim();
+      return { cleanText, action: null, plan };
+    }
     const m = raw.match(/\[{1,2}\s*ACTION\s*:\s*(\{[\s\S]*?\})\s*\]{1,2}/i);
-    if (!m) return { cleanText: raw.trim(), action: null };
+    if (!m) return { cleanText: raw.trim(), action: null, plan: null };
     let action = null;
     try {
       action = JSON.parse(m[1]);
     } catch {}
     const cleanText = raw.replace(m[0], '').replace(/[\s,:-]+$/, '').trim();
-    return { cleanText, action };
+    return { cleanText, action, plan: null };
   }
 
   async ask(userMessage, liveContext = {}) {
@@ -387,19 +397,20 @@ ${agentSummary || 'None running'}
 - System Controls: Wi-Fi=${sys.wifiOn ? `ON (${sys.connectedSsid || 'not connected'})` : 'OFF'} | Bluetooth=${sys.bluetoothOn ? `ON (Connected: ${btConnected})` : 'OFF'} | FlightMode=${sys.flightMode ? 'ON' : 'OFF'}
 - Unread Notifications: ${liveContext.unreadCount || 0} (WhatsApp: ${liveContext.waCount || 0}) | Pending Approvals: ${liveContext.approvalCount || 0}
 
-Desktop Actions (ONLY append ONE single action tag at the very end IF the user asks for an action, reminder, or search):
-- Open ANY installed app (brave, spotify, youtube, reddit, whatsapp, vscode, terminal, cmd, powershell, gitbash, antigravity, cursor, discord, claude, chatgpt, wispr, notepad, calculator, settings, explorer, etc.): [[ACTION:{"type":"open_app","target":"powershell"}]]
-- Open ANY website in Brave (set "asApp":true for standalone desktop app window): [[ACTION:{"type":"open_url","url":"https://instagram.com","asApp":false}]]
-- Search the web in Brave (1 or multiple topics): [[ACTION:{"type":"search_multi","queries":["topic 1","topic 2"]}]]
-- Search YouTube / Reddit in Brave: [[ACTION:{"type":"search_youtube","query":"..."}]] or [[ACTION:{"type":"search_reddit","query":"..."}]]
-- Remind user & add to-do ("remind me in 10 min to ..."): [[ACTION:{"type":"add_reminder","text":"...","minutes":10}]]
-- Add task: [[ACTION:{"type":"add_task","text":"..."}]]
-- Start sprint timer: [[ACTION:{"type":"start_timer","minutes":25,"label":"Study Sprint"}]]
-- Music control (playPause, next, prev): [[ACTION:{"type":"media","command":"playPause"}]]
+Desktop Actions (ONLY append ONE [[ACTION:{...}]] or multi-step [[PLAN:[{...},{...}]]] tag at the very end IF the user asks for an action):
+- Open IDE + project + send prompt to AI chat: [[ACTION:{"type":"ide_project_prompt","ide":"antigravity","projectQuery":"free window radar","instruction":"update the navbar"}]]
+- Auto-play song directly on YouTube: [[ACTION:{"type":"youtube_play","query":"kesariya song"}]]
+- Create folder / website scaffold: [[ACTION:{"type":"create_folder","name":"my-app","baseDir":"desktop","scaffold":"website"}]]
+- Move file/folder to Recycle Bin: [[ACTION:{"type":"delete_recycle","targetName":"old-temp","baseDir":"desktop"}]]
+- Download URL or install software via winget: [[ACTION:{"type":"download_item","target":"vlc"}]]
+- Take screenshot / volume / close app: [[ACTION:{"type":"screenshot"}]] | [[ACTION:{"type":"volume","action":"up","steps":4}]] | [[ACTION:{"type":"close_app","target":"notepad"}]]
+- Open ANY installed app or website: [[ACTION:{"type":"open_app","target":"powershell"}]] | [[ACTION:{"type":"open_url","url":"https://instagram.com","asApp":false}]]
+- Search Brave / YouTube / Reddit: [[ACTION:{"type":"search_multi","queries":["topic 1","topic 2"]}]] | [[ACTION:{"type":"search_youtube","query":"..."}]]
+- Remind user / add task / start timer: [[ACTION:{"type":"add_reminder","text":"...","minutes":10}]] | [[ACTION:{"type":"add_task","text":"..."}]] | [[ACTION:{"type":"start_timer","minutes":25,"label":"Study Sprint"}]]
+- Music control (playPause, next, prev) / Dance Mode: [[ACTION:{"type":"media","command":"playPause"}]] | [[ACTION:{"type":"dance_toggle","enable":true}]]
 - Wi-Fi / Bluetooth / Flight / Mute: [[ACTION:{"type":"wifi","enable":true}]] | [[ACTION:{"type":"bluetooth","enable":true}]] | [[ACTION:{"type":"flight_mode","enable":true}]] | [[ACTION:{"type":"mute"}]]
-- Companion activity animations — Wear headphones & dance: [[ACTION:{"type":"pet_dance"}]] | Sit & read task tablet: [[ACTION:{"type":"pet_task"}]] | Do BOTH simultaneously (headphones + reading task): [[ACTION:{"type":"pet_multitask"}]]
-- Control pet movement (swim, fast, slow, stay, follow): [[ACTION:{"type":"pet_mode","mode":"stay"}]]
-- Switch unit & theme (spidey, ironman, batman, nemo, kronos, optix, orbit, or custom id): [[ACTION:{"type":"pet_char","character":"kronos"}]]
+- Switch robot (kronos, aegis, optix, orbit, or custom id): [[ACTION:{"type":"pet_char","character":"kronos"}]]
+- Chained multi-step tasks: [[PLAN:[{"type":"create_folder","name":"demo","baseDir":"desktop"},{"type":"youtube_play","query":"lofi beats"}]]]
 
 For general/off-topic questions with NO desktop action requested, just answer naturally with NO [[ACTION:...]] tag!`;
 
@@ -449,18 +460,19 @@ For general/off-topic questions with NO desktop action requested, just answer na
       if (thinkMatch && !thinkingText) thinkingText = thinkMatch[1].trim();
       rawReply = rawReply.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
 
-      const { cleanText, action } = this.extractAction(rawReply);
-      const reply = cleanText || (action ? 'Done!' : 'Got it!');
+      const { cleanText, action, plan } = this.extractAction(rawReply);
+      const reply = cleanText || (action || plan ? 'Done!' : 'Got it!');
 
       this.history.push({
         role: 'assistant',
         content: reply,
         thinking: thinkingText ? thinkingText.slice(0, 1200) : '',
         action,
+        plan,
         ts: Date.now(),
       });
       this.saveHistory();
-      return { ok: true, reply, thinking: thinkingText, action, model: active.rawName };
+      return { ok: true, reply, thinking: thinkingText, action, plan, model: active.rawName };
     } catch (err) {
       const fallback = this.buildHumanTrilingualReply(text, liveContext, persona);
       this.history.push({

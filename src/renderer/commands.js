@@ -13,6 +13,14 @@
     const words = lower.split(/\s+/);
     const isShort = words.length <= 6;
 
+    // 0. Route complex, multi-step, or JARVIS autonomous commands straight to JarvisAgent + Local LLM!
+    if (
+      /\b(antigravity|anti\s*gravity|vs\s*code|vscode|cursor|make\s+(?:a\s+)?folder|create\s+(?:a\s+)?folder|delete|remove|trash|download|install|clone|screenshot|volume|and\s+then|tell\s+him|ask\s+him)\b/i.test(lower) ||
+      (/\b(youtube|yt)\b/i.test(lower) && /\b(play|bajao|chalao|lagao)\b/i.test(lower))
+    ) {
+      return { action: 'ask-llm', prompt: text };
+    }
+
     // 1. Robot Agent & Theme Switching (Kronos 4-Slab Monolith, Aegis Field Mech, Optix Research Rover, Orbit Synth Pod!)
     if (isShort && /^(kronos|monolith|tars|interstellar|heavy\s*bot|switch to kronos|kronos theme|vesper|acrobat|spidey|spider[\s-]*man|spiderman)$/i.test(lower)) {
       return { action: 'character', character: 'kronos', reply: 'Kronos 4-Slab Interstellar Monolith online.' };

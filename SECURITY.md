@@ -4,8 +4,8 @@
 
 | Version | Security fixes |
 |---|---|
-| `8.x` | Active current release line (OV v8.0 Robot OS & Local Whisper Voice Agent) |
-| `6.x` / `7.x` | Legacy lines — upgrade to `8.0.0` |
+| `8.x` | Active current release line (OV v8.1 JARVIS Voice OS & Robot OS) |
+| `6.x` / `7.x` | Legacy lines — upgrade to `8.1.0` |
 | Older versions | Not guaranteed |
 
 **OV** is a local-first Windows desktop companion that observes sensitive local desktop context (notifications, clipboard snippets, active windows, local coding-agent activity, wireless radio state) and, when explicitly enabled by the user, exposes an authenticated paired mobile remote. Security reports are treated seriously.
@@ -43,8 +43,9 @@ The following safeguards are implemented directly in the current OV repository (
    - Enforces an explicit CORS Origin allowlist (allowing the bundled Android APK `null` origin, active tunnel/custom URL, and local LAN while rejecting third-party websites with `403`), plus `Content-Security-Policy` and `Permissions-Policy` headers.
    - Android `MainActivity.java` disables `setAllowUniversalAccessFromFileURLs`, `setAllowFileAccessFromFileURLs`, `setAllowFileAccess`, `setAllowContentAccess`, and remote WebView debugging, denies camera/mic/geolocation prompts, and locks top-level navigation strictly to `file:///android_asset/index.html`.
 
-4. **Command, SQL & Indirect Prompt Injection Defenses**
-   - OS helpers (`systemControls.js`, `desktopAwareness.js`, `appLauncher.js`, `musicDetector.js`) invoke `execFile` / `spawn` argument arrays (never `exec` or `shell: true`), pass dynamic values to PowerShell via environment variables, and restrict URLs to `https://` or loopback `http://`.
+4. **Command, SQL, Path-Deletion & Indirect Prompt Injection Defenses**
+   - OS helpers (`systemControls.js`, `desktopAwareness.js`, `appLauncher.js`, `musicDetector.js`, `jarvisAgent.js`) invoke `execFile` / `spawn` argument arrays (never `exec` or `shell: true`), pass dynamic values to PowerShell via environment variables, and restrict URLs to `https://` or loopback `http://`.
+   - JARVIS voice file/folder deletion (`jarvisAgent.js`) strictly enforces `isProtectedPath()` (blocking `C:\Windows`, `Program Files`, drive roots, and `%USERPROFILE%` root directories) and moves items safely to the **Windows Recycle Bin** instead of hard-deleting.
    - Windows notification reading (`notificationMonitor.js`) copies `wpndatabase.db` to a user-locked (`icacls`) private snapshot directory, runs static read-only `SELECT` queries, and deletes the snapshot in `finally`.
    - **Focus Lens** (`explain-clipboard` in `src/main/index.js`) enforces `allowActions: false` and `<untrusted_snippet>` isolation so untrusted copied text cannot trigger `[[ACTION:...]]` tool execution.
 

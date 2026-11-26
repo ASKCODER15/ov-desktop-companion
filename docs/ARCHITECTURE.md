@@ -1,6 +1,6 @@
-# OV v8.0 Architecture
+# OV v8.1 Architecture
 
-This page summarises the architecture of **OV v8.0 (`OV // ROBOT OS`)** — a local-first Windows AI robot companion with offline Whisper (`faster-whisper`) voice control, 7 consistent named neural voices, live coding-agent timers, and an optional Android remote.
+This page summarises the architecture of **OV v8.1 (`OV // JARVIS VOICE OS & ROBOT OS`)** — a local-first Windows AI robot companion with unified `A+S+D` offline Whisper (`faster-whisper`) autonomous voice execution, 7 consistent named neural voices, live coding-agent timers, auto-startup self-healing, and an optional Android remote.
 
 ## Overview
 
@@ -43,10 +43,11 @@ The Electron main process owns app lifecycle, desktop windows, IPC handlers, phy
 
 The renderer architecture separates the floating robot canvas (`fish-window.html`), zero-gradient hardware HUD (`hud.html`), notification/approval toast (`toast.html`), and click-to-move spot picker. Every window enforces `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`, `webSecurity: true`, `allowRunningInsecureContent: false`, navigation blocking, and denied new-window handling.
 
-## Local Whisper Voice & Local AI
+## Local Whisper Voice, JARVIS Autonomous OS & Local AI
 
-- **Local Open-Source Whisper (`src/services/neuralVoice.js`):** Holding **`A + S + W`** anywhere on Windows captures microphone audio via `pyaudio` with RMS silence-VAD and transcribes offline using `faster-whisper` (`Systran/faster-whisper-base` cached locally, with Windows `System.Speech.Recognition` fallback). Replies use a single user-selected named neural voice (`Arjun`, `Kavya`, `Kabir`, `Meera`, `Andrew`, `Ava`, `Brian`) in English, Hinglish, or Hindi.
-- **Local LLM (`src/services/llmBrain.js`):** Auto-discovers Ollama (`127.0.0.1:11434`) and LM Studio (`127.0.0.1:1234`) over loopback HTTP, supports Fast/Think modes, per-message deletion, and works out-of-the-box with the built-in offline Task Brain even when no local LLM is running.
+- **Unified `A+S+D` JARVIS Voice Engine (`src/services/jarvisAgent.js` & `src/services/neuralVoice.js`):** Holding **`A + S + D`** anywhere on Windows captures up to 10 seconds of speech with adaptive silence-VAD via `pyaudio` and transcribes offline using `faster-whisper` (`Systran/faster-whisper-base` cached locally, with Windows `System.Speech.Recognition` fallback). `JarvisAgent` plans and executes multi-step actions: opening Antigravity / VS Code / Cursor on fuzzy-matched project folders and dispatching AI prompts, direct YouTube playback (`&autoplay=1`), folder scaffolding, protected Recycle-Bin deletion, HTTPS/`winget` downloads, volume control, and screenshots. Replies use a single user-selected named neural voice (`Arjun`, `Kavya`, `Kabir`, `Meera`, `Andrew`, `Ava`, `Brian`).
+- **Auto-Startup Self-Healing (`src/main/index.js`):** `reconcileAutoStartOnBoot()` and `syncWindowsRunRegistry()` verify and update `HKCU\...\Run\electron.app.Electron` so Windows always boots the current `ov-desktop-companion` workspace cleanly.
+- **Local LLM (`src/services/llmBrain.js`):** Auto-discovers Ollama (`127.0.0.1:11434`) and LM Studio (`127.0.0.1:1234`) over loopback HTTP, supports Fast/Think modes, multi-step `[[PLAN:[...]]]` arrays, per-message deletion, and works out-of-the-box with the built-in offline Task Brain even when no local LLM is running.
 
 ## Agent bridge
 

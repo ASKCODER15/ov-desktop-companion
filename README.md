@@ -4,16 +4,16 @@
     <source media="(prefers-color-scheme: light)" srcset="docs/assets/ov-mark-black-transparent.png" />
     <img src="docs/assets/ov-mark-black-transparent.png" alt="OV engraved monogram" width="180" />
   </picture>
-  <h1>OV v8.0 — Robot OS &amp; Local Whisper Voice Agent</h1>
-  <p><strong>A local-first AI robot companion &amp; live coding-agent telemetry system for Windows.</strong></p>
+  <h1>OV v8.1 — JARVIS Voice OS &amp; Robot Companion</h1>
+  <p><strong>A local-first JARVIS voice operating system, AI robot companion &amp; live coding-agent monitor for Windows.</strong></p>
   <p>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-00d68f?style=flat-square" alt="MIT License" /></a>
-    <img src="https://img.shields.io/badge/Version-8.0.0-ff5500?style=flat-square" alt="Version 8.0.0" />
+    <img src="https://img.shields.io/badge/Version-8.1.0-ff5500?style=flat-square" alt="Version 8.1.0" />
     <img src="https://img.shields.io/badge/Platform-Windows%2010%2F11-181a20?style=flat-square" alt="Windows 10/11" />
-    <img src="https://img.shields.io/badge/Voice-Local%20Whisper%20(A%2BS%2BW)-181a20?style=flat-square" alt="Local Whisper A+S+W" />
+    <img src="https://img.shields.io/badge/Voice-JARVIS%20Whisper%20(A%2BS%2BD)-181a20?style=flat-square" alt="JARVIS Whisper A+S+D" />
     <img src="https://img.shields.io/badge/Runtime%20Deps-Zero-00d68f?style=flat-square" alt="Zero Runtime Dependencies" />
   </p>
-  <p>4 Industrial Desktop Robots · Local Open-Source Whisper (<code>A+S+W</code>) · Live Top-of-Head Agent Timers · 7 Consistent Named Neural Voices (EN / Hinglish / Hindi) · Optional Android Remote</p>
+  <p>Unified <code>A+S+D</code> Voice Execution · Open IDE Projects + Dispatch AI Prompts · Direct YouTube Auto-Play · Safe Folder &amp; Recycle-Bin Ops · 4 Industrial Robots · 7 Consistent Named Voices (EN / Hinglish / Hindi)</p>
 </div>
 
 <p align="center">
@@ -28,7 +28,13 @@
 
 Even with **zero coding or AI setup**, downloading OV gives you an always-on-top desktop robot that acts as your personal voice assistant, media controller, focus timer, and live coding-agent monitor:
 
-- **Talk to Your Laptop Hands-Free (`A + S + W`):** Hold **`A + S + W`** together anywhere on Windows and say *"Open Spotify"*, *"Play or pause the music"*, *"Turn on dance mode"*, *"Remind me in 15 minutes to push my branch"*, or *"What agent is running right now?"*. Your local open-source **Whisper (`faster-whisper`)** model transcribes your voice offline, executes the action, shows a corner speech bubble with **`COPY`**, and replies aloud while the robot's mouth animates.
+- **JARVIS Voice Control Anywhere (`A + S + D`):** Hold **`A + S + D`** together anywhere on Windows and speak naturally in **English, Hinglish, or Hindi**:
+  - *"Hey bro go to Antigravity and open free window radar and tell him to update the navbar in the website"* — launches Antigravity on your matching project folder, focuses AI chat, and sends the instruction automatically!
+  - *"Go on YT and play Kesariya song"* — resolves the real YouTube track and starts playing automatically with `&autoplay=1`!
+  - *"Make a website folder called portfolio on desktop"* — creates the folder, scaffolds starter `index.html` / `styles.css` / `script.js`, and opens it!
+  - *"Delete portfolio from desktop"* — safely moves files/folders to the **Windows Recycle Bin** while strictly blocking `C:\Windows`, `Program Files`, and user root paths.
+  - *"Download VLC"* or *"Download https://..."* — installs software via `winget` or saves HTTPS files cleanly into Downloads.
+  - *"Create a demo folder and then play lo-fi beats on YouTube"* — chains multi-step actions sequentially!
 - **Pick 1 of 4 Industrial Robots (16 Skins + Custom Studio):** Switch instantly between **Kronos** (Interstellar 4-Slab Monolith), **Aegis** (Bipedal Field Mech), **Optix** (Deep Research Rover), and **Orbit** (Autonomous Synth Pod) — or build your own in Companion Studio.
 - **Live Top-of-Head Coding-Agent Timers:** When `Antigravity`, `Claude Code`, `Cursor`, or a Focus Timer runs, a live digital timer (`[ANTIGRAVITY // MM:SS · ON HH:MM]`) ticks right above your robot's head. Click **`REPORT`** to hear what it's doing, when it started, and how long it has been running.
 - **Control Music & Toggle Dance Mode Anywhere:** Use `PREV / PLAY / NEXT` and `DANCE: ON/OFF` right inside the compact **Mini Popover** or **Control Center**. When Dance Mode is ON and music plays, your robot puts on wireframe **Studio Headphones** with animated EQ bars; when an agent works simultaneously, it enters **`DANCE + TASK // MULTITASK`** mode.
@@ -116,14 +122,14 @@ npm run setup:voice
 2. Installs `faster-whisper`, `pyaudio`, `numpy`, and `edge-tts` from [`requirements-voice.txt`](requirements-voice.txt).
 3. Pre-downloads the open-source **`Systran/faster-whisper-base`** offline speech recognition model (`~145 MB`) into your local Hugging Face cache and checks your microphone.
 
-**Now press `A + S + W` together anywhere on Windows** (or click **`WHISPER MIC`** in the Chat tab) and speak in **English, Hinglish, or Hindi**!
+**Now press `A + S + D` together anywhere on Windows** (or click **`JARVIS MIC`** in the Chat tab) and speak in **English, Hinglish, or Hindi**!
 - *Note:* If you skip Step 2, OV still runs cleanly and falls back to Windows built-in speech recognition.
 
 ---
 
 ### Step 3 (Optional) — Connect a Local LLM (Ollama / LM Studio)
 
-Even **without** Ollama, OV's Local Whisper Voice Agent (`A+S+W`) and Built-In Task Brain work immediately for launching apps, controlling music, toggling dance mode, managing tasks/reminders, and announcing coding agents.
+Even **without** Ollama, OV's JARVIS Voice Agent (`A+S+D`) and Built-In Task Brain work immediately for launching Antigravity/IDE projects, playing YouTube tracks, creating/recycling folders, installing apps, and monitoring coding agents.
 
 To unlock deep AI coding, math, and **Focus Lens** clipboard explanation locally:
 1. Install [Ollama](https://ollama.com) (`127.0.0.1:11434`) or [LM Studio](https://lmstudio.ai) (`127.0.0.1:1234`).
@@ -149,7 +155,7 @@ To unlock deep AI coding, math, and **Focus Lens** clipboard explanation locally
 |---|---|
 | **4 Industrial Desktop Robots** | Always-on-top `204 × 196` transparent HTML5 Canvas robot (**Kronos**, **Aegis**, **Optix**, **Orbit**) with 16 hardware skins, recessed OLED face screens, animated speaking mouths, and elastic drag physics. |
 | **Zero-Gradient Hardware UI** | 100% solid matte carbon (`#101114`) + warm archival paper (`#f2efe9`) interface with sharp `2px`/`4px` industrial corners, crisp monospace typography, tactile mechanical clicks, Mini Popover music controls + **`DANCE: ON/OFF`** toggle, and zero scrollbar slider clutter. |
-| **Local Whisper Voice Agent (`A+S+W`)** | Press **`A + S + W`** anywhere on Windows for offline **`faster-whisper`** speech-to-text. Speaks back with one consistent named voice (**Arjun**, **Kavya**, **Kabir**, **Meera**, **Andrew**, **Ava**, **Brian**) in **English, Hinglish, or Hindi**. |
+| **JARVIS Voice OS (`A+S+D`)** | Press **`A + S + D`** anywhere on Windows for offline **`faster-whisper`** speech-to-text + autonomous multi-step execution (IDE projects + prompts, direct YouTube playback, folders, Recycle-Bin delete, downloads, volume, screenshots). Speaks back with one consistent named voice (**Arjun**, **Kavya**, **Kabir**, **Meera**, **Andrew**, **Ava**, **Brian**). |
 | **Live Agent Head Timer & Telemetry** | Real-time top-of-head digital timer (`[ANTIGRAVITY // MM:SS]`), automatic & on-demand voice announcements, corner speech readout with **`COPY`**, Claude Code hook bridge (`PermissionRequest`, `Notification`, `Stop`), and 1-click **Allow / Deny**. |
 | **Age-Based Personas (`1–14`, `15–29`, `30–60`)** | 12 Robot × Age combinations that adjust robot speed, optics, and spoken persona. |
 | **Security-First Local Architecture** | Sandboxed Electron (`contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`), loopback-only hook server (`127.0.0.1:47821`) with 256-bit constant-time token auth, `icacls` user-only file ACLs, zero telemetry, and opt-in Mobile Remote. |

@@ -547,7 +547,7 @@
     const recentStart = Math.max(0, hist.length - 6);
     const visibleHist = hist.slice(recentStart);
     document.getElementById('chat-feed').innerHTML = visibleHist.length === 0 && !state.llm?.isThinking
-      ? `<div class="empty-state">Press <strong>A+S+W</strong> or click <strong>WHISPER MIC</strong> to speak any laptop command, or type below in English, Hinglish, or Hindi.</div>`
+      ? `<div class="empty-state">Press <strong>A+S+D</strong> or click <strong>JARVIS MIC</strong> to speak any command (Antigravity, YouTube, folders, downloads), or type below in English, Hinglish, or Hindi.</div>`
       : visibleHist.map((m, relIdx) => {
           const idx = recentStart + relIdx;
           return `
@@ -1156,35 +1156,35 @@
     if (voiceBtn.classList.contains('listening')) return;
     voiceBtn.classList.add('listening');
     if (whisperBtn) whisperBtn.textContent = 'LISTENING...';
-    showCommandFeedback('LOCAL WHISPER ACTIVE — SPEAK COMMAND ("OPEN SPOTIFY", "PLAY MUSIC", "ADD TASK")...');
+    showCommandFeedback('JARVIS VOICE (A+S+D) LISTENING — SPEAK ANY COMMAND...');
 
     if (api.listenVoice) {
       try {
         const res = await api.listenVoice();
         voiceBtn.classList.remove('listening');
-        if (whisperBtn) whisperBtn.textContent = 'WHISPER MIC';
+        if (whisperBtn) whisperBtn.textContent = 'JARVIS MIC';
         if (res?.ok && res.transcript) {
           inp.value = res.transcript;
-          showCommandFeedback(`WHISPER HEARD: "${res.transcript}"`);
+          showCommandFeedback(`JARVIS HEARD: "${res.transcript}"`);
           await executeInput(res.transcript);
           inp.value = '';
           return;
         }
-        showCommandFeedback(res?.error || 'NO SPEECH DETECTED — PRESS A+S+W OR WHISPER MIC AND SPEAK');
+        showCommandFeedback(res?.error || 'NO SPEECH DETECTED — PRESS A+S+D OR JARVIS MIC AND SPEAK');
         return;
       } catch {}
     }
 
-    if (whisperBtn) whisperBtn.textContent = 'WHISPER MIC';
+    if (whisperBtn) whisperBtn.textContent = 'JARVIS MIC';
     if (!SpeechRec) {
       voiceBtn.classList.remove('listening');
-      showCommandFeedback('PRESS A+S+W TO SPEAK WITH LOCAL WHISPER');
+      showCommandFeedback('PRESS A+S+D TO SPEAK WITH JARVIS');
       return;
     }
     const rec = new SpeechRec();
     rec.lang = 'en-IN';
     rec.onresult = (ev) => { const t = ev.results?.[0]?.[0]?.transcript || ''; if (t) executeInput(t); };
-    rec.onerror = () => showCommandFeedback('PRESS A+S+W OR TYPE YOUR COMMAND');
+    rec.onerror = () => showCommandFeedback('PRESS A+S+D OR TYPE YOUR COMMAND');
     rec.onend = () => voiceBtn.classList.remove('listening');
     try { rec.start(); } catch { voiceBtn.classList.remove('listening'); }
   }

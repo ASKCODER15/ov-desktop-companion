@@ -1,7 +1,9 @@
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const http = require('http');
+const { JarvisAgent, isProtectedPath, extractFirstYouTubeVideoId } = require('../src/services/jarvisAgent');
 const { NotificationMonitor } = require('../src/services/notificationMonitor');
 const { AgentMonitor } = require('../src/services/agentMonitor');
 const { HookServer } = require('../src/services/hookServer');
@@ -376,7 +378,50 @@ async function run() {
   mobTest.stopAll();
   console.log('OK: MobileRemote two-way Add + Edit + Delete task sync verified');
 
-  console.log('\nALL OV V6 CHECKS PASSED!');
+  console.log('\n=== 9. JARVIS Autonomous Voice Engine (A+S+D) & Safety Boundaries ===');
+  const jarvis = new JarvisAgent({ noExplorer: true });
+
+  const pIde = jarvis.planJarvisSteps('hey bro go to antigravity and open free window radar and tell him to update the navbar in the website');
+  assert(pIde.matched && pIde.steps.length === 1);
+  assert.strictEqual(pIde.steps[0].type, 'ide_project_prompt');
+  assert.strictEqual(pIde.steps[0].ide, 'antigravity');
+  assert.strictEqual(pIde.steps[0].projectQuery, 'free window radar');
+  assert.strictEqual(pIde.steps[0].instruction, 'update the navbar in the website');
+
+  const pYt = jarvis.planJarvisSteps('go on yt play kesariya song');
+  assert(pYt.matched && pYt.steps[0].type === 'youtube_play' && pYt.steps[0].query === 'kesariya song');
+  assert.strictEqual(extractFirstYouTubeVideoId('{"videoId":"BddP6PYo2gs"}'), 'BddP6PYo2gs');
+
+  const pFolder = jarvis.planJarvisSteps('make a website folder called jarvis-demo on desktop');
+  assert(pFolder.matched && pFolder.steps[0].type === 'create_folder' && pFolder.steps[0].name === 'jarvis-demo');
+
+  const pDel = jarvis.planJarvisSteps('delete jarvis-demo from desktop');
+  assert(pDel.matched && pDel.steps[0].type === 'delete_recycle' && pDel.steps[0].targetName === 'jarvis-demo');
+
+  const pDl = jarvis.planJarvisSteps('download vlc');
+  assert(pDl.matched && pDl.steps[0].type === 'download_item' && pDl.steps[0].target === 'vlc');
+
+  const pChain = jarvis.planJarvisSteps('make a folder called demo-web and play lofi beats on youtube');
+  assert(pChain.matched && pChain.steps.length === 2);
+  console.log('OK: JARVIS natural-language planner verified (IDE+Prompt, YouTube autoplay, Folder, Recycle, Download, Chained)');
+
+  assert.strictEqual(isProtectedPath('C:\\Windows'), true);
+  assert.strictEqual(isProtectedPath('C:\\Program Files'), true);
+  assert.strictEqual(isProtectedPath(os.homedir()), true);
+  assert.strictEqual(isProtectedPath(path.join(os.tmpdir(), 'ov-jarvis-safe-test')), false);
+
+  const tmpBase = fs.mkdtempSync(path.join(os.tmpdir(), 'ov-jarvis-rt-'));
+  try {
+    const mk = jarvis.createFolder({ name: 'demo-site', baseDir: tmpBase, scaffold: 'website' }, { noExplorer: true });
+    assert(mk.ok && fs.existsSync(path.join(mk.fullPath, 'index.html')));
+    const rec = await jarvis.deleteToRecycleBin({ fullPath: mk.fullPath });
+    assert(rec.ok && !fs.existsSync(mk.fullPath), 'Expected temp folder to be moved cleanly to Recycle Bin');
+    console.log('OK: Protected-path boundary + temp folder scaffold + Recycle Bin safe delete verified');
+  } finally {
+    fs.rmSync(tmpBase, { recursive: true, force: true });
+  }
+
+  console.log('\nALL OV V8.1 CHECKS PASSED!');
 }
 
 run().catch((err) => {

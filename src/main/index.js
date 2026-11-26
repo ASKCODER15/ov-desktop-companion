@@ -2,6 +2,7 @@ const { app, BrowserWindow, Tray, Menu, ipcMain, screen, nativeImage, session, c
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const { execFile } = require('child_process');
 
 // Aggressive Chromium RAM optimization (eliminates ~180MB GPU process!)
 app.disableHardwareAcceleration();
@@ -22,6 +23,7 @@ const { MobileRemoteServer } = require('../services/mobileRemote');
 const { ClipboardVault } = require('../services/clipboardVault');
 const { CustomHeroStore } = require('../services/customHeroStore');
 const { NeuralVoiceService, VOICE_CATALOG, getVoiceEntry } = require('../services/neuralVoice');
+const { JarvisAgent } = require('../services/jarvisAgent');
 const {
   BUILTIN_HEROES,
   AGE_PROFILES,
@@ -116,6 +118,29 @@ const hookServer = new HookServer(DEFAULT_PORT, (item) => autoPilot.evaluatePerm
 let mobileRemote = null;
 let bgmLoopActive = false;
 
+function toggleDanceModeInternal(enable) {
+  const nextDance = typeof enable === 'boolean' ? enable : !settings.danceModeEnabled;
+  persistSettings({ danceModeEnabled: nextDance });
+  triggerPetReaction(nextDance ? 'dance' : 'dance-off');
+}
+
+const jarvisAgent = new JarvisAgent({
+  launchAllowlistedApp,
+  openInBrave,
+  searchInBrave,
+  focusAppWindow,
+  systemControls,
+  musicDetector,
+  autoPilot,
+  clipboard,
+  writeLog,
+  setPetCharacter: (c) => setPetCharacter(c),
+  setPetMode: (m) => setPetMode(m),
+  toggleDanceMode: toggleDanceModeInternal,
+  announceActiveAgent: (id, speak) => announceActiveAgent(id, speak),
+  triggerPetReaction,
+});
+
 const DEFAULT_SETTINGS = {
   displayMode: 'floating',
   wakeOnAlerts: true,
@@ -169,15 +194,71 @@ function loadSettings() {
   }
 }
 
+function syncWindowsRunRegistry(enable, repoRoot) {
+  if (process.platform !== 'win32' || IS_VERIFY_RENDER) return;
+  const runCmd = `"${process.execPath}" "${repoRoot}"`;
+  const ps = enable
+    ? `
+$reg = 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
+if (-not (Test-Path $reg)) { New-Item -Path $reg -Force | Out-Null }
+Set-ItemProperty -Path $reg -Name 'electron.app.Electron' -Value $env:OV_AUTOSTART_CMD -Force
+`
+    : `
+$reg = 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
+if (Test-Path $reg) {
+  $val = (Get-ItemProperty -Path $reg -Name 'electron.app.Electron' -ErrorAction SilentlyContinue).'electron.app.Electron'
+  if ($val -and ($val -match 'PetFish|ov-desktop-companion')) {
+    Remove-ItemProperty -Path $reg -Name 'electron.app.Electron' -ErrorAction SilentlyContinue
+  }
+}
+`;
+  execFile(
+    'powershell.exe',
+    ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', ps],
+    { windowsHide: true, timeout: 4000, env: { ...process.env, OV_AUTOSTART_CMD: runCmd } },
+    () => {}
+  );
+}
+
 function applyAutoStartSetting() {
   if (IS_VERIFY_RENDER) return;
+  const repoRoot = path.resolve(__dirname, '..', '..');
   try {
     app.setLoginItemSettings({
       openAtLogin: Boolean(settings.autoStart),
       path: process.execPath,
-      args: [path.resolve(__dirname, '..', '..')],
+      args: [repoRoot],
     });
   } catch {}
+  syncWindowsRunRegistry(Boolean(settings.autoStart), repoRoot);
+}
+
+function reconcileAutoStartOnBoot() {
+  if (process.platform !== 'win32' || IS_VERIFY_RENDER) return;
+  const repoRoot = path.resolve(__dirname, '..', '..');
+  const ps = `
+$reg = 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
+$val = (Get-ItemProperty -Path $reg -Name 'electron.app.Electron' -ErrorAction SilentlyContinue).'electron.app.Electron'
+if ($val) { Write-Output $val }
+`;
+  execFile(
+    'powershell.exe',
+    ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', ps],
+    { windowsHide: true, timeout: 4000 },
+    (err, stdout) => {
+      if (err) return;
+      const existing = String(stdout || '').trim();
+      const normRoot = repoRoot.toLowerCase();
+      if (existing && (/petfish/i.test(existing) || !existing.toLowerCase().includes(normRoot))) {
+        writeLog('INFO', `Healing legacy auto-startup entry ("${existing}") -> "${repoRoot}"`);
+        settings.autoStart = true;
+        try { fs.writeFileSync(getSettingsFile(), JSON.stringify(settings, null, 2), 'utf8'); } catch {}
+        applyAutoStartSetting();
+      } else if (settings.autoStart) {
+        applyAutoStartSetting();
+      }
+    }
+  );
 }
 
 function persistSettings(rawPatch = {}) {
@@ -1748,11 +1829,11 @@ function wireIpc() {
   ipcMain.handle('petfish:sys-lock', () => systemControls.lockPC());
   ipcMain.handle('petfish:sys-open-settings', (_, uri) => systemControls.openSettingsUri(uri));
 
-  // Local LLM Brain IPC (with Think Mode, Saved Chat, Distinct Voice Reply & Clipboard Lens!)
+  // Local LLM & JARVIS Autonomous Executor IPC
   async function handleAskLLM(prompt, opts = {}) {
     broadcastFullState();
     const unread = notificationMonitor.getAll().filter((n) => n.unread);
-    const charKey = physics?.character || 'spidey';
+    const charKey = physics?.character || 'kronos';
     const result = await llmBrain.ask(prompt, {
       petCharacter: charKey,
       petName: getCharacterDisplayName(charKey),
@@ -1769,10 +1850,19 @@ function wireIpc() {
       openWindows: cachedPulse.windows,
     });
     let actionNote = null;
-    if (result.action && opts.allowActions !== false) {
-      actionNote = await executeLLMAction(result.action);
+    if (opts.allowActions !== false) {
+      if (Array.isArray(result.plan) && result.plan.length > 0) {
+        const execRes = await jarvisAgent.executePlan(result.plan, null);
+        actionNote = execRes.summaryReply;
+      } else if (result.action) {
+        actionNote = await executeLLMAction(result.action);
+        if (!actionNote) {
+          const fallbackStep = await jarvisAgent.executeStep(result.action);
+          actionNote = fallbackStep?.summary || null;
+        }
+      }
     }
-    if (!result.action) {
+    if (!result.action && !result.plan) {
       triggerPetReaction('speak');
     }
     if (result.reply) {
@@ -1780,7 +1870,7 @@ function wireIpc() {
       const runningAg = agentMonitor.getAgents().find((a) => a.status === 'running');
       showToast({
         alwaysShow: true,
-        tag: `${petName.toUpperCase()} // CHAT`,
+        tag: `${petName.toUpperCase()} // JARVIS`,
         title: actionNote ? `${petName} · ${actionNote}` : `${petName} Speaking`,
         body: result.reply,
         startedAt: runningAg ? (runningAg.turnStartedAt || runningAg.startedAt) : 0,
@@ -1794,9 +1884,64 @@ function wireIpc() {
     return { ...result, actionNote, state: getFullState() };
   }
 
+  async function executeJarvisOrLLM(rawPrompt, opts = {}) {
+    const prompt = String(rawPrompt || '').trim();
+    if (!prompt) return { ok: false, reply: 'Ask JARVIS anything!', state: getFullState() };
+
+    const petName = getCharacterDisplayName();
+    const charKey = physics?.character || 'kronos';
+    if (opts.allowActions !== false) {
+      const plan = jarvisAgent.planJarvisSteps(prompt);
+      if (plan.matched && plan.steps.length > 0) {
+        llmBrain.history.push({ role: 'user', content: prompt, ts: Date.now() });
+        const execRes = await jarvisAgent.executePlan(plan.steps, (prog) => {
+          showToast({
+            alwaysShow: true,
+            tag: `${petName.toUpperCase()} // JARVIS (${prog.index + 1}/${prog.total})`,
+            title: prog.status === 'running' ? `Executing: ${prog.step.type}` : `Step ${prog.index + 1} Complete`,
+            body: prog.summary,
+            tabTarget: 'ai',
+          });
+        });
+
+        const finalReply = execRes.summaryReply || 'Done, bro.';
+        llmBrain.history.push({
+          role: 'assistant',
+          content: finalReply,
+          thinking: '',
+          action: plan.steps[0],
+          plan: plan.steps,
+          ts: Date.now(),
+        });
+        llmBrain.saveHistory();
+
+        showToast({
+          alwaysShow: true,
+          tag: `${petName.toUpperCase()} // JARVIS DONE`,
+          title: execRes.ok ? `${petName} · Executed` : `${petName} · Notice`,
+          body: finalReply,
+          tabTarget: 'ai',
+        });
+        if (settings.voiceEnabled) {
+          speakWithNeuralVoice(finalReply, charKey).catch(() => {});
+        }
+        broadcastFullState();
+        return {
+          ok: true,
+          reply: finalReply,
+          actionNote: finalReply,
+          steps: execRes.results,
+          model: 'JARVIS Autonomous OS',
+          state: getFullState(),
+        };
+      }
+    }
+    return handleAskLLM(prompt, opts);
+  }
+
   ipcMain.handle('petfish:llm-ask', async (_, payload) => {
-    if (typeof payload === 'string') return handleAskLLM(payload);
-    return handleAskLLM(payload?.prompt || '', payload?.opts || {});
+    if (typeof payload === 'string') return executeJarvisOrLLM(payload);
+    return executeJarvisOrLLM(payload?.prompt || '', payload?.opts || {});
   });
 
   ipcMain.handle('petfish:llm-model', (_, modelId) => {
@@ -1970,6 +2115,7 @@ async function runRenderSelfTest() {
       await new Promise((r) => setTimeout(r, 550));
       const miniBuf = (await hudWindow.webContents.capturePage()).toPNG();
       fs.writeFileSync(path.join(logsDir, 'preview-v7-mini.png'), miniBuf);
+      fs.writeFileSync(path.join(postersDir, 'ov-mini-popover.png'), miniBuf);
 
       setHudViewMode('deep', 'tools');
       await new Promise((r) => setTimeout(r, 420));
@@ -2055,7 +2201,9 @@ async function runRenderSelfTest() {
         setPetCharacter('kronos', false, false);
         triggerPetReaction('multitask');
         await new Promise((r) => setTimeout(r, 380));
-        fs.writeFileSync(path.join(v7Dir, '13-multitask-headphones-reading.png'), (await petWindow.webContents.capturePage()).toPNG());
+        const multiBuf = (await petWindow.webContents.capturePage()).toPNG();
+        fs.writeFileSync(path.join(v7Dir, '13-multitask-headphones-reading.png'), multiBuf);
+        fs.writeFileSync(path.join(postersDir, 'ov-multitask-mode.png'), multiBuf);
       }
 
       closeHud();
@@ -2111,6 +2259,7 @@ app.whenReady().then(() => {
   });
 
   if (!IS_VERIFY_RENDER) {
+    reconcileAutoStartOnBoot();
     createTray();
     hookServer.start();
     notificationMonitor.start();
@@ -2124,40 +2273,37 @@ app.whenReady().then(() => {
     startPhysicsLoop();
     startDesktopAwarenessLoop();
 
-    // A+S+W simultaneous chord -> activates Local Open-Source Whisper Voice Assistant!
-    // A+S+D simultaneous chord -> opens Saved Chat window!
-    startAsdChordWatcher(async (chord) => {
+    // Unified A+S+D Global Hotkey -> activates JARVIS Local Whisper Voice OS!
+    startAsdChordWatcher(async () => {
       ensurePetVisible();
-      if (chord === 'ASW_VOICE') {
-        if (isWhisperListening) return;
-        const petName = getCharacterDisplayName();
-        const voiceObj = getVoiceEntry(settings.selectedVoice);
-        isWhisperListening = true;
+      if (isWhisperListening) return;
+      const petName = getCharacterDisplayName();
+      const voiceObj = getVoiceEntry(settings.selectedVoice);
+      if (settings.bgmEnabled) {
+        const audio = getActiveAudioProfile();
+        sendAudioCmd({ type: 'motif', character: audio.soundPack, vol: 0.55 });
+      }
+      isWhisperListening = true;
+      showToast({
+        alwaysShow: true,
+        tag: `${petName.toUpperCase()} // JARVIS (A+S+D)`,
+        title: `JARVIS Listening (${voiceObj.name} Voice)...`,
+        body: 'Speak any command: "Go to Antigravity...", "Play song on YT", "Make a folder", "Delete...", or "Download VLC"',
+        tabTarget: 'ai',
+      });
+      const sttRes = await neuralVoice.listenOnce();
+      isWhisperListening = false;
+      if (sttRes?.ok && sttRes.transcript) {
+        await executeJarvisOrLLM(sttRes.transcript, { source: 'voice' });
+      } else {
         showToast({
           alwaysShow: true,
-          tag: `${petName.toUpperCase()} // WHISPER (A+S+W)`,
-          title: `Listening via Local Whisper (${voiceObj.name} Voice)...`,
-          body: 'Speak any laptop command: "Open Spotify", "Play music", "Add task...", or ask anything!',
+          tag: `${petName.toUpperCase()} // JARVIS (A+S+D)`,
+          title: 'JARVIS Voice Ready',
+          body: sttRes?.error || 'Press A+S+D together anywhere and speak your command.',
           tabTarget: 'ai',
         });
-        const sttRes = await neuralVoice.listenOnce();
-        isWhisperListening = false;
-        if (sttRes?.ok && sttRes.transcript) {
-          await handleAskLLM(sttRes.transcript);
-        } else {
-          showToast({
-            alwaysShow: true,
-            tag: `${petName.toUpperCase()} // WHISPER (A+S+W)`,
-            title: 'Whisper Voice Agent Ready',
-            body: sttRes?.error || 'Press A+S+W and speak into your microphone.',
-            tabTarget: 'ai',
-          });
-        }
-        return;
       }
-      triggerPetReaction('pet');
-      openHud('ai', 'deep');
-      setTimeout(() => sendWin(hudWindow, 'petfish:focus-chat', {}), 220);
     });
 
     setTimeout(() => {
@@ -2171,11 +2317,11 @@ app.whenReady().then(() => {
         openHud('pet', 'deep');
       } else {
         showToast({
-          tag: 'OV',
+          tag: 'OV // JARVIS',
           tagClass: '',
           title: `${getCharacterDisplayName()} online`,
-          body: 'Press A+S+D together to open saved chat, or click me anytime.',
-          tabTarget: 'agents',
+          body: 'Press A+S+D anywhere to talk to JARVIS Voice OS, or click me anytime.',
+          tabTarget: 'ai',
         });
       }
     }, 1100);
