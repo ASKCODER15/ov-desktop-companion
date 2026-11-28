@@ -56,6 +56,7 @@ contextBridge.exposeInMainWorld('petFishAPI', {
   // Voice TTS, Local Windows STT, Agent Announce & Native Copy Controls
   speakText: (text) => ipcRenderer.send('petfish:voice-speak', text),
   stopSpeaking: () => ipcRenderer.send('petfish:voice-stop'),
+  pauseVoice: () => ipcRenderer.invoke('petfish:voice-pause'),
   listenVoice: () => ipcRenderer.invoke('petfish:voice-listen'),
   announceAgent: (agentId) => ipcRenderer.invoke('petfish:announce-agent', agentId || ''),
   copyText: (text) => ipcRenderer.invoke('petfish:copy-text', String(text || '')),
@@ -94,6 +95,7 @@ contextBridge.exposeInMainWorld('petFishAPI', {
   disconnectWifi: () => ipcRenderer.invoke('petfish:sys-wifi-disconnect'),
   toggleBluetooth: (enable) => ipcRenderer.invoke('petfish:sys-bt-toggle', Boolean(enable)),
   connectBluetooth: (target, connect) => ipcRenderer.invoke('petfish:sys-bt-connect', { target, connect: connect !== false }),
+  connectBluetoothMulti: (macs, connect) => ipcRenderer.invoke('petfish:sys-bt-connect-multi', { macs: Array.isArray(macs) ? macs : [], connect: connect !== false }),
   toggleFlightMode: (enable) => ipcRenderer.invoke('petfish:sys-flight-toggle', Boolean(enable)),
   toggleMute: () => ipcRenderer.invoke('petfish:sys-mute'),
   lockPC: () => ipcRenderer.invoke('petfish:sys-lock'),

@@ -151,6 +151,7 @@ class JarvisAgent {
     this.setPetCharacter = deps.setPetCharacter || (() => {});
     this.setPetMode = deps.setPetMode || (() => {});
     this.toggleDanceMode = deps.toggleDanceMode || (() => {});
+    this.pauseVoice = deps.pauseVoice || (() => false);
     this.announceActiveAgent = deps.announceActiveAgent || (async () => ({ ok: false }));
     this.triggerPetReaction = deps.triggerPetReaction || (() => {});
     this._folderCache = null;
@@ -228,6 +229,86 @@ class JarvisAgent {
       }
     }
     return bestScore >= 0.45 ? { ...best, score: bestScore } : null;
+  }
+
+  findLocalFileOrFolder(query) {
+    const qn = normalizeProjectName(query);
+    if (!qn) return null;
+    const home = os.homedir();
+    const roots = [
+      path.join(home, 'Desktop'),
+      path.join(home, 'Downloads'),
+      path.join(home, 'Documents'),
+      path.join(home, 'Projects'),
+      path.join(home, '.gemini', 'antigravity', 'scratch'),
+      home,
+      'C:\\x',
+    ];
+    const skip = new Set(['node_modules', '.git', 'appdata', '$recycle.bin', 'logs', 'dist', 'build', 'coverage']);
+    let best = null;
+    let bestScore = 0;
+
+    const scan = (dir, depth) => {
+      if (depth > 2 || !fs.existsSync(dir)) return;
+      let entries = [];
+      try {
+        entries = fs.readdirSync(dir, { withFileTypes: true });
+      } catch {
+        return;
+      }
+      for (const ent of entries) {
+        const lower = ent.name.toLowerCase();
+        if (skip.has(lower)) continue;
+        if (lower.startsWith('.') && lower !== '.gemini') continue;
+        const full = path.join(dir, ent.name);
+        const s = scoreFolderMatch(ent.name, qn);
+        if (s > bestScore) {
+          bestScore = s;
+          best = { name: ent.name, path: full, isDirectory: ent.isDirectory(), score: s };
+        }
+        if (ent.isDirectory() && depth < 2) scan(full, depth + 1);
+      }
+    };
+
+    for (const r of roots) scan(r, 1);
+    return bestScore >= 0.56 ? best : null;
+  }
+
+  async findOnPcOrWeb({ query = '', forceWeb = false }) {
+    const cleaned = String(query || '')
+      .replace(/\b(?:for\s+me|on\s+my\s+(?:pc|laptop|computer)|on\s+(?:google|web|internet|brave)|online)\b/gi, '')
+      .replace(/^(?:my|the|a|an)\s+/i, '')
+      .trim();
+    const q = cleaned || String(query || '').trim();
+    if (!q) return { ok: false, summary: 'Tell me what to find, bro!' };
+
+    const wantsWeb = Boolean(forceWeb) || /\b(online|google|internet|web|tutorial|price|recipe|news|weather|meaning|lyrics|how\s+to)\b/i.test(String(query || ''));
+    if (!wantsWeb) {
+      const localQuery = q.replace(/\b(?:file|folder|directory|project|app|document)\b/gi, '').trim() || q;
+      const localMatch = this.findLocalFileOrFolder(localQuery);
+      if (localMatch) {
+        try {
+          if (this.clipboard) this.clipboard.writeText(localMatch.path);
+        } catch {}
+        try {
+          const args = localMatch.isDirectory ? [localMatch.path] : ['/select,', localMatch.path];
+          spawn('explorer.exe', args, { detached: true, stdio: 'ignore', windowsHide: false }).unref();
+        } catch {}
+        return {
+          ok: true,
+          foundLocal: true,
+          path: localMatch.path,
+          summary: `Found "${localMatch.name}" at ${localMatch.path}`,
+        };
+      }
+    }
+
+    await this.searchInBrave('web', q);
+    return {
+      ok: true,
+      foundWeb: true,
+      summary: `Searching Brave for "${q}"`,
+    };
   }
 
   resolveBaseDir(baseAlias) {
@@ -764,10 +845,10 @@ Write-Output $closed
     let text = String(rawText || '').trim();
     if (!text) return { matched: false, steps: [] };
 
-    // Strip natural spoken wake prefixes ("hey bro", "ok jarvis", "bhai", etc.)
+    // Strip natural spoken wake prefixes ("hey bro", "ok jarvis", "bhai", "do", etc.)
     text = text
       .replace(/^(?:(?:hey|ok|yo|hi|hello|arre|sun|listen)\s+)?(?:bro|bhai|yaar|jarvis|ov|kronos|aegis|optix|orbit)\b[,:\s]*/i, '')
-      .replace(/^(?:please|can you|could you|kya tum|zara|ek kaam kar)\b[,:\s]*/i, '')
+      .replace(/^(?:please|can you|could you|go and|just|do|kya tum|zara|ek kaam kar)\b[,:\s]*/i, '')
       .trim();
 
     if (!text) return { matched: false, steps: [] };
@@ -817,7 +898,7 @@ Write-Output $closed
 
     // 3. Split chained compound clauses safely
     const clauses = text
-      .split(/\s+(?:and\s+then|then|aur\s+phir|phir|and(?=\s+(?:open|launch|go\s+to|go\s+on|make|create|delete|remove|trash|download|install|clone|play|pause|next|skip|search|google|close|take|set|turn|remind|add|start|switch|volume|mute|screenshot)))\s+/i)
+      .split(/\s+(?:and\s+then|then|aur\s+phir|phir|and(?=\s+(?:open|launch|go\s+to|go\s+on|make|create|delete|remove|trash|download|install|clone|play|pause|next|skip|find|locate|search|google|close|take|set|turn|remind|add|start|switch|volume|mute|screenshot|show)))\s+/i)
       .map((c) => c.trim())
       .filter(Boolean)
       .slice(0, 5);
@@ -941,6 +1022,17 @@ Write-Output $closed
       return { type: 'announce_agent' };
     }
 
+    // Voice pause / stop / mute speech
+    if (/^(?:pause|stop|mute|silence|quiet)\s*(?:voice|speaking|talking|speech|ov)?$|^(?:shut\s*up|chup|shant|be\s*quiet)$/i.test(lower)) {
+      return { type: 'voice_pause' };
+    }
+
+    // Find file / folder on PC or look up anything on web
+    const findM = text.match(/^(?:find|locate|where\s+is|search\s+for|look\s+up|lookup|show\s+me|dhoondo|dhundho|khojo)\s+(.+)$/i);
+    if (findM && findM[1].trim()) {
+      return { type: 'find_item', query: findM[1].trim() };
+    }
+
     // Web Search
     const searchM = text.match(/^(?:search(?:\s+for|\s+web)?|google|brave\s+search)\s+(.+)$/i);
     if (searchM && searchM[1].trim()) {
@@ -989,6 +1081,12 @@ Write-Output $closed
       case 'search_web':
         await this.searchInBrave('web', step.query);
         return { ok: true, summary: `Searched Brave for "${step.query}"` };
+      case 'find_item':
+        return this.findOnPcOrWeb({ query: step.query, forceWeb: Boolean(step.forceWeb) });
+      case 'voice_pause': {
+        const paused = this.pauseVoice();
+        return { ok: true, summary: paused ? 'OV voice paused.' : 'OV voice resumed.' };
+      }
       case 'media':
         if (this.musicDetector) await this.musicDetector.sendMediaKey(step.command || 'playPause');
         return { ok: true, summary: `Media: ${step.command || 'playPause'}` };

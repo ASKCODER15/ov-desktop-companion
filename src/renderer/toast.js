@@ -6,6 +6,7 @@
   const titleEl = document.getElementById('mini-toast-title');
   const bodyEl = document.getElementById('mini-toast-body');
   const copyBtn = document.getElementById('mini-toast-copy');
+  const pauseBtn = document.getElementById('mini-toast-pause');
   const optionsEl = document.getElementById('mini-toast-options');
   const actionsEl = document.getElementById('mini-toast-actions');
   let targetTab = 'agents';
@@ -114,6 +115,19 @@
       actionsEl.classList.add('hidden');
     }
   });
+
+  if (pauseBtn) {
+    pauseBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (api.pauseVoice) {
+        const res = await api.pauseVoice();
+        const paused = Boolean(res?.paused);
+        pauseBtn.textContent = paused ? 'RESUME' : 'PAUSE';
+        pauseBtn.style.background = paused ? '#ff5500' : '';
+        pauseBtn.style.color = paused ? '#111215' : '';
+      }
+    });
+  }
 
   copyBtn.addEventListener('click', async (e) => {
     e.stopPropagation();

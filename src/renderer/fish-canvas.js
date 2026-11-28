@@ -975,6 +975,10 @@
     } else if (cmd.type === 'stop-speak') {
       speakTimer = 0;
       window.auraSound.stopSpeaking();
+    } else if (cmd.type === 'pause-voice') {
+      const paused = window.auraSound.togglePauseVoice(typeof cmd.pause === 'boolean' ? cmd.pause : null);
+      if (paused) speakTimer = 0;
+      else speakTimer = 3.5;
     } else if (cmd.type === 'motif') {
       window.auraSound.playCharacterMotif(cmd.character, cmd.vol ?? 0.85);
     } else if (cmd.type === 'bgm-start') {

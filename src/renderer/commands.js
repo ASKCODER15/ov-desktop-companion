@@ -15,7 +15,7 @@
 
     // 0. Route complex, multi-step, or JARVIS autonomous commands straight to JarvisAgent + Local LLM!
     if (
-      /\b(antigravity|anti\s*gravity|vs\s*code|vscode|cursor|make\s+(?:a\s+)?folder|create\s+(?:a\s+)?folder|delete|remove|trash|download|install|clone|screenshot|volume|and\s+then|tell\s+him|ask\s+him)\b/i.test(lower) ||
+      /\b(antigravity|anti\s*gravity|vs\s*code|vscode|cursor|make\s+(?:a\s+)?folder|create\s+(?:a\s+)?folder|delete|remove|trash|download|install|clone|screenshot|volume|and\s+then|tell\s+him|ask\s+him|find|locate|where\s+is|dhoondo|dhundho|khojo|show\s+me|pause\s+voice|stop\s+talking|stop\s+voice|shut\s*up|chup)\b/i.test(lower) ||
       (/\b(youtube|yt)\b/i.test(lower) && /\b(play|bajao|chalao|lagao)\b/i.test(lower))
     ) {
       return { action: 'ask-llm', prompt: text };

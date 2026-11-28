@@ -223,6 +223,20 @@ class LocalLLMBrain {
         action: { type: 'dance_toggle', enable: false },
       };
     }
+    if (/^(?:pause|stop|mute|silence|quiet)\s*(?:voice|speaking|talking|speech|ov)?$|^(?:shut\s*up|chup|shant|be\s*quiet)$/i.test(lower)) {
+      return {
+        reply: isHinglish || isDevanagari ? `Theek hai bhai, voice pause kar di hai.` : `Voice paused.`,
+        action: { type: 'voice_pause' },
+      };
+    }
+    const findMatch = text.match(/^(?:find|locate|where\s+is|search\s+for|look\s+up|lookup|show\s+me|dhoondo|dhundho|khojo)\s+(.+)$/i);
+    if (findMatch && findMatch[1].trim()) {
+      const q = findMatch[1].trim();
+      return {
+        reply: isHinglish || isDevanagari ? `"${q}" dhoondh raha hoon bhai!` : `Searching for "${q}" now!`,
+        action: { type: 'find_item', query: q },
+      };
+    }
 
     // 1. Multitask: Music/Headphones + Task Reading simultaneously
     if (/(both|multitask|headphone.*read|music.*task|gaana.*kaam|music.*work|dance.*read|padhai.*music|गाना.*काम|हेडफ़ोन.*पढ़)/i.test(lower)) {
@@ -405,7 +419,8 @@ Desktop Actions (ONLY append ONE [[ACTION:{...}]] or multi-step [[PLAN:[{...},{.
 - Download URL or install software via winget: [[ACTION:{"type":"download_item","target":"vlc"}]]
 - Take screenshot / volume / close app: [[ACTION:{"type":"screenshot"}]] | [[ACTION:{"type":"volume","action":"up","steps":4}]] | [[ACTION:{"type":"close_app","target":"notepad"}]]
 - Open ANY installed app or website: [[ACTION:{"type":"open_app","target":"powershell"}]] | [[ACTION:{"type":"open_url","url":"https://instagram.com","asApp":false}]]
-- Search Brave / YouTube / Reddit: [[ACTION:{"type":"search_multi","queries":["topic 1","topic 2"]}]] | [[ACTION:{"type":"search_youtube","query":"..."}]]
+- Search Brave / YouTube / Reddit or Find file/folder/topic: [[ACTION:{"type":"find_item","query":"..."}]] | [[ACTION:{"type":"search_multi","queries":["topic 1","topic 2"]}]] | [[ACTION:{"type":"search_youtube","query":"..."}]]
+- Pause/Resume OV Voice output: [[ACTION:{"type":"voice_pause"}]]
 - Remind user / add task / start timer: [[ACTION:{"type":"add_reminder","text":"...","minutes":10}]] | [[ACTION:{"type":"add_task","text":"..."}]] | [[ACTION:{"type":"start_timer","minutes":25,"label":"Study Sprint"}]]
 - Music control (playPause, next, prev) / Dance Mode: [[ACTION:{"type":"media","command":"playPause"}]] | [[ACTION:{"type":"dance_toggle","enable":true}]]
 - Wi-Fi / Bluetooth / Flight / Mute: [[ACTION:{"type":"wifi","enable":true}]] | [[ACTION:{"type":"bluetooth","enable":true}]] | [[ACTION:{"type":"flight_mode","enable":true}]] | [[ACTION:{"type":"mute"}]]

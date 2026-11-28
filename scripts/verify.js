@@ -218,6 +218,10 @@ async function run() {
 
   // 7c. All 4 Robot Movement Archetypes (stride/scout/drone) + custom archetypes + elastic squish
   const phys = new PetPhysics({ x: 0, y: 0, width: 1536, height: 864 });
+  phys.setPosition(10, 10);
+  assert(phys.x <= 40 && phys.y <= 40, 'Expected full-screen edge placement down to 36px margin');
+  phys.setPosition(1530, 850);
+  assert(phys.x >= 1496 && phys.y >= 820, 'Expected full-screen edge placement up to width-36px margin');
   const expectedArch = {
     kronos: 'stride', aegis: 'stride', optix: 'scout', orbit: 'drone',
   };
@@ -403,7 +407,15 @@ async function run() {
 
   const pChain = jarvis.planJarvisSteps('make a folder called demo-web and play lofi beats on youtube');
   assert(pChain.matched && pChain.steps.length === 2);
-  console.log('OK: JARVIS natural-language planner verified (IDE+Prompt, YouTube autoplay, Folder, Recycle, Download, Chained)');
+
+  const pFindWeb = jarvis.planJarvisSteps('find react hooks tutorial');
+  assert(pFindWeb.matched && pFindWeb.steps[0].type === 'find_item' && pFindWeb.steps[0].query.includes('react hooks'));
+
+  const pPauseV = jarvis.planJarvisSteps('pause voice');
+  assert(pPauseV.matched && pPauseV.steps[0].type === 'voice_pause');
+
+  assert.strictEqual(typeof SystemControls.prototype.connectMultipleBluetooth, 'function');
+  console.log('OK: JARVIS natural-language planner verified (IDE+Prompt, YouTube autoplay, Folder, Recycle, Download, Find, Pause Voice, Chained, Multi-BT)');
 
   // 9b. Antigravity Question & Default-Mode Permission Extractor
   const qUnanswered = extractPendingQuestionFromRecords([

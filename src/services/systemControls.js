@@ -146,7 +146,7 @@ class SystemControls {
         if (a.saved !== b.saved) return a.saved ? -1 : 1;
         return b.signal - a.signal;
       })
-      .slice(0, 10);
+      .slice(0, 20);
 
     return { connectedSsid, signalPct, band, networks, ifaceState };
   }
@@ -209,7 +209,7 @@ try {
         bluetoothDevices: devs
           .filter((d) => d && d.name && d.mac)
           .sort((a, b) => (a.connected === b.connected ? a.name.localeCompare(b.name) : a.connected ? -1 : 1))
-          .slice(0, 8),
+          .slice(0, 20),
       };
     } catch {
       return null;
@@ -283,8 +283,18 @@ Write-Output $res.ToString()
     const out = res.stdout.trim();
     const ok = res.ok && /Allowed/i.test(out);
     writeLog('INFO', `SystemControls setRadio ${kind}=${targetState} -> ${out || res.error}`);
-    await new Promise((r) => setTimeout(r, 450));
+    if (ok) {
+      if (kind === 'WiFi') this.cachedState.wifiOn = Boolean(enable);
+      if (kind === 'Bluetooth') this.cachedState.bluetoothOn = Boolean(enable);
+      this.cachedState.flightMode = !this.cachedState.wifiOn && !this.cachedState.bluetoothOn;
+    }
+    await new Promise((r) => setTimeout(r, 900));
     await this.refresh(true);
+    if (ok) {
+      if (kind === 'WiFi') this.cachedState.wifiOn = Boolean(enable);
+      if (kind === 'Bluetooth') this.cachedState.bluetoothOn = Boolean(enable);
+      this.cachedState.flightMode = !this.cachedState.wifiOn && !this.cachedState.bluetoothOn;
+    }
     return {
       ok,
       message: ok ? `${kind === 'WiFi' ? 'Wi-Fi' : 'Bluetooth'} turned ${targetState}` : `Could not change ${kind} (${out || 'denied'})`,
@@ -340,8 +350,16 @@ Write-Output "OK:$changed"
     );
     const ok = res.ok && /^OK:/i.test(res.stdout.trim());
     writeLog('INFO', `SystemControls FlightMode=${turnOn ? 'ON' : 'OFF'} -> ${res.stdout.trim() || res.error}`);
-    await new Promise((r) => setTimeout(r, 550));
+    if (ok) {
+      this.cachedState.flightMode = turnOn;
+      this.cachedState.wifiOn = turnOn ? false : restoreWifi === '1';
+      this.cachedState.bluetoothOn = turnOn ? false : restoreBt === '1';
+    }
+    await new Promise((r) => setTimeout(r, 900));
     await this.refresh(true);
+    if (ok) {
+      this.cachedState.flightMode = turnOn;
+    }
     return {
       ok,
       message: ok ? (turnOn ? 'Flight Mode ON (All radios off)' : 'Flight Mode OFF (Radios restored)') : 'Could not toggle Flight Mode',
@@ -460,10 +478,14 @@ public static class PetFishBT {
     info.Address = addr;
     Guid a2dp = new Guid("0000110b-0000-1000-8000-00805f9b34fb");
     Guid hfp  = new Guid("0000111e-0000-1000-8000-00805f9b34fb");
+    Guid hsp  = new Guid("00001108-0000-1000-8000-00805f9b34fb");
+    Guid hid  = new Guid("00001124-0000-1000-8000-00805f9b34fb");
     uint flag = enable ? 1u : 0u;
     uint r1 = BluetoothSetServiceState(IntPtr.Zero, ref info, ref a2dp, flag);
     uint r2 = BluetoothSetServiceState(IntPtr.Zero, ref info, ref hfp, flag);
-    return (r1 == 0 || r2 == 0) ? 0 : (int)r1;
+    uint r3 = BluetoothSetServiceState(IntPtr.Zero, ref info, ref hsp, flag);
+    uint r4 = BluetoothSetServiceState(IntPtr.Zero, ref info, ref hid, flag);
+    return (r1 == 0 || r2 == 0 || r3 == 0 || r4 == 0) ? 0 : (int)r1;
   }
 }
 "@
@@ -493,6 +515,34 @@ Write-Output "RC:$rc"
       message: ok
         ? `${connect ? 'Connected' : 'Disconnected'} ${matched.name}`
         : `Opened Bluetooth panel for ${matched.name}`,
+      state: this.cachedState,
+    };
+  }
+
+  async connectMultipleBluetooth(macs = [], connect = true) {
+    const cleanMacs = (Array.isArray(macs) ? macs : [])
+      .map((m) => String(m || '').replace(/[^0-9A-Fa-f]/g, ''))
+      .filter((m) => /^[0-9A-Fa-f]{12}$/.test(m))
+      .slice(0, 6);
+    if (cleanMacs.length === 0) {
+      return { ok: false, count: 0, total: 0, message: 'Select 1 or more Bluetooth devices first.', state: this.cachedState };
+    }
+    if (connect && !this.cachedState.bluetoothOn) {
+      await this.setRadioState('Bluetooth', true);
+    }
+    const results = [];
+    for (const mac of cleanMacs) {
+      const r = await this.connectBluetoothDevice(mac, connect);
+      results.push({ mac, ok: Boolean(r?.direct || r?.ok), message: r?.message || '' });
+    }
+    await this.refresh(true);
+    const count = results.filter((x) => x.ok).length;
+    return {
+      ok: count > 0,
+      count,
+      total: cleanMacs.length,
+      results,
+      message: `${connect ? 'Connected' : 'Disconnected'} ${count}/${cleanMacs.length} Bluetooth device(s)`,
       state: this.cachedState,
     };
   }

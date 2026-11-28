@@ -194,7 +194,7 @@ function sanitizeSettingsPatch(patch, customHeroes = []) {
   if (patch.savedPos && typeof patch.savedPos === 'object') {
     const x = Number(patch.savedPos.x);
     const y = Number(patch.savedPos.y);
-    if (Number.isFinite(x) && Number.isFinite(y) && x >= 0 && y >= 0 && x < 16000 && y < 16000) {
+    if (Number.isFinite(x) && Number.isFinite(y) && x >= -8000 && y >= -8000 && x < 16000 && y < 16000) {
       clean.savedPos = { x: Math.round(x), y: Math.round(y) };
     }
   }

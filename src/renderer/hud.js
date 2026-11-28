@@ -83,6 +83,8 @@
     expandedIdleAgents: new Set(),
     editingTaskId: null,
     pinned: false,
+    selectedBtMacs: new Set(),
+    voicePaused: false,
     lastMiniAi: null,
   };
 
@@ -220,6 +222,7 @@
     if (data.pulse) state.pulse = data.pulse;
     if (data.claudeHooks) state.claudeHooks = data.claudeHooks;
     if (data.hookPort) state.hookPort = data.hookPort;
+    if (typeof data.voicePaused === 'boolean') state.voicePaused = data.voicePaused;
     render();
   }
 
@@ -298,13 +301,29 @@
     }
     if (state.activeDrawer === 'bt') {
       const devs = s.bluetoothDevices || [];
+      const validMacs = new Set(devs.map((d) => String(d.mac || '').toUpperCase()));
+      for (const m of Array.from(state.selectedBtMacs)) {
+        if (!validMacs.has(m)) state.selectedBtMacs.delete(m);
+      }
+      const selCount = state.selectedBtMacs.size;
+      const multiBar = devs.length > 0
+        ? `<div class="cc-bt-multi-bar"><span class="section-meta">${selCount > 0 ? `${selCount} selected` : 'Select devices for multi-connect'}</span><div class="bt-multi-actions"><button class="mini-btn primary" data-bt-multi="1" type="button" ${selCount === 0 ? 'disabled' : ''}>Connect Selected (${selCount})</button><button class="mini-btn" data-bt-multi="0" type="button" ${selCount === 0 ? 'disabled' : ''}>Disconnect</button></div></div>`
+        : '';
       document.getElementById('cc-bt-list').innerHTML = devs.length === 0
         ? `<span class="section-meta">No paired Bluetooth devices.</span>`
-        : devs.map((d) => `
+        : multiBar + devs.map((d) => {
+          const macUp = String(d.mac || '').toUpperCase();
+          const checked = state.selectedBtMacs.has(macUp);
+          return `
           <div class="cc-net-row ${d.connected ? 'connected' : ''}">
-            <div class="cc-net-info"><span class="agent-dot" style="background:${d.connected ? '#30d158' : 'var(--accent-2)'}"></span><div><div class="cc-net-name">${escapeHtml(d.name)}</div><div class="cc-net-meta">${d.connected ? 'Connected' : 'Paired'}</div></div></div>
+            <div class="cc-net-info">
+              <input type="checkbox" class="bt-check" data-bt-check="${escapeHtml(macUp)}" ${checked ? 'checked' : ''} aria-label="Select ${escapeHtml(d.name)}" />
+              <span class="agent-dot" style="background:${d.connected ? '#30d158' : '#7b849b'}"></span>
+              <div><div class="cc-net-name">${escapeHtml(d.name)}</div><div class="cc-net-meta">${d.connected ? 'Connected' : 'Paired'}</div></div>
+            </div>
             <button class="mini-btn ${d.connected ? '' : 'primary'}" data-bt-mac="${escapeHtml(d.mac)}" data-bt-connect="${d.connected ? '0' : '1'}" type="button">${d.connected ? 'Disconnect' : 'Connect'}</button>
-          </div>`).join('');
+          </div>`;
+        }).join('');
     }
 
     const appsMeta = document.getElementById('apps-indexed-meta');
@@ -332,6 +351,11 @@
     const ramMB = state.pulse?.vitals?.appRamMB || 0;
     const activeName = getCharName(rawChar);
 
+    const pauseVoiceBtn = document.getElementById('btn-pause-voice');
+    if (pauseVoiceBtn) {
+      pauseVoiceBtn.textContent = state.voicePaused ? 'RESUME' : 'PAUSE';
+      pauseVoiceBtn.classList.toggle('primary', Boolean(state.voicePaused));
+    }
     document.getElementById('header-pill').textContent = ramMB > 0 ? `${ramMB} MB` : 'Lean';
     document.getElementById('hud-subtitle').textContent =
       state.viewMode === 'deep'
@@ -983,10 +1007,37 @@
   document.getElementById('btn-ctrl-dance').addEventListener('click', handleDanceToggle);
   document.getElementById('btn-pet-dance').addEventListener('click', handleDanceToggle);
 
+  const pauseVoiceBtn = document.getElementById('btn-pause-voice');
+  if (pauseVoiceBtn) {
+    pauseVoiceBtn.addEventListener('click', async () => {
+      const r = await api.pauseVoice();
+      if (r?.state) applyFullState(r.state);
+      showCommandFeedback(r?.voicePaused ? 'Voice paused' : 'Voice resumed');
+    });
+  }
+
   // Connectivity Controls
-  async function handleWifiToggle(en) { showCommandFeedback(en ? 'Wi-Fi ON...' : 'Wi-Fi OFF...'); const r = await api.toggleWifi(en); if (r?.fullState) applyFullState(r.fullState); showCommandFeedback(r?.message || 'Wi-Fi updated'); }
-  async function handleBtToggle(en) { showCommandFeedback(en ? 'Bluetooth ON...' : 'Bluetooth OFF...'); const r = await api.toggleBluetooth(en); if (r?.fullState) applyFullState(r.fullState); showCommandFeedback(r?.message || 'Bluetooth updated'); }
-  async function handleFlightToggle(en) { showCommandFeedback(en ? 'Flight Mode ON...' : 'Flight Mode OFF...'); const r = await api.toggleFlightMode(en); if (r?.fullState) applyFullState(r.fullState); showCommandFeedback(r?.message || 'Flight updated'); }
+  async function handleWifiToggle(en) {
+    if (state.sys) { state.sys.wifiOn = Boolean(en); renderSystemControls(); }
+    showCommandFeedback(en ? 'Wi-Fi ON...' : 'Wi-Fi OFF...');
+    const r = await api.toggleWifi(en);
+    if (r?.fullState) applyFullState(r.fullState);
+    showCommandFeedback(r?.message || 'Wi-Fi updated');
+  }
+  async function handleBtToggle(en) {
+    if (state.sys) { state.sys.bluetoothOn = Boolean(en); renderSystemControls(); }
+    showCommandFeedback(en ? 'Bluetooth ON...' : 'Bluetooth OFF...');
+    const r = await api.toggleBluetooth(en);
+    if (r?.fullState) applyFullState(r.fullState);
+    showCommandFeedback(r?.message || 'Bluetooth updated');
+  }
+  async function handleFlightToggle(en) {
+    if (state.sys) { state.sys.flightMode = Boolean(en); if (en) state.sys.wifiOn = false; renderSystemControls(); }
+    showCommandFeedback(en ? 'Flight Mode ON...' : 'Flight Mode OFF...');
+    const r = await api.toggleFlightMode(en);
+    if (r?.fullState) applyFullState(r.fullState);
+    showCommandFeedback(r?.message || 'Flight updated');
+  }
 
   document.getElementById('mini-btn-wifi').addEventListener('click', () => handleWifiToggle(!state.sys?.wifiOn));
   document.getElementById('mini-btn-bt').addEventListener('click', () => handleBtToggle(!state.sys?.bluetoothOn));
@@ -1102,6 +1153,25 @@
     const quickPrompt = e.target.closest('[data-quick-prompt]');
     if (quickPrompt) { await executeInput(quickPrompt.dataset.quickPrompt); return; }
 
+    const btCheck = e.target.closest('input[data-bt-check]');
+    if (btCheck) {
+      const mac = String(btCheck.dataset.btCheck || '').toUpperCase();
+      if (btCheck.checked) state.selectedBtMacs.add(mac);
+      else state.selectedBtMacs.delete(mac);
+      renderSystemControls();
+      return;
+    }
+    const btMultiBtn = e.target.closest('button[data-bt-multi]');
+    if (btMultiBtn) {
+      const macs = Array.from(state.selectedBtMacs);
+      if (macs.length === 0) return;
+      const conn = btMultiBtn.dataset.btMulti === '1';
+      showCommandFeedback(conn ? `Connecting ${macs.length} BT device(s)...` : `Disconnecting ${macs.length} BT device(s)...`);
+      const r = await api.connectBluetoothMulti(macs, conn);
+      if (r?.fullState) applyFullState(r.fullState);
+      showCommandFeedback(r?.message || 'Bluetooth updated');
+      return;
+    }
     const wifiConn = e.target.closest('button[data-wifi-connect]');
     if (wifiConn) { const r = await api.connectWifi(wifiConn.dataset.wifiConnect); if (r?.fullState) applyFullState(r.fullState); showCommandFeedback(r?.message || 'Connecting...'); return; }
     if (e.target.closest('button[data-wifi-disconnect]')) { const r = await api.disconnectWifi(); if (r?.fullState) applyFullState(r.fullState); return; }

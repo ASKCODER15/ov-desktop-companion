@@ -74,14 +74,14 @@ if (!IS_VERIFY_RENDER) {
 
 const PET_W = 204;
 const PET_H = 196;
-const MINI_W = 440;
-const MINI_H = 490;
-const DEEP_W = 548;
-const DEEP_H = 730;
-const TOAST_W = 430;
-const TOAST_H = 220;
-const TOAST_Q_W = 464;
-const TOAST_Q_H = 310;
+const MINI_W = 362;
+const MINI_H = 388;
+const DEEP_W = 462;
+const DEEP_H = 618;
+const TOAST_W = 400;
+const TOAST_H = 196;
+const TOAST_Q_W = 436;
+const TOAST_Q_H = 276;
 
 let petWindow = null;
 let hudWindow = null;
@@ -140,6 +140,7 @@ const jarvisAgent = new JarvisAgent({
   setPetCharacter: (c) => setPetCharacter(c),
   setPetMode: (m) => setPetMode(m),
   toggleDanceMode: toggleDanceModeInternal,
+  pauseVoice: () => togglePauseVoiceInternal(true),
   announceActiveAgent: (id, speak) => announceActiveAgent(id, speak),
   triggerPetReaction,
 });
@@ -338,6 +339,7 @@ function getFullState() {
     activeHero: activeHeroDesc,
     activePersona,
     voiceCatalog: VOICE_CATALOG,
+    voicePaused: isVoicePaused,
   };
   if (IS_VERIFY_RENDER) {
     // Sanitized public-safe demo snapshot for README posters (zero personal Wi-Fi SSIDs, devices, or messages!)
@@ -570,8 +572,31 @@ function createPetWindow() {
   petWindow.loadFile(path.join(__dirname, '..', 'renderer', 'fish-window.html'));
 }
 
+function getFullDesktopBounds() {
+  const displays = screen.getAllDisplays();
+  if (!displays || displays.length === 0) return screen.getPrimaryDisplay().bounds;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const d of displays) {
+    const b = d.bounds;
+    if (b.x < minX) minX = b.x;
+    if (b.y < minY) minY = b.y;
+    if (b.x + b.width > maxX) maxX = b.x + b.width;
+    if (b.y + b.height > maxY) maxY = b.y + b.height;
+  }
+  return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+}
+
+function getNearestDisplayWorkArea() {
+  try {
+    if (physics) {
+      return screen.getDisplayNearestPoint({ x: Math.round(physics.x), y: Math.round(physics.y) }).workArea;
+    }
+  } catch {}
+  return screen.getPrimaryDisplay().workArea;
+}
+
 function computeHudBounds(mode = hudViewMode) {
-  const wa = screen.getPrimaryDisplay().workArea;
+  const wa = getNearestDisplayWorkArea();
   const w = mode === 'deep' ? DEEP_W : MINI_W;
   const h = mode === 'deep' ? DEEP_H : MINI_H;
   const pad = 14;
@@ -597,7 +622,7 @@ function computeHudBounds(mode = hudViewMode) {
 }
 
 function computeToastBounds(expanded = toastExpanded) {
-  const wa = screen.getPrimaryDisplay().workArea;
+  const wa = getNearestDisplayWorkArea();
   const pad = 12;
   const w = Math.min(wa.width - pad * 2, expanded ? TOAST_Q_W : TOAST_W);
   const h = Math.min(wa.height - pad * 2, expanded ? TOAST_Q_H : TOAST_H);
@@ -799,7 +824,7 @@ function openSpotPicker() {
   closeHud();
   hideToast();
   if (pickerWindow && !pickerWindow.isDestroyed()) { pickerWindow.focus(); return; }
-  const wa = screen.getPrimaryDisplay().workArea;
+  const wa = getFullDesktopBounds();
   pickerWindow = new BrowserWindow({
     x: wa.x,
     y: wa.y,
@@ -853,8 +878,17 @@ function sendAudioCmd(cmd) {
 let currentSpeakingUntil = 0;
 let currentSpeechSnippet = '';
 let isWhisperListening = false;
+let isVoicePaused = false;
 const announcedAgentSessions = new Set();
 const announcedQuestions = new Set();
+
+function togglePauseVoiceInternal(forcePause = null) {
+  isVoicePaused = typeof forcePause === 'boolean' ? forcePause : !isVoicePaused;
+  if (isVoicePaused) currentSpeakingUntil = 0;
+  sendAudioCmd({ type: 'pause-voice', pause: isVoicePaused });
+  broadcastFullState();
+  return isVoicePaused;
+}
 
 function formatClockHHMM(ts) {
   if (!ts) return '';
@@ -872,6 +906,7 @@ function formatReadableDuration(ms) {
 
 async function speakWithNeuralVoice(text) {
   if (IS_VERIFY_RENDER || !text) return;
+  isVoicePaused = false;
   const clean = String(text || '').trim();
   const words = clean.split(/\s+/).filter(Boolean).length;
   currentSpeakingUntil = Date.now() + Math.max(2800, Math.min(14000, words * 370));
@@ -1849,6 +1884,7 @@ function wireIpc() {
   ipcMain.handle('petfish:sys-wifi-toggle', async (_, enable) => {
     const res = await systemControls.setRadioState('WiFi', Boolean(enable));
     broadcastFullState();
+    setTimeout(() => systemControls.refresh(true).then(() => broadcastFullState()).catch(() => {}), 1900);
     return { ...res, fullState: getFullState() };
   });
   ipcMain.handle('petfish:sys-wifi-connect', async (_, ssid) => {
@@ -1864,6 +1900,7 @@ function wireIpc() {
   ipcMain.handle('petfish:sys-bt-toggle', async (_, enable) => {
     const res = await systemControls.setRadioState('Bluetooth', Boolean(enable));
     broadcastFullState();
+    setTimeout(() => systemControls.refresh(true).then(() => broadcastFullState()).catch(() => {}), 1900);
     return { ...res, fullState: getFullState() };
   });
   ipcMain.handle('petfish:sys-bt-connect', async (_, { target, connect }) => {
@@ -1871,9 +1908,15 @@ function wireIpc() {
     broadcastFullState();
     return { ...res, fullState: getFullState() };
   });
+  ipcMain.handle('petfish:sys-bt-connect-multi', async (_, { macs, connect }) => {
+    const res = await systemControls.connectMultipleBluetooth(macs, connect !== false);
+    broadcastFullState();
+    return { ...res, fullState: getFullState() };
+  });
   ipcMain.handle('petfish:sys-flight-toggle', async (_, enable) => {
     const res = await systemControls.setFlightMode(Boolean(enable));
     broadcastFullState();
+    setTimeout(() => systemControls.refresh(true).then(() => broadcastFullState()).catch(() => {}), 2100);
     return { ...res, fullState: getFullState() };
   });
   ipcMain.handle('petfish:sys-mute', async () => systemControls.toggleMute());
@@ -2043,8 +2086,14 @@ function wireIpc() {
     speakWithNeuralVoice(text).catch(() => {});
   });
   ipcMain.on('petfish:voice-stop', () => {
+    isVoicePaused = false;
     currentSpeakingUntil = 0;
     sendAudioCmd({ type: 'stop-speak' });
+    broadcastFullState();
+  });
+  ipcMain.handle('petfish:voice-pause', () => {
+    const paused = togglePauseVoiceInternal();
+    return { ok: true, paused, state: getFullState() };
   });
   ipcMain.handle('petfish:voice-listen', async () => {
     isWhisperListening = true;
@@ -2295,7 +2344,7 @@ app.whenReady().then(() => {
   loadSettings();
   applySecurityPolicies();
 
-  const wa = screen.getPrimaryDisplay().workArea;
+  const wa = getFullDesktopBounds();
   physics = new PetPhysics(wa);
   physics.setCharacter(settings.petCharacter || 'spidey', customHeroStore.list());
   if (settings.savedPos) physics.setPosition(settings.savedPos.x, settings.savedPos.y);
@@ -2306,7 +2355,13 @@ app.whenReady().then(() => {
   createPetWindow();
 
   screen.on('display-metrics-changed', () => {
-    if (physics) physics.setWorkArea(screen.getPrimaryDisplay().workArea);
+    if (physics) physics.setWorkArea(getFullDesktopBounds());
+  });
+  screen.on('display-added', () => {
+    if (physics) physics.setWorkArea(getFullDesktopBounds());
+  });
+  screen.on('display-removed', () => {
+    if (physics) physics.setWorkArea(getFullDesktopBounds());
   });
 
   if (!IS_VERIFY_RENDER) {

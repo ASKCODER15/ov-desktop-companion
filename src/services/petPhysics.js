@@ -104,8 +104,8 @@ class PetPhysics {
   }
 
   clampPosition() {
-    const padX = Math.round(this.winW / 2) + 8;
-    const padY = Math.round(this.winH / 2) + 8;
+    const padX = 36;
+    const padY = 36;
     const minX = this.bounds.x + padX;
     const maxX = Math.max(minX + 10, this.bounds.x + this.bounds.width - padX);
     const minY = this.bounds.y + padY;
@@ -140,8 +140,8 @@ class PetPhysics {
   }
 
   goTo(x, y, thenStay = false) {
-    const padX = Math.round(this.winW / 2) + 12;
-    const padY = Math.round(this.winH / 2) + 12;
+    const padX = 36;
+    const padY = 36;
     const tx = clamp(x, this.bounds.x + padX, this.bounds.x + this.bounds.width - padX);
     const ty = clamp(y, this.bounds.y + padY, this.bounds.y + this.bounds.height - padY);
     this.target = { x: tx, y: ty, thenStay };
@@ -149,8 +149,8 @@ class PetPhysics {
   }
 
   goToCorner(corner, thenStay = true) {
-    const padX = 132;
-    const padY = 122;
+    const padX = 56;
+    const padY = 56;
     const b = this.bounds;
     const map = {
       'top-left': [b.x + padX, b.y + padY],
@@ -164,8 +164,8 @@ class PetPhysics {
   }
 
   pickWanderPoint(far = false) {
-    const padX = 124;
-    const padY = 112;
+    const padX = 48;
+    const padY = 48;
     const b = this.bounds;
     for (let i = 0; i < 6; i++) {
       const px = b.x + padX + Math.random() * Math.max(80, b.width - padX * 2);
@@ -377,8 +377,8 @@ class PetPhysics {
       this.x += this.vx * dt;
       this.y += this.vy * dt;
 
-      const padX = Math.round(this.winW / 2) + 8;
-      const padY = Math.round(this.winH / 2) + 8;
+      const padX = 36;
+      const padY = 36;
       const minX = this.bounds.x + padX;
       const maxX = this.bounds.x + this.bounds.width - padX;
       const minY = this.bounds.y + padY;

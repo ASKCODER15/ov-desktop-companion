@@ -61,15 +61,18 @@
   // Human-Feel Neural Audio Playback (plays edge-tts neural MP3 data URL or natural WebSpeech fallback)
   let activeVoiceAudio = null;
   let speakingUntil = 0;
+  let voicePaused = false;
 
   function isSpeaking() {
+    if (voicePaused) return false;
     if (activeVoiceAudio && !activeVoiceAudio.paused && !activeVoiceAudio.ended) return true;
-    if (window.speechSynthesis && window.speechSynthesis.speaking) return true;
+    if (window.speechSynthesis && window.speechSynthesis.speaking && !window.speechSynthesis.paused) return true;
     return Date.now() < speakingUntil;
   }
 
   function stopSpeaking() {
     speakingUntil = 0;
+    voicePaused = false;
     if (activeVoiceAudio) {
       try {
         activeVoiceAudio.pause();
@@ -82,9 +85,34 @@
     }
   }
 
+  function togglePauseVoice(forceState = null) {
+    const nextPaused = typeof forceState === 'boolean' ? forceState : !voicePaused;
+    voicePaused = nextPaused;
+    if (activeVoiceAudio) {
+      try {
+        if (nextPaused) {
+          activeVoiceAudio.pause();
+          speakingUntil = 0;
+        } else if (!activeVoiceAudio.ended) {
+          const remMs = Math.max(1500, ((activeVoiceAudio.duration || 6) - (activeVoiceAudio.currentTime || 0)) * 1000);
+          speakingUntil = Date.now() + remMs;
+          activeVoiceAudio.play().catch(() => {});
+        }
+      } catch {}
+    }
+    if (window.speechSynthesis && window.speechSynthesis.speaking) {
+      try {
+        if (nextPaused) window.speechSynthesis.pause();
+        else window.speechSynthesis.resume();
+      } catch {}
+    }
+    return voicePaused;
+  }
+
   function speak(text, character = 'kronos', enabled = true, audioDataUrl = null) {
     if (!enabled) return;
     stopSpeaking();
+    voicePaused = false;
     const wordCount = String(text || '').trim().split(/\s+/).filter(Boolean).length;
     speakingUntil = Date.now() + Math.max(2200, Math.min(14000, wordCount * 360));
     if (audioDataUrl) {
@@ -181,6 +209,8 @@
   window.auraSound = {
     speak,
     stopSpeaking,
+    togglePauseVoice,
+    isVoicePaused: () => voicePaused,
     isSpeaking,
     playUiClick,
     playCharacterMotif,
