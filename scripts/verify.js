@@ -5,7 +5,7 @@ const os = require('os');
 const http = require('http');
 const { JarvisAgent, isProtectedPath, extractFirstYouTubeVideoId } = require('../src/services/jarvisAgent');
 const { NotificationMonitor } = require('../src/services/notificationMonitor');
-const { AgentMonitor } = require('../src/services/agentMonitor');
+const { AgentMonitor, extractPendingQuestionFromRecords } = require('../src/services/agentMonitor');
 const { HookServer } = require('../src/services/hookServer');
 const { AutoPilot } = require('../src/services/autoPilot');
 const { LocalLLMBrain } = require('../src/services/llmBrain');
@@ -404,6 +404,45 @@ async function run() {
   const pChain = jarvis.planJarvisSteps('make a folder called demo-web and play lofi beats on youtube');
   assert(pChain.matched && pChain.steps.length === 2);
   console.log('OK: JARVIS natural-language planner verified (IDE+Prompt, YouTube autoplay, Folder, Recycle, Download, Chained)');
+
+  // 9b. Antigravity Question & Default-Mode Permission Extractor
+  const qUnanswered = extractPendingQuestionFromRecords([
+    { step_index: 1, type: 'USER_INPUT', content: 'Deploy app' },
+    {
+      step_index: 2,
+      type: 'PLANNER_RESPONSE',
+      tool_calls: [{
+        name: 'ask_question',
+        args: { questions: JSON.stringify([{ question: 'Run tests before deploying?', options: ['Yes (Recommended)', 'No'] }]) },
+      }],
+    },
+  ], 5000);
+  assert(qUnanswered && qUnanswered.kind === 'question' && qUnanswered.question.includes('Run tests') && qUnanswered.options.length === 2);
+
+  const qAnswered = extractPendingQuestionFromRecords([
+    {
+      step_index: 2,
+      type: 'PLANNER_RESPONSE',
+      tool_calls: [{ name: 'ask_question', args: { questions: JSON.stringify([{ question: 'Run tests?', options: ['Yes'] }]) } }],
+    },
+    { step_index: 3, type: 'GENERIC', content: 'A1: Yes' },
+  ], 5000);
+  assert.strictEqual(qAnswered, null, 'Expected answered ask_question to clear pendingQuestion');
+
+  const qPerm = extractPendingQuestionFromRecords([
+    {
+      step_index: 4,
+      type: 'PLANNER_RESPONSE',
+      tool_calls: [{ name: 'run_command', args: { CommandLine: 'npm test', toolSummary: 'Run unit test suite' } }],
+    },
+  ], 5000);
+  assert(qPerm && qPerm.kind === 'approval' && qPerm.toolName === 'run_command' && qPerm.question.includes('npm test'));
+
+  const qPlain = extractPendingQuestionFromRecords([
+    { step_index: 5, type: 'PLANNER_RESPONSE', content: 'I found two configs. Should I update config.dev.json first?' },
+  ], 5000);
+  assert(qPlain && qPlain.kind === 'input' && qPlain.question.includes('config.dev.json'));
+  console.log('OK: Antigravity ask_question, default-mode permission & plain question extractor verified');
 
   assert.strictEqual(isProtectedPath('C:\\Windows'), true);
   assert.strictEqual(isProtectedPath('C:\\Program Files'), true);

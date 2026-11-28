@@ -106,6 +106,144 @@ function formatToolAction(name, rawArgs = {}) {
   return `Tool: ${name}`;
 }
 
+function cleanMultilineSnippet(str, maxLen = 480) {
+  if (!str) return '';
+  const cleaned = String(str)
+    .replace(/<USER_REQUEST>/gi, '')
+    .replace(/<\/USER_REQUEST>/gi, '')
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\r/g, '')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+  return cleaned.length <= maxLen ? cleaned : `${cleaned.slice(0, maxLen - 1)}…`;
+}
+
+function extractPendingQuestionFromRecords(tailRecords = [], ageMs = 0) {
+  let pending = null;
+  const len = tailRecords.length;
+
+  for (let i = 0; i < len; i++) {
+    const rec = tailRecords[i];
+    if (!rec || typeof rec !== 'object') continue;
+
+    if (rec.type === 'USER_INPUT' && rec.content) {
+      pending = null;
+      continue;
+    }
+
+    if (rec.type === 'GENERIC') {
+      const hasBody = Boolean(String(rec.content || '').trim());
+      if (pending && hasBody) {
+        pending = null;
+      }
+      continue;
+    }
+
+    if (rec.type !== 'PLANNER_RESPONSE') continue;
+
+    const createdAt = rec.created_at ? (Date.parse(rec.created_at) || Date.now()) : Date.now();
+    const stepIndex = Number(rec.step_index) || i + 1;
+    const isLastRecord = i === len - 1;
+    const tcs = Array.isArray(rec.tool_calls) ? rec.tool_calls : [];
+
+    if (tcs.length > 0) {
+      const askCall = tcs.find((tc) => (tc.name || tc.function?.name) === 'ask_question');
+      if (askCall) {
+        const args = askCall.args || askCall.arguments || {};
+        const parsedQs = unwrapArg(args.questions);
+        const qArr = Array.isArray(parsedQs) ? parsedQs : [];
+        const qTexts = qArr.map((q) => cleanMultilineSnippet(q?.question || '', 320)).filter(Boolean);
+        const firstOpts = Array.isArray(qArr[0]?.options)
+          ? qArr[0].options.map((o) => cleanSnippet(o, 120)).filter(Boolean).slice(0, 6)
+          : [];
+        if (qTexts.length > 0) {
+          pending = {
+            kind: 'question',
+            stepIndex,
+            toolName: 'ask_question',
+            title: 'Antigravity is asking you a question',
+            question: cleanMultilineSnippet(qTexts.join('\n\n'), 520),
+            options: firstOpts,
+            createdAt,
+          };
+          continue;
+        }
+      }
+
+      const feedbackCall = tcs.find((tc) => {
+        const nm = tc.name || tc.function?.name;
+        if (nm !== 'write_file' && nm !== 'edit_file') return false;
+        const meta = unwrapArg((tc.args || tc.arguments || {}).ArtifactMetadata);
+        return Boolean(meta && meta.RequestFeedback);
+      });
+      if (feedbackCall) {
+        const args = feedbackCall.args || feedbackCall.arguments || {};
+        const meta = unwrapArg(args.ArtifactMetadata) || {};
+        const fp = unwrapArg(args.Path || '');
+        const summary = cleanMultilineSnippet(meta.Summary || (fp ? `Review & approve changes in ${path.basename(String(fp))}` : 'Review & Proceed requested'), 440);
+        pending = {
+          kind: 'approval',
+          stepIndex,
+          toolName: feedbackCall.name || 'Artifact',
+          title: 'Review & Proceed Requested',
+          question: summary,
+          options: ['Review & Proceed in Antigravity'],
+          createdAt,
+        };
+        continue;
+      }
+
+      // Default-mode permission pause: last transcript entry is an uncompleted mutating/shell tool call waiting >= 1.5s
+      if (isLastRecord && ageMs >= 1500 && ageMs < 15 * 60 * 1000) {
+        const permCall = tcs.find((tc) => ['run_command', 'write_file', 'edit_file'].includes(tc.name || tc.function?.name));
+        if (permCall) {
+          const nm = permCall.name || permCall.function?.name;
+          const args = permCall.args || permCall.arguments || {};
+          const detail =
+            unwrapArg(args.CommandLine) ||
+            unwrapArg(args.toolSummary) ||
+            unwrapArg(args.Path) ||
+            `Approve ${nm}`;
+          pending = {
+            kind: 'approval',
+            stepIndex,
+            toolName: nm,
+            title: nm === 'run_command' ? 'Command Permission Requested' : `File Edit Permission (${nm})`,
+            question: cleanMultilineSnippet(String(detail), 440),
+            options: ['Allow / Review in Antigravity'],
+            createdAt,
+          };
+          continue;
+        }
+      }
+      continue;
+    }
+
+    // Plain-text PLANNER_RESPONSE with no tool calls asking the user a question
+    const textBody = cleanMultilineSnippet(rec.content || '', 1200);
+    if (textBody && (/\?\s*$/.test(textBody) || /\b(confirm|approve|proceed|choose|which option|let me know|would you like|do you want|ready for me to)\b/i.test(textBody))) {
+      const paras = textBody.split(/\n+/).map((p) => p.trim()).filter(Boolean);
+      const qPara = [...paras].reverse().find((p) => /\?/.test(p)) || paras[paras.length - 1] || textBody;
+      pending = {
+        kind: 'input',
+        stepIndex,
+        toolName: 'Reply Needed',
+        title: 'Antigravity asked a question',
+        question: cleanMultilineSnippet(qPara, 460),
+        options: [],
+        createdAt,
+      };
+    } else {
+      pending = null;
+    }
+  }
+
+  return pending;
+}
+
 function summarizeAntigravityBrain() {
   const brainRoot = path.join(os.homedir(), '.gemini', 'antigravity', 'brain');
   if (!fs.existsSync(brainRoot)) return [];
@@ -217,9 +355,11 @@ function summarizeAntigravityBrain() {
     }
 
     const ageMs = now - item.mtimeMs;
+    const pendingQuestion = extractPendingQuestionFromRecords(tailRecords, ageMs);
     const isActive = ageMs < 60 * 1000;
     let status = 'idle';
-    if (isActive) status = pendingFeedback ? 'waiting_approval' : 'running';
+    if (pendingQuestion) status = 'waiting_approval';
+    else if (isActive) status = pendingFeedback ? 'waiting_approval' : 'running';
     else if (ageMs < 20 * 60 * 1000) {
       if (lastStepType === 'PLANNER_RESPONSE' && pendingFeedback) status = 'waiting_approval';
       else if (lastStepType === 'PLANNER_RESPONSE') status = 'waiting_input';
@@ -228,7 +368,9 @@ function summarizeAntigravityBrain() {
 
     const activeStep = steps.find((s) => s.status === 'in_progress');
     const doneSteps = steps.filter((s) => s.status === 'done').length;
-    const what = currentFocus || (activeStep ? activeStep.title : '') || lastToolBrief || 'Ready for next task';
+    const what = pendingQuestion
+      ? cleanSnippet(pendingQuestion.question, 160)
+      : (currentFocus || (activeStep ? activeStep.title : '') || lastToolBrief || 'Ready for next task');
 
     const howParts = [];
     if (lastToolBrief) howParts.push(lastToolBrief);
@@ -257,6 +399,7 @@ function summarizeAntigravityBrain() {
       updatedAt: item.mtimeMs,
       processHint: 'Antigravity',
       sessionId: item.id,
+      pendingQuestion,
     });
   }
 
@@ -719,4 +862,4 @@ class AgentMonitor extends EventEmitter {
   }
 }
 
-module.exports = { AgentMonitor };
+module.exports = { AgentMonitor, extractPendingQuestionFromRecords };

@@ -365,9 +365,67 @@ body.mode-deep .mini-only { display: none !important; }
 }
 .mini-pulse-card:hover { background: var(--bg-elevated); transform: translateY(-1px); }
 .mini-pulse-card.urgent { background: var(--sys-amber-soft); border-color: var(--sys-amber); }
+.mini-pulse-card.urgent .mini-pulse-text { white-space: normal; line-height: 1.44; max-height: 120px; overflow-y: auto; scrollbar-width: none; color: var(--text); }
+.mini-pulse-card.urgent .mini-pulse-text::-webkit-scrollbar { display: none; }
 .mini-pulse-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .mini-pulse-label { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 11.5px; font-weight: 700; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mini-pulse-text { font-size: 11px; color: var(--text-2); line-height: 1.32; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini-pulse-text { font-size: 11.5px; color: var(--text-2); line-height: 1.38; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.question-card {
+  padding: 10px 12px;
+  border-radius: var(--r-group);
+  background: var(--sys-amber-soft);
+  border: 2px solid var(--sys-amber);
+  box-shadow: 0 2px 0 var(--key-lip);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.question-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.question-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--sys-amber);
+  letter-spacing: 0.04em;
+}
+.question-text {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+  max-height: 180px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.question-text::-webkit-scrollbar { display: none; }
+.question-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.question-opt-pill {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--bg-segment);
+  border: 1px solid var(--sep-strong);
+  border-radius: 3px;
+  padding: 3px 7px;
+  line-height: 1.3;
+}
 
 .mini-sys-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .mini-sys-pill {

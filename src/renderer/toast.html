@@ -6,19 +6,20 @@
   <title>OV Robot Telemetry</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
-    html, body { padding: 4px; background: transparent; }
+    html, body { padding: 4px; background: transparent; height: 100%; }
     .mini-toast {
       position: static;
       width: 100%;
-      min-height: 104px;
+      min-height: 185px;
+      height: calc(100vh - 8px);
       border-radius: 3px;
       background: #111215;
       border: 2px solid var(--accent, #ff5500);
       box-shadow: 3px 3px 0 #050608;
-      padding: 8px 10px;
+      padding: 10px 12px;
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 7px;
     }
     .mini-toast-header {
       display: flex;
@@ -64,20 +65,39 @@
     }
     .mini-toast-title {
       font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 700;
+      font-size: 12.5px;
+      font-weight: 800;
       color: #f2efe9;
-      line-height: 1.25;
+      line-height: 1.3;
     }
     .mini-toast-body {
       font-family: var(--font-mono);
+      font-size: 12px;
+      color: #e4e7ee;
+      line-height: 1.46;
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: none;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .mini-toast-body::-webkit-scrollbar { display: none; }
+    .toast-options-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 2px;
+    }
+    .toast-opt-pill {
+      font-family: var(--font-mono);
       font-size: 10.5px;
-      color: #c4c9d4;
-      line-height: 1.35;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+      font-weight: 700;
+      color: #f2efe9;
+      background: #1c1f26;
+      border: 1px solid #3c4252;
+      border-radius: 2px;
+      padding: 3px 7px;
+      line-height: 1.25;
     }
     .toast-copy-btn {
       height: 20px;
@@ -111,6 +131,7 @@
     </div>
     <div id="mini-toast-title" class="mini-toast-title"></div>
     <div id="mini-toast-body" class="mini-toast-body"></div>
+    <div id="mini-toast-options" class="toast-options-list hidden"></div>
     <div id="mini-toast-actions" class="mini-toast-actions hidden"></div>
   </div>
   <script src="toast.js"></script>

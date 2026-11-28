@@ -74,12 +74,14 @@ if (!IS_VERIFY_RENDER) {
 
 const PET_W = 204;
 const PET_H = 196;
-const MINI_W = 374;
-const MINI_H = 392;
-const DEEP_W = 478;
-const DEEP_H = 648;
-const TOAST_W = 316;
-const TOAST_H = 152;
+const MINI_W = 440;
+const MINI_H = 490;
+const DEEP_W = 548;
+const DEEP_H = 730;
+const TOAST_W = 430;
+const TOAST_H = 220;
+const TOAST_Q_W = 464;
+const TOAST_Q_H = 310;
 
 let petWindow = null;
 let hudWindow = null;
@@ -95,6 +97,7 @@ let alertWakeUntil = 0;
 let hudOpen = false;
 let hudPinned = false;
 let hudViewMode = 'mini'; // 'mini' (cute compact popover!) | 'deep' (full command center!)
+let toastExpanded = false;
 let dragAnchorCursor = null;
 let dragAnchorFish = null;
 
@@ -348,11 +351,21 @@ function getFullState() {
         {
           id: 'demo-antigravity',
           name: 'Antigravity',
-          status: 'running',
+          status: 'waiting_approval',
           accent: '#38BDF8',
-          what: 'Refactoring API middleware & unit tests',
+          what: 'Refactoring API middleware & asking for confirmation',
           how: 'Editing src/api/router.ts • Running vitest suite',
           why: 'Requested workspace build verification',
+          processHint: 'Antigravity',
+          pendingQuestion: {
+            kind: 'question',
+            stepIndex: 14,
+            toolName: 'ask_question',
+            title: 'Antigravity is asking you a question',
+            question: 'Should I run the full integration suite and deploy to staging now?',
+            options: ['Yes — run full suite & deploy (Recommended)', 'Run tests only first'],
+            createdAt: Date.now() - 12000,
+          },
         },
         {
           id: 'demo-claude',
@@ -583,22 +596,24 @@ function computeHudBounds(mode = hudViewMode) {
   return { x: left, y: top, width: w, height: h };
 }
 
-function computeToastBounds() {
+function computeToastBounds(expanded = toastExpanded) {
   const wa = screen.getPrimaryDisplay().workArea;
   const pad = 12;
+  const w = Math.min(wa.width - pad * 2, expanded ? TOAST_Q_W : TOAST_W);
+  const h = Math.min(wa.height - pad * 2, expanded ? TOAST_Q_H : TOAST_H);
   if (hudOpen && hudWindow && !hudWindow.isDestroyed()) {
     // Dock robot speech bubble cleanly at bottom-right corner when HUD is open so both are visible
     return {
-      x: wa.x + wa.width - TOAST_W - pad,
-      y: wa.y + wa.height - TOAST_H - pad,
-      width: TOAST_W,
-      height: TOAST_H,
+      x: wa.x + wa.width - w - pad,
+      y: wa.y + wa.height - h - pad,
+      width: w,
+      height: h,
     };
   }
-  const left = Math.max(wa.x + pad, Math.min(wa.x + wa.width - TOAST_W - pad, Math.round(physics.x - TOAST_W / 2)));
-  const above = Math.round(physics.y - 96 - TOAST_H);
-  const top = above >= wa.y + pad ? above : Math.min(wa.y + wa.height - TOAST_H - pad, Math.round(physics.y + 92));
-  return { x: left, y: top, width: TOAST_W, height: TOAST_H };
+  const left = Math.max(wa.x + pad, Math.min(wa.x + wa.width - w - pad, Math.round(physics.x - w / 2)));
+  const above = Math.round(physics.y - 96 - h);
+  const top = above >= wa.y + pad ? above : Math.min(wa.y + wa.height - h - pad, Math.round(physics.y + 92));
+  return { x: left, y: top, width: w, height: h };
 }
 
 /**
@@ -712,27 +727,28 @@ function showToast(payload) {
   if (toastHideTimer) clearTimeout(toastHideTimer);
   ensurePetVisible();
 
+  toastExpanded = Boolean(payload?.questionItem || payload?.approvalItem || (String(payload?.body || '').length > 130));
   const fullPayload = {
     ...payload,
     privacyMask: Boolean(settings.privacyMask),
     petCharacter: physics ? physics.character : settings.petCharacter,
   };
-  const duration = payload.approvalItem ? 14000 : 6500;
+  const duration = payload.questionItem ? 26000 : (payload.approvalItem ? 20000 : (payload.alwaysShow ? 14000 : 8500));
 
   if (toastWindow && !toastWindow.isDestroyed()) {
-    toastWindow.setBounds(computeToastBounds());
+    toastWindow.setBounds(computeToastBounds(toastExpanded));
     sendWin(toastWindow, 'petfish:toast-show', fullPayload);
     toastWindow.showInactive();
     toastHideTimer = setTimeout(() => hideToast(), duration);
     return;
   }
 
-  const b = computeToastBounds();
+  const b = computeToastBounds(toastExpanded);
   toastWindow = new BrowserWindow({
     x: b.x,
     y: b.y,
-    width: TOAST_W,
-    height: TOAST_H,
+    width: b.width,
+    height: b.height,
     transparent: true,
     frame: false,
     thickFrame: false,
@@ -838,6 +854,7 @@ let currentSpeakingUntil = 0;
 let currentSpeechSnippet = '';
 let isWhisperListening = false;
 const announcedAgentSessions = new Set();
+const announcedQuestions = new Set();
 
 function formatClockHHMM(ts) {
   if (!ts) return '';
@@ -1333,7 +1350,41 @@ function wireMonitors() {
   agentMonitor.on('update', () => {
     broadcastFullState();
     updateTrayTooltip();
-    const running = agentMonitor.getAgents().filter((a) => a.status === 'running');
+    const allAgents = agentMonitor.getAgents();
+
+    // Auto-surface live Antigravity questions & default-mode permission requests
+    for (const ag of allAgents) {
+      const q = ag.pendingQuestion;
+      if (!q || !q.question) continue;
+      const qKey = `${ag.id}::q::${q.stepIndex || 0}::${q.question.slice(0, 40)}`;
+      if (!announcedQuestions.has(qKey)) {
+        announcedQuestions.add(qKey);
+        if (!IS_VERIFY_RENDER) {
+          alertWakeUntil = Date.now() + 26000;
+          ensurePetVisible();
+          triggerPetReaction('approval');
+          showToast({
+            alwaysShow: true,
+            tag: `${ag.name.toUpperCase()} // ${q.kind === 'approval' ? 'APPROVAL' : 'QUESTION'}`,
+            title: q.title || `${ag.name} is asking you`,
+            body: q.question,
+            questionItem: {
+              ...q,
+              agentName: ag.name,
+              processHint: ag.processHint || ag.name,
+            },
+            startedAt: ag.turnStartedAt || ag.startedAt,
+            tabTarget: 'agents',
+          });
+          if (settings.voiceEnabled) {
+            speakWithNeuralVoice(`Bro, ${ag.name} is asking you: ${q.question.slice(0, 140)}`).catch(() => {});
+          }
+        }
+        break;
+      }
+    }
+
+    const running = allAgents.filter((a) => a.status === 'running');
     for (const ag of running) {
       const key = `${ag.id}::${ag.turnStartedAt || ag.startedAt || 0}`;
       if (!announcedAgentSessions.has(key)) {

@@ -6,9 +6,11 @@
   const titleEl = document.getElementById('mini-toast-title');
   const bodyEl = document.getElementById('mini-toast-body');
   const copyBtn = document.getElementById('mini-toast-copy');
+  const optionsEl = document.getElementById('mini-toast-options');
   const actionsEl = document.getElementById('mini-toast-actions');
   let targetTab = 'agents';
   let currentNotif = null;
+  let currentQuestion = null;
   let startedAtTs = 0;
   let timerInterval = null;
 
@@ -24,7 +26,8 @@
     if (!payload) return;
     targetTab = payload.tabTarget || 'agents';
     currentNotif = payload.notifItem || null;
-    document.body.dataset.theme = ['kronos', 'optix', 'orbit'].includes(payload.petCharacter)
+    currentQuestion = payload.questionItem || null;
+    document.body.dataset.theme = ['kronos', 'aegis', 'optix', 'orbit'].includes(payload.petCharacter)
       ? payload.petCharacter
       : 'kronos';
     document.body.classList.toggle('privacy-masked', Boolean(payload.privacyMask));
@@ -49,6 +52,22 @@
       timerEl.classList.add('hidden');
     }
 
+    if (optionsEl) {
+      optionsEl.innerHTML = '';
+      const opts = payload.questionItem?.options;
+      if (Array.isArray(opts) && opts.length > 0) {
+        optionsEl.classList.remove('hidden');
+        opts.forEach((optText, idx) => {
+          const pill = document.createElement('span');
+          pill.className = 'toast-opt-pill';
+          pill.textContent = `${idx + 1}. ${optText}`;
+          optionsEl.appendChild(pill);
+        });
+      } else {
+        optionsEl.classList.add('hidden');
+      }
+    }
+
     actionsEl.innerHTML = '';
     if (payload.approvalItem) {
       const item = payload.approvalItem;
@@ -70,6 +89,27 @@
         await api.resolveApproval(item.id, 'deny');
       });
       actionsEl.append(allowBtn, denyBtn);
+    } else if (payload.questionItem) {
+      const q = payload.questionItem;
+      actionsEl.classList.remove('hidden');
+
+      const openBtn = document.createElement('button');
+      openBtn.className = 'mini-btn primary';
+      openBtn.textContent = `OPEN ${(q.agentName || 'ANTIGRAVITY').toUpperCase()}`;
+      openBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        api.closeToast();
+        await api.focusApp(q.processHint || q.agentName || 'Antigravity');
+      });
+
+      const speakBtn = document.createElement('button');
+      speakBtn.className = 'mini-btn';
+      speakBtn.textContent = 'SPEAK';
+      speakBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        api.speakText(`${q.agentName || 'Antigravity'} asks: ${q.question || bodyEl.textContent}`);
+      });
+      actionsEl.append(openBtn, speakBtn);
     } else {
       actionsEl.classList.add('hidden');
     }
@@ -89,7 +129,9 @@
 
   root.addEventListener('click', async () => {
     api.closeToast();
-    if (currentNotif) {
+    if (currentQuestion) {
+      await api.focusApp(currentQuestion.processHint || currentQuestion.agentName || 'Antigravity');
+    } else if (currentNotif) {
       await api.openNotificationApp(currentNotif);
     } else {
       api.openHudTab(targetTab, 'deep');

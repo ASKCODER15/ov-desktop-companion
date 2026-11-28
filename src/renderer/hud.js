@@ -390,6 +390,36 @@
       appSlot.innerHTML = `<div class="mini-pulse-card urgent"><div class="mini-pulse-top"><span class="mini-pulse-label"><span class="agent-dot" style="background:#f5a623"></span>${escapeHtml(topApp.agent)} · ${escapeHtml(topApp.toolName)}</span><span class="section-meta">${state.approvals.length} pending</span></div><div class="mini-pulse-text">${escapeHtml(topApp.detail || topApp.title)}</div><div class="card-actions" style="margin-top:3px"><button class="mini-btn allow" data-act="allow" data-id="${escapeHtml(topApp.id)}">Allow</button><button class="mini-btn deny" data-act="deny" data-id="${escapeHtml(topApp.id)}">Deny</button></div></div>`;
     } else { appSlot.classList.add('hidden'); appSlot.innerHTML = ''; }
 
+    const pendingQuestionAgents = state.agents.filter((a) => a.pendingQuestion && a.pendingQuestion.question);
+    const qSlot = document.getElementById('mini-question-slot');
+    if (qSlot) {
+      if (pendingQuestionAgents.length > 0) {
+        const qa = pendingQuestionAgents[0];
+        const q = qa.pendingQuestion;
+        const optsHtml = Array.isArray(q.options) && q.options.length > 0
+          ? `<div class="question-options">${q.options.map((o, i) => `<span class="question-opt-pill">${i + 1}. ${escapeHtml(o)}</span>`).join('')}</div>`
+          : '';
+        qSlot.classList.remove('hidden');
+        qSlot.innerHTML = `
+          <div class="question-card">
+            <div class="question-head">
+              <span class="question-badge"><span class="agent-dot" style="background:#f5a623"></span>${escapeHtml(qa.name.toUpperCase())} // ${q.kind === 'approval' ? 'PERMISSION' : 'ASKING YOU'}</span>
+              <span class="section-meta">${escapeHtml(q.toolName || 'Question')}</span>
+            </div>
+            <div class="question-text">${escapeHtml(q.question)}</div>
+            ${optsHtml}
+            <div class="card-actions" style="margin-top:2px">
+              <button class="mini-btn primary" data-focus="${escapeHtml(qa.processHint || qa.name)}" type="button">OPEN ${escapeHtml(qa.name.toUpperCase())}</button>
+              <button class="mini-btn" data-copy-raw="${escapeHtml(q.question)}" type="button">COPY</button>
+              <button class="mini-btn" data-speak-raw="${escapeHtml(`${qa.name} asks: ${q.question}`)}" type="button">SPEAK</button>
+            </div>
+          </div>`;
+      } else {
+        qSlot.classList.add('hidden');
+        qSlot.innerHTML = '';
+      }
+    }
+
     const topAg = activeAgents[0] || state.agents[0];
     if (topAg) {
       document.getElementById('mini-ag-dot').style.background = topAg.accent || '#38bdf8';
@@ -430,10 +460,11 @@
 
     // Badges
     const tabAgentsBadge = document.getElementById('tab-badge-agents');
-    const agentBadgeCount = state.approvals.length || activeAgents.length;
+    const attentionCount = state.approvals.length + pendingQuestionAgents.length;
+    const agentBadgeCount = attentionCount || activeAgents.length;
     tabAgentsBadge.textContent = String(agentBadgeCount);
     tabAgentsBadge.classList.toggle('hidden', agentBadgeCount === 0);
-    tabAgentsBadge.classList.toggle('urgent', state.approvals.length > 0);
+    tabAgentsBadge.classList.toggle('urgent', attentionCount > 0);
 
     const tabAlertsBadge = document.getElementById('tab-badge-alerts');
     tabAlertsBadge.textContent = String(unread.length);
@@ -473,7 +504,27 @@
           const elapsedStart = ag.turnStartedAt || ag.startedAt || Date.now();
           const startClock = formatClockTime(elapsedStart);
           const pct = ag.stepsProgress ? Math.round((ag.stepsProgress.done / Math.max(1, ag.stepsProgress.total)) * 100) : 0;
-          const copySummary = `${ag.name} (${ag.status.toUpperCase()}) | STARTED ${startClock} | WHAT: ${ag.what || ag.task || 'Active'} | HOW: ${ag.how || ''}`;
+          const pq = ag.pendingQuestion;
+          const copySummary = pq
+            ? `${ag.name} QUESTION: ${pq.question}`
+            : `${ag.name} (${ag.status.toUpperCase()}) | STARTED ${startClock} | WHAT: ${ag.what || ag.task || 'Active'} | HOW: ${ag.how || ''}`;
+          const questionHtml = pq && pq.question
+            ? `<div class="question-card" style="margin-top:2px">
+                <div class="question-head">
+                  <span class="question-badge">${escapeHtml((pq.title || 'QUESTION / REQUEST').toUpperCase())}</span>
+                  <span class="section-meta">${escapeHtml(pq.toolName || 'Prompt')}</span>
+                </div>
+                <div class="question-text">${escapeHtml(pq.question)}</div>
+                ${Array.isArray(pq.options) && pq.options.length > 0 ? `<div class="question-options">${pq.options.map((o, i) => `<span class="question-opt-pill">${i + 1}. ${escapeHtml(o)}</span>`).join('')}</div>` : ''}
+                <div class="card-actions" style="margin-top:2px">
+                  <button class="mini-btn primary" data-focus="${escapeHtml(ag.processHint || ag.name)}" type="button">OPEN ${escapeHtml(ag.name.toUpperCase())}</button>
+                  <button class="mini-btn" data-speak-raw="${escapeHtml(`${ag.name} asks: ${pq.question}`)}" type="button">SPEAK</button>
+                </div>
+              </div>`
+            : '';
+          const statusTagHtml = pq
+            ? `<span class="status-tag waiting_approval"><span class="status-dot"></span>ASKING</span>`
+            : `<span class="status-tag running"><span class="status-dot"></span>ON</span>`;
           return `
           <div class="card">
             <div class="card-top">
@@ -484,13 +535,14 @@
               <div class="card-right-meta">
                 ${startClock ? `<span class="section-meta">START ${escapeHtml(startClock)}</span>` : ''}
                 <span class="elapsed-pill" data-elapsed-start="${elapsedStart}">${formatElapsed(elapsedStart)}</span>
-                <span class="status-tag running"><span class="status-dot"></span>ON</span>
+                ${statusTagHtml}
               </div>
             </div>
+            ${questionHtml}
             <div class="brief-box">
-              <div class="brief-row"><span class="brief-key">WHAT</span><span class="brief-val">${escapeHtml((ag.what || ag.task || 'Active').slice(0, 128))}</span></div>
-              ${ag.how ? `<div class="brief-row"><span class="brief-key">HOW</span><span class="brief-val muted">${escapeHtml(ag.how.slice(0, 108))}</span></div>` : ''}
-              ${ag.why ? `<div class="brief-row"><span class="brief-key">WHY</span><span class="brief-val muted">${escapeHtml(ag.why.slice(0, 92))}</span></div>` : ''}
+              <div class="brief-row"><span class="brief-key">WHAT</span><span class="brief-val">${escapeHtml((ag.what || ag.task || 'Active').slice(0, 320))}</span></div>
+              ${ag.how ? `<div class="brief-row"><span class="brief-key">HOW</span><span class="brief-val muted">${escapeHtml(ag.how.slice(0, 220))}</span></div>` : ''}
+              ${ag.why ? `<div class="brief-row"><span class="brief-key">WHY</span><span class="brief-val muted">${escapeHtml(ag.why.slice(0, 180))}</span></div>` : ''}
               ${ag.stepsProgress ? `<div class="step-bar-wrap"><div class="step-bar"><div class="step-bar-fill" style="width:${pct}%"></div></div><span class="step-bar-txt">${ag.stepsProgress.done}/${ag.stepsProgress.total}</span></div>` : ''}
             </div>
             <div class="card-foot">
@@ -1004,6 +1056,11 @@
     if (copyRawBtn) {
       if (api.copyText) await api.copyText(copyRawBtn.dataset.copyRaw);
       showCommandFeedback('COPIED TO CLIPBOARD');
+      return;
+    }
+    const speakRawBtn = e.target.closest('button[data-speak-raw]');
+    if (speakRawBtn) {
+      if (speakRawBtn.dataset.speakRaw) api.speakText(speakRawBtn.dataset.speakRaw);
       return;
     }
     const copyIdxBtn = e.target.closest('button[data-copy-idx]');
